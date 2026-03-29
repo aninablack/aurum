@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurum fetch.js Output Document</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; margin: 40px auto; max-width: 900px; line-height: 1.55; color: #0d1b2a; }
+    h1,h2 { margin: 0 0 12px; }
+    h1 { font-size: 30px; }
+    h2 { font-size: 20px; margin-top: 28px; }
+    code { background: #f2f4f7; padding: 2px 6px; border-radius: 4px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Aurum fetch.js Output Document</h1>
+
+  <h2>Purpose</h2>
+  <p><code>fetch.js</code> aggregates market, macro, sentiment, crypto, and geopolitical data into one snapshot and writes it to <code>aurum-data.json</code> in your configured GitHub Gist.</p>
+
+  <h2>Runtime</h2>
+  <ul>
+    <li>Triggered by GitHub Actions (<code>aurum-pipeline.yml</code>)</li>
+    <li>Schedule: every 15 minutes (Mon-Fri) + weekend keepalive run</li>
+    <li>Environment: Node.js 20</li>
+  </ul>
+
+  <h2>Required Secrets</h2>
+  <ul>
+    <li><code>ALPHA_VANTAGE_KEY</code></li>
+    <li><code>FRED_KEY</code></li>
+    <li><code>NEWS_API_KEY</code></li>
+    <li><code>METALS_DEV_KEY</code></li>
+    <li><code>COINGECKO_KEY</code> (optional but recommended)</li>
+    <li><code>GIST_ID</code></li>
+    <li><code>GIST_TOKEN</code></li>
+  </ul>
+
+  <h2>Data Sources</h2>
+  <ul>
+    <li>Fear &amp; Greed: <code>alternative.me</code></li>
+    <li>FX: <code>open.er-api.com</code></li>
+    <li>Metals: <code>metals.dev</code> (+ <code>freegoldapi.com</code> fallback for gold)</li>
+    <li>Indices proxies: <code>Alpha Vantage</code></li>
+    <li>Macro: <code>FRED</code></li>
+    <li>News sentiment: <code>NewsAPI</code></li>
+    <li>Crypto: <code>CoinGecko</code></li>
+    <li>Geopolitical risk: <code>GDELT</code></li>
+  </ul>
+
+  <h2>Output Shape (Top-Level)</h2>
+  <ul>
+    <li><code>meta</code></li>
+    <li><code>fearGreed</code></li>
+    <li><code>metals</code></li>
+    <li><code>indices</code></li>
+    <li><code>fx</code></li>
+    <li><code>macro</code></li>
+    <li><code>crypto</code></li>
+    <li><code>sentiment</code></li>
+    <li><code>geopolitical</code></li>
+    <li><code>history</code></li>
+  </ul>
+
+  <h2>Reliability Behaviors</h2>
+  <ul>
+    <li>Each source is wrapped in <code>safe(...)</code> so one failure does not crash the pipeline.</li>
+    <li>Previous snapshot data is reused where needed to avoid blank panels.</li>
+    <li>Rolling history arrays are maintained up to 90 points.</li>
+  </ul>
+
+  <h2>Important Fix Applied</h2>
+  <p>The narrative generator now receives gold with full delta context (not just a raw price), so “gold vs yields” logic can actually appear in the intelligence headline.</p>
+
+  <h2>Expected Console Outcome</h2>
+  <ul>
+    <li>Successful source fetch logs</li>
+    <li>Snapshot write confirmation to Gist</li>
+    <li>Final size/history summary</li>
+    <li>Explicit failed source list (if any)</li>
+  </ul>
+</body>
+</html>

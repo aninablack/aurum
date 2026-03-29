@@ -1,0 +1,41 @@
+name: Aurum data pipeline
+
+on:
+  schedule:
+    # Every 15 minutes, Mon–Fri, 06:00–22:00 UTC (market hours + buffer)
+    - cron: '*/15 6-22 * * 1-5'
+    # Once on weekends to keep history alive
+    - cron: '0 8 * * 0,6'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run fetch pipeline
+        env:
+          ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
+          FRED_KEY:          ${{ secrets.FRED_KEY }}
+          NEWS_API_KEY:      ${{ secrets.NEWS_API_KEY }}
+          METALS_DEV_KEY:    ${{ secrets.METALS_DEV_KEY }}
+          COINGECKO_KEY:     ${{ secrets.COINGECKO_KEY }}
+          GIST_ID:           ${{ secrets.GIST_ID }}
+          GIST_TOKEN:        ${{ secrets.GIST_TOKEN }}
+        run: node fetch.js
+
+      - name: Trigger Netlify deploy (optional — only needed if SSG)
+        if: success()
+        run: |
+          if [ -n "${{ secrets.NETLIFY_BUILD_HOOK }}" ]; then
+            curl -s -X POST "${{ secrets.NETLIFY_BUILD_HOOK }}"
+          fi

@@ -1,0 +1,1112 @@
+<!--
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  AURUM — DESIGN SPECIFICATION v1.0                                             ║
+║  Market Intelligence Dashboard                                                  ║
+║  For Codex: read this entire block before writing a single line of UI code.    ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Aurum is a financial intelligence dashboard. The aesthetic is "private bank
+  meets modern data product" — Bloomberg's precision, a private wealth manager's
+  restraint. It must feel expensive without a single gradient or drop shadow.
+
+  The user is not a trader. They are an intelligent observer of markets.
+  Every design decision should serve legibility and signal over noise.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TYPOGRAPHY — DM SERIF DISPLAY + DM SANS (Google Fonts)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Google Fonts import (place in <head>):
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  --font-display: 'DM Serif Display', Georgia, serif;   /* prices & data values ONLY */
+  --font-ui:      'DM Sans', system-ui, sans-serif;     /* everything else */
+
+  RULE: DM Serif Display appears ONLY on primary data values (prices, index levels,
+  percentages, rates). Never on labels, body copy, nav, buttons, or metadata.
+  This contrast is the single most important typographic decision in Aurum.
+
+  Scale:
+  --text-data-hero:   font: 500 38px/1 var(--font-display);   /* hero strip values */
+  --text-data-panel:  font: 400 26px/1 var(--font-display);   /* panel primary values */
+  --text-data-small:  font: 400 18px/1 var(--font-display);   /* secondary values */
+  --text-label:       font: 500 10px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase;
+  --text-body:        font: 400 13px/1.6 var(--font-ui);
+  --text-meta:        font: 400 11px/1.5 var(--font-ui);
+  --text-nav:         font: 500 12px/1 var(--font-ui); letter-spacing: 0.02em;
+
+  Weights used: 300 (rare, large decorative), 400 (body), 500 (labels, nav, deltas).
+  Never use 600 or 700 — too heavy against the refined palette.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLOUR SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  :root {
+    /* Page & surface */
+    --color-page:          #F9F6F0;   /* warm off-white — never pure white for page bg */
+    --color-surface:       #FFFFFF;   /* card surfaces lift from page */
+    --color-surface-tint:  #F4F1EA;   /* subtle tint for alternating rows, hover states */
+    --color-header:        #0D1B2A;   /* dark navy — top nav / dashboard header */
+
+    /* Navy text scale (replaces black entirely) */
+    --color-text-primary:   #0D1B2A;  /* deep navy — headings, primary values */
+    --color-text-secondary: #4A5568;  /* blue-grey — body copy, descriptions */
+    --color-text-tertiary:  #8A96A4;  /* muted — metadata, timestamps, placeholders */
+    --color-text-disabled:  #C8D0D8;  /* light grey-blue */
+
+    /* Gold accent scale — use sparingly */
+    --gold-100:  #F0DFA0;   /* very light tint, hover backgrounds */
+    --gold-400:  #D4AF37;   /* primary gold — wordmark, hero accents */
+    --gold-500:  #C9A84C;   /* border gold — card borders, dividers */
+    --gold-600:  #B8952A;   /* active gold — selected tabs, active states */
+    --gold-800:  #8B6914;   /* text on gold-tinted backgrounds */
+
+    /* Signal colours */
+    --color-up:      #0F6E56;   /* positive delta — deep teal-green */
+    --color-down:    #A32D2D;   /* negative delta — deep red */
+    --color-caution: #B8952A;   /* warning / elevated risk — gold-amber */
+    --color-neutral: #243D56;   /* informational — mid navy */
+
+    /* Borders */
+    --border-gold:   0.5px solid rgba(201, 168, 76, 0.35);   /* standard card border */
+    --border-gold-strong: 0.5px solid rgba(201, 168, 76, 0.6); /* hover / focus */
+    --border-nav:    1px solid rgba(201, 168, 76, 0.2);       /* dividers in header */
+    --border-panel:  0.5px solid rgba(201, 168, 76, 0.25);    /* inner panel dividers */
+  }
+
+  GOLD USAGE RULES:
+  ✓ Data category labels (10px uppercase)        e.g. "GOLD · XAU/USD"
+  ✓ Card borders (rgba, never solid opaque)
+  ✓ Active tab underline (2px solid #D4AF37)
+  ✓ Intelligence dot indicator (6px circle)
+  ✓ Wordmark in nav (on dark navy background)
+  ✓ Top border accent on hero strip cards (2px solid #D4AF37)
+  ✗ Never as a fill on large areas
+  ✗ Never as button background
+  ✗ Never on text larger than 14px (except wordmark)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LAYOUT & SPACING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-sm:   6px;    /* inner elements: badges, tags, mini chips */
+  --radius-md:   10px;   /* standard cards and panels */
+  --radius-lg:   14px;   /* hero panels, large cards */
+  --radius-pill: 20px;   /* scenario buttons, status pills */
+
+  Page max-width: 1280px, centred with 24px horizontal padding.
+  Grid: 12-column, 16px gutters.
+  Panel padding: 16px inner (small panels) / 20px inner (large panels).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT SPECS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  NAV / HEADER
+  ─────────────
+  background: var(--color-header)    /* #0D1B2A dark navy */
+  height: 52px
+  padding: 0 24px
+  border-bottom: var(--border-nav)
+  Wordmark: font-family var(--font-display), 18px, color #D4AF37
+  Tagline: DM Sans 10px, letter-spacing 0.1em, color rgba(212,175,55,0.5), uppercase
+  Timestamp: DM Sans 10px, color rgba(212,175,55,0.4), right-aligned
+  Nav links: DM Sans 12px 500, color rgba(255,255,255,0.6), hover: rgba(212,175,55,0.8)
+  Active nav link: border-bottom: 2px solid #D4AF37, color #D4AF37
+
+  DATA LABEL (appears above every value)
+  ─────────────────────────────────────
+  font: 500 10px DM Sans
+  letter-spacing: 0.08em
+  text-transform: uppercase
+  color: #C9A84C  (gold-500)
+  margin-bottom: 4px
+  Example: "COMMODITY · GOLD" / "INDEX · S&P 500" / "FX · EUR/USD"
+
+  ASSET CARD (standard panel)
+  ────────────────────────────
+  background: #FFFFFF
+  border: var(--border-gold)
+  border-radius: var(--radius-md)
+  border-top: 2px solid #D4AF37   ← hero cards only, omit on secondary cards
+  padding: 16px
+  No box-shadow — elevation only from border colour difference vs page bg
+
+  Structure inside each card:
+  1. Data label     — 10px gold uppercase
+  2. Primary value  — DM Serif Display 26px, color var(--color-text-primary)
+  3. Delta line     — DM Sans 12px 500, color var(--color-up) or var(--color-down)
+  4. Impact bar     — 3px height, border-radius 2px, colour matches delta direction
+  5. Timestamp      — DM Sans 10px, color var(--color-text-tertiary)
+
+  DELTA VALUES
+  ─────────────
+  Positive: color: #0F6E56; font-weight: 500
+  Negative: color: #A32D2D; font-weight: 500
+  Caution:  color: #B8952A; font-weight: 500
+  Prefix:   show "+" for positive, "−" (minus, not hyphen) for negative
+  Format:   always show % and absolute value  e.g. "+1.8%  +$41.20"
+
+  INTELLIGENCE STRIP (bottom of hero area / each panel)
+  ──────────────────────────────────────────────────────
+  A single sentence of market context.
+  Layout: 6px gold circle dot + 11px DM Sans text, color var(--color-text-secondary)
+  padding: 10px 16px
+  border-top: var(--border-panel)
+  background: transparent
+  One sentence only. Never bullet points inside the strip.
+
+  SCENARIO BUTTONS
+  ─────────────────
+  DM Sans 12px 500
+  padding: 7px 16px
+  border-radius: var(--radius-pill)
+  border: 0.5px solid var(--color-text-disabled)
+  background: transparent
+  color: var(--color-text-tertiary)
+  Inactive hover: background var(--color-surface-tint)
+  Active — Geopolitical: background #FCEBEB, border #A32D2D, color #791F1F
+  Active — Rate hike:    background #FAEEDA, border #854F0B, color #633806
+  Active — Supply shock: background #E1F5EE, border #0F6E56, color #085041
+  Active — Crash:        background #EEEDFE, border #534AB7, color #3C3489
+
+  FEAR & GREED GAUGE
+  ───────────────────
+  Display as arc / semicircle — not a bar
+  0–24: Extreme fear (#A32D2D)
+  25–44: Fear (#B8952A)
+  45–55: Neutral (#8A96A4)
+  56–74: Greed (#0F6E56)
+  75–100: Extreme greed (#085041)
+  Value: DM Serif Display 38px, centred under arc
+  Label: DM Sans 12px 500, colour matches zone
+
+  MACRO SIGNAL ROW (yield curve, CPI, Fed rate)
+  ───────────────────────────────────────────────
+  Horizontal strip, 4 metrics side by side
+  Each: label (gold) above, value (DM Serif Display 20px) below, small delta beneath
+  Dividers between: 0.5px vertical line, rgba(201,168,76,0.2)
+  Inverted yield curve (T10Y2Y < 0): highlight entire cell with caution amber tint
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DASHBOARD LAYOUT — PANEL ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Row 0  — Nav (dark navy, full width, 52px)
+  Row 1  — Hero strip: Fear & Greed (left) + Top mover + Timestamp (right)
+             Full width, height 80px, border-top gold accent
+  Row 2  — Macro signals: 10Y Yield | Yield Curve | CPI | Fed Rate
+             4 columns, equal width, horizontal strip
+  Row 3  — Main grid (3 columns):
+             Col 1: Precious metals (Gold, Silver, Platinum)
+             Col 2: Global indices (S&P, DAX, FTSE, Nikkei)
+             Col 3: FX rates (EUR/USD, GBP/USD, USD/JPY, USD/CHF)
+  Row 4  — Intelligence panels (2 columns):
+             Col 1: Geopolitical risk feed (GDELT + NewsAPI headlines)
+             Col 2: Crypto signals (BTC, ETH as macro risk-on/off)
+  Row 5  — Scenario overlay bar (full width, scenario buttons)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATA BINDING — HOW TO WIRE PANELS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  All data comes from a single JSON file fetched on page load:
+  const DATA_URL = 'https://gist.githubusercontent.com/[USERNAME]/[GIST_ID]/raw/aurum-data.json';
+
+  const data = await fetch(DATA_URL).then(r => r.json());
+
+  JSON shape (Claude will generate the full fetch.js that produces this):
+  {
+    "meta": {
+      "updated": "2026-03-29T14:32:00Z",
+      "stale": false
+    },
+    "fearGreed": {
+      "value": 42,
+      "classification": "Fear",
+      "previousClose": 38
+    },
+    "metals": {
+      "gold":     { "price": 2340.50, "change": 1.8,  "changeAbs": 41.20 },
+      "silver":   { "price": 27.34,   "change": 0.6,  "changeAbs": 0.16  },
+      "platinum": { "price": 961.00,  "change": -0.4, "changeAbs": -3.80 }
+    },
+    "indices": {
+      "sp500":  { "price": 5248.00, "change": 0.4  },
+      "dax":    { "price": 18210,   "change": -0.2 },
+      "ftse":   { "price": 7842,    "change": 0.6  },
+      "nikkei": { "price": 38640,   "change": 1.1  }
+    },
+    "fx": {
+      "EURUSD": { "rate": 1.0821, "change": -0.2 },
+      "GBPUSD": { "rate": 1.2638, "change": 0.1  },
+      "USDJPY": { "rate": 151.42, "change": 0.3  },
+      "USDCHF": { "rate": 0.8934, "change": -0.1 }
+    },
+    "macro": {
+      "treasury10y":  { "rate": 4.28, "change": 0.04  },
+      "yieldSpread":  { "rate": 0.14, "change": 0.02  },
+      "cpi":          { "rate": 3.1,  "change": -0.1  },
+      "fedFunds":     { "rate": 5.375,"change": 0     }
+    },
+    "crypto": {
+      "bitcoin":  { "price": 71420, "change": -2.1 },
+      "ethereum": { "price": 3812,  "change": -1.4 }
+    },
+    "sentiment": {
+      "signal": "cautious",
+      "headline": "Gold and treasuries advancing — classic flight-to-safety. Fed pause expectations firm.",
+      "newsItems": [
+        { "text": "Fed signals pause on rate cycle", "tone": "neutral" },
+        { "text": "Middle East tensions elevated", "tone": "bearish" },
+        { "text": "ECB rate decision Thursday", "tone": "neutral" }
+      ]
+    }
+  }
+
+  Loading state: show skeleton loaders (animated pulse, rgba(201,168,76,0.1) fill)
+  Stale state (data > 4hrs old): show amber banner "Data may be delayed"
+  Error state: show "Unable to load market data" in tertiary text, retry button
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NUMBER FORMATTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Gold / Silver prices:   $2,340.50  (2 decimal places, comma separator)
+  Index levels:           5,248      (0 decimal places, comma separator)
+  FX rates:               1.0821     (4 decimal places, no comma)
+  Percentage deltas:      +1.8%      (1 decimal place, explicit + sign)
+  Absolute deltas:        +$41.20    (2 decimal places)
+  Yield rates:            4.28%      (2 decimal places)
+  Yield spread:           +0.14      (2 decimal places, explicit + for positive)
+  Bitcoin:                $71.4k     (abbreviated at >10k)
+  Fear & Greed:           42         (integer only)
+
+  ALWAYS use tabular figures for aligned columns:
+  font-variant-numeric: tabular-nums;  ← on all data value elements
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOTION & INTERACTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Philosophy: motion confirms state changes, never decorates.
+
+  Page load: staggered fade-in per row (animation-delay: 0, 80ms, 160ms, 240ms)
+             opacity: 0 → 1, translateY: 6px → 0, duration: 400ms ease-out
+
+  Value update: when data refreshes, updated values flash gold briefly
+                transition: color 0.15s — flash to #D4AF37 then back to navy
+
+  Card hover: border-color transitions from var(--border-gold) to var(--border-gold-strong)
+              transition: border-color 0.2s ease
+
+  Scenario activation: card tint fades in via opacity transition 0.35s
+  
+  Skeleton loader: @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
+                   background: rgba(201,168,76,0.08), animation: pulse 1.6s infinite
+
+  NO parallax, NO scroll animations, NO entrance animations on repeat visits.
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHARTS & VISUALISATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Library: Chart.js 4.4.1 via CDN
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+  World map: D3 7.8.5 + TopoJSON 3.0.2
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+
+  CHART DESIGN RULES (read before configuring any chart)
+  ───────────────────────────────────────────────────────
+  · Canvas cannot resolve CSS variables — always use hardcoded hex values in Chart.js config
+  · Disable the default Chart.js legend always: plugins: { legend: { display: false } }
+  · Wrap every <canvas> in a <div style="position:relative;width:100%;height:Xpx">
+    Never set height on the canvas element itself
+  · Use responsive: true, maintainAspectRatio: false on every chart
+  · font-variant-numeric: tabular-nums on all elements containing financial figures
+  · No pie charts. Ever.
+
+  SHARED CHART COLOUR CONSTANTS (define once, reference everywhere)
+  ──────────────────────────────────────────────────────────────────
+  const AURUM = {
+    navy:      '#0D1B2A',   // primary text / axis labels
+    gold:      '#D4AF37',   // gold lines, area fills, active accents
+    gold5:     '#C9A84C',   // borders, secondary gold
+    up:        '#0F6E56',   // positive delta / upward trend
+    down:      '#A32D2D',   // negative delta / downward trend
+    caution:   '#B8952A',   // warning / elevated risk
+    muted:     '#8A96A4',   // axis tick labels, gridlines
+    gridLine:  'rgba(201,168,76,0.08)',   // all chart gridlines
+    areaFill:  'rgba(212,175,55,0.07)',   // gold area chart fill
+    tooltip: {
+      bg:     '#0D1B2A',
+      border: 'rgba(201,168,76,0.4)',
+      text:   '#F9F6F0',
+    }
+  };
+
+  SHARED CHART.JS DEFAULTS (apply to all charts via Chart.defaults)
+  ──────────────────────────────────────────────────────────────────
+  Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+  Chart.defaults.font.size   = 11;
+  Chart.defaults.color       = '#8A96A4';
+  Chart.defaults.plugins.tooltip.backgroundColor = '#0D1B2A';
+  Chart.defaults.plugins.tooltip.borderColor     = 'rgba(201,168,76,0.4)';
+  Chart.defaults.plugins.tooltip.borderWidth     = 0.5;
+  Chart.defaults.plugins.tooltip.titleColor      = '#F9F6F0';
+  Chart.defaults.plugins.tooltip.bodyColor       = '#C9A84C';
+  Chart.defaults.plugins.tooltip.padding         = 10;
+  Chart.defaults.plugins.tooltip.cornerRadius    = 6;
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART 1 — SPARKLINES (inline, appears in every asset panel)
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Purpose: show 30-day price trend without any axes or labels.
+           The shape is the signal. Colour encodes direction.
+  Container height: 52px
+  No axes, no gridlines, no tooltips, no points — pure line only.
+
+  Colour by asset type:
+    Gold / Silver / Platinum → '#D4AF37'  (gold line)
+    Positive-trending index  → '#0F6E56'  (teal-green)
+    Negative-trending index  → '#A32D2D'  (red)
+    FX / Macro               → match the delta colour of the panel
+
+  Config template:
+  ───────────────
+  function makeSparkline(canvasId, dataArray, lineColor) {
+    new Chart(document.getElementById(canvasId), {
+      type: 'line',
+      data: {
+        labels: dataArray.map((_, i) => i),
+        datasets: [{
+          data: dataArray,
+          borderColor: lineColor,
+          borderWidth: 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          tension: 0.3,
+          fill: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: { display: false },
+          y: { display: false }
+        },
+        animation: { duration: 600, easing: 'easeOutQuart' }
+      }
+    });
+  }
+
+  Data source: last 30 values from data.history[assetKey]
+  Update: redraw on data refresh (destroy + recreate, or chart.data.datasets[0].data = newData; chart.update())
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART 2 — AREA CHART (gold price deep-dive, full-width expandable panel)
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Purpose: 7D / 30D / 90D gold price history with full axes and tooltips.
+           This is the one panel that expands to a larger view on click.
+  Container height: 200px
+  Y-axis: right side (so price labels don't fight date labels on the left)
+  X-axis: bottom, max 6 tick labels, date format "12 Mar"
+  Fill: rgba(212,175,55,0.07) — barely visible gold tint under the line
+  Line: '#D4AF37', borderWidth 1.5, tension 0.3, no points except on hover
+
+  Time range buttons (7D / 30D / 90D):
+    Inactive: border rgba(201,168,76,0.4), color #8A96A4, bg transparent
+    Active:   border #D4AF37, color #B8952A, bg rgba(212,175,55,0.08), fontWeight 500
+
+  Config template:
+  ───────────────
+  function buildAreaChart(canvasId, labels, dataArray) {
+    return new Chart(document.getElementById(canvasId), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: dataArray,
+          borderColor: '#D4AF37',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointHoverBackgroundColor: '#D4AF37',
+          tension: 0.3,
+          fill: true,
+          backgroundColor: 'rgba(212,175,55,0.07)',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: ctx => ctx[0].label,
+              label: ctx => '$' + ctx.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(201,168,76,0.08)' },
+            border: { display: false },
+            ticks: { color: '#8A96A4', font: { size: 10 }, maxTicksLimit: 6 }
+          },
+          y: {
+            position: 'right',
+            grid: { color: 'rgba(201,168,76,0.08)' },
+            border: { display: false },
+            ticks: {
+              color: '#8A96A4',
+              font: { size: 10 },
+              callback: v => '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 })
+            }
+          }
+        }
+      }
+    });
+  }
+
+  Time range switching:
+    chart.destroy();
+    chart = buildAreaChart(id, newLabels, newData);
+
+  Data source: data.history.gold (array of { date, price } objects)
+  Slice to last 7 / 30 / 90 entries based on active range button.
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART 3 — FEAR & GREED GAUGE (semicircular arc, hero panel)
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Purpose: single daily sentiment reading rendered as a semicircle gauge.
+           More spatially informative than a bar. Immediately scannable.
+  Implementation: Canvas 2D API (not Chart.js — Chart.js doughnut clips poorly)
+  Container: 280px wide, 160px tall, centred
+
+  Arc zones (left to right, 0–100):
+    0–24:  '#A32D2D'  Extreme fear
+    25–44: '#B8952A'  Fear
+    45–55: '#8A96A4'  Neutral
+    56–75: '#0F6E56'  Greed
+    76–100:'#085041'  Extreme greed
+
+  Track arc (full 180° background): rgba(201,168,76,0.1), lineWidth 14
+  Zone arcs: lineWidth 14, lineCap 'butt'
+  Needle: line from centre to arc at value angle, '#0D1B2A', lineWidth 2, lineCap 'round'
+  Centre dot: filled circle r=5, '#0D1B2A'
+  Tick labels: '0', '25', '50', '75', '100' — DM Sans 10px, '#8A96A4', placed outside arc
+
+  Value display: DM Serif Display 36px '#0D1B2A', centred below arc
+  Classification: DM Sans 13px 500, colour matches active zone, below value
+
+  Draw function:
+  ─────────────
+  function drawGauge(canvas, value) {
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2, cy = canvas.height - 20, r = 100;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background track
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(201,168,76,0.1)';
+    ctx.lineWidth = 14; ctx.stroke();
+
+    // Colour zones
+    const zones = [[0,25,'#A32D2D'],[25,45,'#B8952A'],[45,55,'#8A96A4'],[55,75,'#0F6E56'],[75,100,'#085041']];
+    zones.forEach(([s, e, col]) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI * (1 + s/100), Math.PI * (1 + e/100));
+      ctx.strokeStyle = col; ctx.lineWidth = 14; ctx.lineCap = 'butt'; ctx.stroke();
+    });
+
+    // Needle
+    const angle = Math.PI * (1 + value / 100);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * (r - 18), cy + Math.sin(angle) * (r - 18));
+    ctx.strokeStyle = '#0D1B2A'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
+
+    // Centre dot
+    ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = '#0D1B2A'; ctx.fill();
+  }
+
+  Data source: data.fearGreed.value (integer 0–100)
+  Update: call drawGauge(canvas, newValue) on data refresh — no destroy needed
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART 4 — HORIZONTAL BAR CHART (global indices daily performance)
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Purpose: compare 6 global index daily % moves side-by-side.
+           Horizontal layout makes long index names readable.
+  Container height: (number of bars × 36) + 60 — typically 276px for 6 bars
+  indexAxis: 'y'
+  Bar colour: driven purely by value sign — no category colours
+    Positive: 'rgba(15,110,86,0.75)'  with borderColor '#0F6E56'
+    Negative: 'rgba(163,45,45,0.75)'  with borderColor '#A32D2D'
+  borderRadius: 3
+  borderWidth: 0.5
+
+  Indices to show (in display order, top to bottom):
+    Nikkei 225, DAX, S&P 500, FTSE 100, CAC 40, Hang Seng
+
+  Config template:
+  ───────────────
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: ['Nikkei 225', 'DAX', 'S&P 500', 'FTSE 100', 'CAC 40', 'Hang Seng'],
+      datasets: [{
+        data: [/* % change values from data.indices */],
+        backgroundColor: ctx => ctx.raw >= 0 ? 'rgba(15,110,86,0.75)' : 'rgba(163,45,45,0.75)',
+        borderColor:     ctx => ctx.raw >= 0 ? '#0F6E56' : '#A32D2D',
+        borderWidth: 0.5,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => (ctx.parsed.x >= 0 ? '+' : '') + ctx.parsed.x.toFixed(2) + '%'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(201,168,76,0.08)' },
+          border: { display: false },
+          ticks: { color: '#8A96A4', font: { size: 10 }, callback: v => (v >= 0 ? '+' : '') + v + '%' }
+        },
+        y: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: '#0D1B2A', font: { size: 11, family: "'DM Sans', sans-serif" } }
+        }
+      }
+    }
+  });
+
+  Data source: data.indices — map each to its .change value
+  Update: chart.data.datasets[0].data = newValues; chart.update('none');
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART 5 — SCATTER PLOT (gold vs 10Y yield correlation)
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Purpose: show the inverse relationship between gold price and Treasury yields.
+           This is Aurum's intelligence differentiator — no other free dashboard shows this.
+  Container height: 220px
+  Each point: one trading day. X = 10Y yield, Y = gold price.
+  Point style: circle, r=5, rgba(212,175,55,0.65), borderColor '#D4AF37', borderWidth 1
+
+  Axes:
+    X — "10Y yield (%)" title, right-aligned tick labels showing "4.2%"
+    Y — "Gold ($/oz)" title, right-side position, tick labels "$2,300"
+    Both grids: rgba(201,168,76,0.08)
+
+  Correlation coefficient (r):
+    Calculate: r = (Σxy - n·x̄·ȳ) / sqrt((Σx² - n·x̄²)(Σy² - n·ȳ²))
+    Display as badge top-right of card:
+      r < -0.5: '#A32D2D' background + "strong inverse correlation"
+      r > +0.5: '#0F6E56' background + "strong positive correlation"
+      else:     '#8A96A4' background + "weak correlation"
+    Font: DM Sans 11px 500
+
+  Config template:
+  ───────────────
+  new Chart(document.getElementById(canvasId), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        data: yieldHistory.map((y, i) => ({ x: y, y: goldHistory[i] })),
+        backgroundColor: 'rgba(212,175,55,0.65)',
+        borderColor: '#D4AF37',
+        borderWidth: 1,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `Yield: ${ctx.parsed.x.toFixed(2)}%  Gold: $${ctx.parsed.y.toFixed(0)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: '10Y yield (%)', color: '#8A96A4', font: { size: 10 } },
+          grid: { color: 'rgba(201,168,76,0.08)' },
+          border: { display: false },
+          ticks: { color: '#8A96A4', font: { size: 10 }, callback: v => v.toFixed(1) + '%' }
+        },
+        y: {
+          position: 'right',
+          title: { display: true, text: 'Gold ($/oz)', color: '#8A96A4', font: { size: 10 } },
+          grid: { color: 'rgba(201,168,76,0.08)' },
+          border: { display: false },
+          ticks: { color: '#8A96A4', font: { size: 10 }, callback: v => '$' + v.toLocaleString() }
+        }
+      }
+    }
+  });
+
+  Data source: data.history.gold (last 90 days price) + data.history.treasury10y (last 90 days yield)
+  Both arrays must be same length and index-aligned by date.
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART 6 — WORLD CHOROPLETH MAP (geopolitical risk, D3 + TopoJSON)
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Purpose: shade countries by GDELT conflict event density — 7-day rolling window.
+           Turns the geopolitical feed into a spatial intelligence layer.
+  Topology: https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json
+  Projection: d3.geoNaturalEarth1()
+  SVG viewBox: "0 0 {containerWidth} {containerWidth * 0.52}"
+  width: "100%"
+
+  Risk colour scale (5 bands, by event count 0–100 normalised):
+    0–19:   rgba(13,27,42,0.06)   — near-invisible, stable
+    20–39:  rgba(13,27,42,0.15)   — light navy tint
+    40–59:  rgba(184,149,42,0.35) — amber — elevated
+    60–79:  rgba(163,45,45,0.5)   — red-tinted — high risk
+    80–100: '#A32D2D'              — deep red — active conflict
+
+  Country borders: stroke rgba(249,246,240,0.6), strokeWidth 0.4
+  No country labels on the map — hover tooltip only (country name + risk level)
+
+  ISO numeric → ISO alpha-3 mapping required. Key countries to map:
+    USA, RUS, CHN, IRN, ISR, UKR, GBR, DEU, FRA, IND, BRA,
+    SAU, SYR, YEM, SDN, MMR, ETH, COD, PAK, AFG, NGA, MOZ
+
+  Colour legend (rendered in HTML below the map, not on the SVG):
+    [Low ░░▒▒▓▓██ High] — 5 swatches 16×8px with labels
+
+  Data source: data.geopolitical.riskByCountry — object keyed by ISO alpha-3
+    { "IRN": 90, "UKR": 99, "GBR": 10, ... }
+  GDELT event counts are normalised to 0–100 by Claude's fetch.js pipeline.
+  Update: full SVG redraw on data refresh (destroy SVG, recreate).
+
+  Implementation pattern:
+  ──────────────────────
+  async function drawWorldMap(containerId, riskData) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    const w = container.offsetWidth, h = Math.round(w * 0.52);
+    const svg = d3.select(container).append('svg')
+      .attr('viewBox', `0 0 ${w} ${h}`).attr('width', '100%');
+    const proj = d3.geoNaturalEarth1().scale(w / 6.2).translate([w / 2, h / 2]);
+    const path = d3.geoPath(proj);
+    const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    svg.selectAll('path')
+      .data(topojson.feature(world, world.objects.countries).features)
+      .join('path')
+      .attr('d', path)
+      .attr('fill', d => riskColour(riskData[isoNumericToAlpha3(d.id)] ?? 0))
+      .attr('stroke', 'rgba(249,246,240,0.6)')
+      .attr('stroke-width', 0.4);
+  }
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART PLACEMENT IN DASHBOARD LAYOUT
+  ────────────────────────────────────────────────────────────────────────────────
+
+  Row 1  — Hero strip
+             · Fear & Greed gauge (Canvas 2D, 280×160px) — left 40%
+             · No chart on right side — text only (top mover, timestamp)
+
+  Row 2  — Macro signals
+             · No charts — data values + deltas only (sparklines would clutter)
+
+  Row 3  — Main grid
+             · Metals panel:  sparklines for Gold, Silver, Platinum (3 inline sparklines)
+             · Indices panel: sparklines for S&P, DAX, FTSE, Nikkei (4 inline sparklines)
+                              + horizontal bar chart below the 4 cards (full panel width)
+             · FX panel:      sparklines for EUR/USD, GBP/USD, USD/JPY (3 inline sparklines)
+
+  Row 3b — Gold deep-dive (full-width expandable, shown on click of gold panel)
+             · Area chart with 7D/30D/90D range selector
+             · Correlation scatter (gold vs 10Y yield) side by side with area chart
+
+  Row 4  — Intelligence panels
+             · Geopolitical: world choropleth map (D3, full panel width, 220px tall)
+                             news feed below the map
+             · Crypto:       sparklines for BTC, ETH + small area chart (30D)
+
+  ────────────────────────────────────────────────────────────────────────────────
+  CHART DATA FLOW — HOW HISTORY GETS INTO THE JSON
+  ────────────────────────────────────────────────────────────────────────────────
+
+  The fetch.js pipeline (written by Claude, run by GitHub Actions) appends
+  today's values to rolling history arrays stored in the Gist JSON.
+  It reads the existing Gist, pushes new values, trims to 90 entries, writes back.
+
+  Extended JSON shape with history arrays:
+  {
+    ...existing fields...,
+    "history": {
+      "gold":       [2201, 2215, 2198, ...],   // 90 daily closes, oldest first
+      "silver":     [26.1, 26.4, 26.2, ...],
+      "sp500":      [5102, 5118, 5098, ...],
+      "dax":        [18050, 18120, 18090, ...],
+      "ftse":       [7720, 7740, 7735, ...],
+      "nikkei":     [38100, 38300, 38250, ...],
+      "eurusd":     [1.078, 1.081, 1.079, ...],
+      "treasury10y":[4.18, 4.22, 4.25, ...],
+      "bitcoin":    [68200, 70100, 71400, ...]
+    },
+    "geopolitical": {
+      "riskByCountry": { "IRN": 90, "UKR": 99, "GBR": 10, ... },
+      "updatedAt": "2026-03-29T06:00:00Z"
+    }
+  }
+
+  Sparklines read: data.history[key].slice(-30)
+  Area chart reads: data.history.gold.slice(-N) where N = 7, 30, or 90
+  Scatter reads: data.history.gold.slice(-90) paired with data.history.treasury10y.slice(-90)
+  World map reads: data.geopolitical.riskByCountry
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT MAKES AURUM FEEL PREMIUM — THE 6 RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. No drop shadows. Ever. Elevation comes from border colour contrast only.
+  2. Gold touches exactly three things: labels, borders, active states.
+     Touch more than three things and it reads tacky.
+  3. DM Serif Display on values only. If it's not a number, it's DM Sans.
+  4. Warm off-white page (#F9F6F0). Pure white reads clinical. Warm reads expensive.
+  5. Navy text (#0D1B2A) not black. The blue undertones harmonise with gold.
+  6. Generous whitespace inside panels. Fewer numbers shown with confidence
+     reads smarter than many numbers shown with anxiety.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF DESIGN SPEC
+Read it. Then build it.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurum — Market Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    /* ── DESIGN TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-ui:      'DM Sans', system-ui, sans-serif;
+
+      --color-page:           #F9F6F0;
+      --color-surface:        #FFFFFF;
+      --color-surface-tint:   #F4F1EA;
+      --color-header:         #0D1B2A;
+
+      --color-text-primary:   #0D1B2A;
+      --color-text-secondary: #4A5568;
+      --color-text-tertiary:  #8A96A4;
+      --color-text-disabled:  #C8D0D8;
+
+      --gold-100:  #F0DFA0;
+      --gold-400:  #D4AF37;
+      --gold-500:  #C9A84C;
+      --gold-600:  #B8952A;
+      --gold-800:  #8B6914;
+
+      --color-up:      #0F6E56;
+      --color-down:    #A32D2D;
+      --color-caution: #B8952A;
+      --color-neutral: #243D56;
+
+      --border-gold:        0.5px solid rgba(201,168,76,0.35);
+      --border-gold-strong: 0.5px solid rgba(201,168,76,0.6);
+      --border-nav:         1px solid rgba(201,168,76,0.2);
+      --border-panel:       0.5px solid rgba(201,168,76,0.25);
+
+      --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
+      --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+
+      --radius-sm:   6px;
+      --radius-md:   10px;
+      --radius-lg:   14px;
+      --radius-pill: 20px;
+    }
+
+    /* ── RESET ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      background: var(--color-page);
+      color: var(--color-text-primary);
+      font-family: var(--font-ui);
+      font-weight: 400;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── UTILITY ───────────────────────────────────────────────────── */
+    .data-value {
+      font-family: var(--font-display);
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text-primary);
+    }
+    .data-label {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-500);
+      margin-bottom: var(--space-1);
+    }
+    .delta-up   { color: var(--color-up);      font-weight: 500; }
+    .delta-down { color: var(--color-down);    font-weight: 500; }
+    .delta-caut { color: var(--color-caution); font-weight: 500; }
+
+    /* ── NAV ───────────────────────────────────────────────────────── */
+    .aurum-nav {
+      background: var(--color-header);
+      height: 52px;
+      padding: 0 var(--space-5);
+      border-bottom: var(--border-nav);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .aurum-wordmark {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--gold-400);
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .aurum-tagline {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(212,175,55,0.45);
+      margin-top: 2px;
+    }
+    .nav-timestamp {
+      font-size: 10px;
+      color: rgba(212,175,55,0.4);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── LAYOUT ────────────────────────────────────────────────────── */
+    .aurum-page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--space-5) var(--space-5) var(--space-7);
+    }
+
+    /* ── CARDS ─────────────────────────────────────────────────────── */
+    .card {
+      background: var(--color-surface);
+      border: var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      transition: border-color 0.2s ease;
+    }
+    .card:hover { border: var(--border-gold-strong); }
+    .card-hero  { border-top: 2px solid var(--gold-400); }
+
+    /* ── SKELETON LOADERS ──────────────────────────────────────────── */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 0.8; }
+    }
+    .skeleton {
+      background: rgba(201,168,76,0.08);
+      border-radius: var(--radius-sm);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+
+    /* ── PAGE LOAD ANIMATION ───────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+    .row-1 { animation: fadeUp 400ms ease-out both; }
+    .row-2 { animation: fadeUp 400ms ease-out 80ms both; }
+    .row-3 { animation: fadeUp 400ms ease-out 160ms both; }
+    .row-4 { animation: fadeUp 400ms ease-out 240ms both; }
+    .row-5 { animation: fadeUp 400ms ease-out 320ms both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    /* ── INTELLIGENCE STRIP ────────────────────────────────────────── */
+    .intel-strip {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+      border-top: var(--border-panel);
+    }
+    .intel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold-500);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .intel-text {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ── IMPACT BAR ────────────────────────────────────────────────── */
+    .impact-track {
+      height: 3px;
+      background: rgba(201,168,76,0.15);
+      border-radius: 2px;
+      margin-top: var(--space-2);
+      overflow: hidden;
+    }
+    .impact-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── SCENARIO BUTTONS ──────────────────────────────────────────── */
+    .scenario-btn {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: var(--radius-pill);
+      border: 0.5px solid var(--color-text-disabled);
+      background: transparent;
+      color: var(--color-text-tertiary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .scenario-btn:hover { background: var(--color-surface-tint); }
+    .scenario-btn.active-war    { background: #FCEBEB; border-color: #A32D2D; color: #791F1F; }
+    .scenario-btn.active-rates  { background: #FAEEDA; border-color: #854F0B; color: #633806; }
+    .scenario-btn.active-supply { background: #E1F5EE; border-color: #0F6E56; color: #085041; }
+    .scenario-btn.active-crash  { background: #EEEDFE; border-color: #534AB7; color: #3C3489; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="aurum-nav">
+    <div>
+      <div class="aurum-wordmark">Aurum</div>
+      <div class="aurum-tagline">Market intelligence</div>
+    </div>
+    <div class="nav-timestamp" id="navTimestamp">Loading…</div>
+  </nav>
+
+  <!-- MAIN CONTENT — Codex fills this in using the layout spec above -->
+  <main class="aurum-page">
+    <!-- Row 1: Hero strip -->
+    <!-- Row 2: Macro signals -->
+    <!-- Row 3: Metals | Indices | FX -->
+    <!-- Row 4: Geopolitical + news | Crypto -->
+    <!-- Row 5: Scenario overlay bar -->
+  </main>
+
+  <script>
+    // ── DATA BINDING ──────────────────────────────────────────────────
+    // Replace GIST_URL with your actual Gist raw URL after Claude writes fetch.js
+    const GIST_URL = 'YOUR_GIST_RAW_URL_HERE';
+
+    async function loadData() {
+      try {
+        const data = await fetch(GIST_URL).then(r => r.json());
+        renderDashboard(data);
+      } catch (err) {
+        showError();
+      }
+    }
+
+    function renderDashboard(data) {
+      // Timestamp
+      const ts = new Date(data.meta.updated);
+      document.getElementById('navTimestamp').textContent =
+        'Live · ' + ts.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' UTC';
+
+      // Stale data warning
+      const ageHours = (Date.now() - ts) / 3600000;
+      if (ageHours > 4) showStaleBanner();
+
+      // Codex populates each panel render function below:
+      // renderHeroStrip(data.fearGreed);
+      // renderMacroStrip(data.macro);
+      // renderMetals(data.metals);
+      // renderIndices(data.indices);
+      // renderFX(data.fx);
+      // renderIntelligence(data.sentiment);
+      // renderCrypto(data.crypto);
+    }
+
+    function formatDelta(val, prefix = '') {
+      const sign = val >= 0 ? '+' : '−';
+      return sign + prefix + Math.abs(val).toFixed(1) + '%';
+    }
+
+    function showError() {
+      document.querySelector('main').innerHTML =
+        '<p style="color:var(--color-text-tertiary);font-size:13px;padding:48px 0;text-align:center">Unable to load market data — <button onclick="loadData()" style="color:var(--gold-600);background:none;border:none;cursor:pointer;font-size:13px">retry</button></p>';
+    }
+
+    function showStaleBanner() {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:rgba(184,149,42,0.1);border-bottom:0.5px solid rgba(184,149,42,0.3);padding:8px 24px;font-size:11px;color:var(--color-caution);font-family:var(--font-ui)';
+      banner.textContent = 'Market data may be delayed — last updated over 4 hours ago';
+      document.querySelector('.aurum-nav').after(banner);
+    }
+
+    loadData();
+  </script>
+
+</body>
+</html>
