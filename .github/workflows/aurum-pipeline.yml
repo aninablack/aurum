@@ -1,5 +1,8 @@
 name: Aurum data pipeline
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   schedule:
     # Every 15 minutes, Mon–Fri, 06:00–22:00 UTC (market hours + buffer)
