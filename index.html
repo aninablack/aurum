@@ -830,6 +830,8 @@ Read it. Then build it.
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
   <style>
     /* ── DESIGN TOKENS ─────────────────────────────────────────────── */
     :root {
@@ -1046,8 +1048,15 @@ Read it. Then build it.
     .mini-row:last-child { border-bottom: 0; padding-bottom: 0; }
     .news-list { margin-top: var(--space-3); display: grid; gap: var(--space-2); }
     .news-item { font-size: 12px; color: var(--color-text-secondary); border: var(--border-panel); border-radius: var(--radius-sm); padding: var(--space-2); background: var(--color-surface-tint); }
+    .tone-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 8px; }
     .risk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin-top: var(--space-3); }
     .risk-chip { border: var(--border-panel); border-radius: var(--radius-sm); font-size: 11px; padding: 6px 8px; color: var(--color-text-secondary); text-align: center; background: var(--color-surface-tint); font-variant-numeric: tabular-nums; }
+    .map-wrap { width: 100%; min-height: 230px; border: var(--border-panel); border-radius: var(--radius-sm); background: var(--color-surface-tint); }
+    .deep-dive { display: none; grid-template-columns: 3fr 2fr; gap: var(--space-4); }
+    .deep-chart { position: relative; width: 100%; height: 240px; }
+    .range-buttons { display: flex; gap: 8px; margin-bottom: 8px; }
+    .range-btn { border: 0.5px solid rgba(201,168,76,0.4); background: transparent; color: var(--color-text-tertiary); border-radius: 20px; padding: 6px 12px; font-size: 11px; cursor: pointer; }
+    .range-btn.active { border-color: #D4AF37; color: #B8952A; background: rgba(212,175,55,0.08); }
     .banner { border: 0.5px solid rgba(184,149,42,0.6); color: #633806; background: #FAEEDA; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: 12px; margin-bottom: var(--space-3); }
     .spark-wrap { position: relative; width: 140px; height: 52px; }
     .gauge-wrap { display: flex; justify-content: center; align-items: center; margin-top: 4px; }
@@ -1055,6 +1064,7 @@ Read it. Then build it.
     @media (max-width: 1024px) {
       .row-1, .row-2, .row-3, .row-4 { grid-template-columns: 1fr; }
       .spark-wrap { width: 120px; }
+      .deep-dive { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1074,6 +1084,7 @@ Read it. Then build it.
     <section class="row row-1" id="row1"></section>
     <section class="row row-2" id="row2"></section>
     <section class="row row-3" id="row3"></section>
+    <section class="row card deep-dive" id="goldDeepDive"></section>
     <section class="row row-4" id="row4"></section>
     <section class="row row-5 card" id="row5"></section>
   </main>
@@ -1090,6 +1101,7 @@ Read it. Then build it.
     };
     const deltaClass = (v) => v > 0 ? 'delta-up' : v < 0 ? 'delta-down' : 'delta-caut';
     const charts = {};
+    const iso3ByNumeric = { 840:'USA',643:'RUS',156:'CHN',364:'IRN',376:'ISR',804:'UKR',826:'GBR',276:'DEU',250:'FRA',356:'IND',76:'BRA',682:'SAU',760:'SYR',887:'YEM',729:'SDN',104:'MMR',231:'ETH',180:'COD',586:'PAK',4:'AFG',566:'NGA',508:'MOZ' };
 
     if (window.Chart) {
       Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
@@ -1205,17 +1217,21 @@ Read it. Then build it.
       makeSparkline('spark-gbpusd', history.gbpusd || [], pickTrend((history.gbpusd || [])));
       makeSparkline('spark-usdjpy', history.usdjpy || [], pickTrend((history.usdjpy || [])));
       buildIndicesBar(indices);
+      const goldRow = document.querySelector('#row3 .card .metric-grid .mini-row');
+      if (goldRow) {
+        goldRow.style.cursor = 'pointer';
+        goldRow.onclick = () => toggleGoldDeepDive(data);
+      }
     }
 
     function renderIntel(data) {
-      const topRisk = Object.entries(data?.geopolitical?.riskByCountry || {}).sort((a,b)=>b[1]-a[1]).slice(0, 8);
       const news = data?.sentiment?.newsItems || [];
       const history = data?.history || {};
       document.getElementById('row4').innerHTML = `
         <div class="card">
           <div class="data-label">Geopolitical Risk</div>
-          <div class="risk-grid">${topRisk.map(([k,v]) => `<div class="risk-chip">${k}: ${v}</div>`).join('') || '<div class="risk-chip">No risk data</div>'}</div>
-          <div class="news-list">${news.slice(0,5).map(n => `<div class="news-item"><strong>${n.source || 'Source'}</strong> · ${n.text || ''}</div>`).join('') || '<div class="news-item">No headlines available</div>'}</div>
+          <div id="riskMap" class="map-wrap"></div>
+          <div class="news-list">${news.slice(0,5).map(n => `<div class="news-item"><span class="tone-dot" style="background:${toneColor(n.tone)}"></span>${n.text || ''}<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">${n.source || 'Source'}</div></div>`).join('') || '<div class="news-item">No headlines available</div>'}</div>
         </div>
         <div class="card">
           <div class="data-label">Crypto Signals</div>
@@ -1226,6 +1242,7 @@ Read it. Then build it.
         </div>`;
       makeSparkline('spark-btc', history.bitcoin || [], pickTrend((history.bitcoin || [])));
       makeSparkline('spark-eth', history.ethereum || [], pickTrend((history.ethereum || [])));
+      drawWorldMap('riskMap', data?.geopolitical?.riskByCountry || {});
     }
 
     function renderScenarios() {
@@ -1241,6 +1258,12 @@ Read it. Then build it.
     function pickTrend(arr) {
       if (!arr || arr.length < 2) return '#8A96A4';
       return arr[arr.length - 1] >= arr[0] ? '#0F6E56' : '#A32D2D';
+    }
+
+    function toneColor(tone) {
+      if (tone === 'bullish') return '#0F6E56';
+      if (tone === 'bearish') return '#A32D2D';
+      return '#8A96A4';
     }
 
     function makeSparkline(canvasId, dataArray, lineColor) {
@@ -1273,6 +1296,87 @@ Read it. Then build it.
           scales: { x: { grid: { color: 'rgba(201,168,76,0.08)' }, ticks: { callback: (v) => (v >= 0 ? '+' : '') + v + '%' } }, y: { grid: { display: false } } }
         }
       });
+    }
+
+    function toggleGoldDeepDive(data) {
+      const panel = document.getElementById('goldDeepDive');
+      if (panel.style.display === 'grid') {
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'grid';
+      panel.innerHTML = `
+        <div class="card">
+          <div class="data-label">Gold Deep Dive</div>
+          <div class="range-buttons">
+            <button class="range-btn active" data-r="7">7D</button>
+            <button class="range-btn" data-r="30">30D</button>
+            <button class="range-btn" data-r="90">90D</button>
+          </div>
+          <div class="deep-chart"><canvas id="goldAreaChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="data-label">Gold vs 10Y Yield</div>
+          <div class="deep-chart"><canvas id="goldYieldScatter"></canvas></div>
+        </div>`;
+      const renderRange = (days) => {
+        const arr = (data?.history?.gold || []).slice(-days);
+        buildGoldArea(arr);
+        buildGoldYieldScatter((data?.history?.gold || []).slice(-90), (data?.history?.treasury10y || []).slice(-90));
+      };
+      renderRange(7);
+      panel.querySelectorAll('.range-btn').forEach(btn => btn.onclick = () => {
+        panel.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderRange(Number(btn.dataset.r));
+      });
+    }
+
+    function buildGoldArea(values) {
+      const id = 'goldAreaChart';
+      if (!window.Chart) return;
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(canvas, {
+        type: 'line',
+        data: { labels: values.map((_, i) => i + 1), datasets: [{ data: values, borderColor: '#D4AF37', borderWidth: 1.5, tension: 0.3, pointRadius: 0, fill: true, backgroundColor: 'rgba(212,175,55,0.07)' }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(201,168,76,0.08)' } }, y: { position: 'right', grid: { color: 'rgba(201,168,76,0.08)' } } } }
+      });
+    }
+
+    function buildGoldYieldScatter(gold, yields) {
+      const id = 'goldYieldScatter';
+      if (!window.Chart) return;
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      if (charts[id]) charts[id].destroy();
+      const n = Math.min(gold.length, yields.length);
+      const pts = Array.from({ length: n }, (_, i) => ({ x: Number(yields[i]), y: Number(gold[i]) })).filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
+      charts[id] = new Chart(canvas, {
+        type: 'scatter',
+        data: { datasets: [{ data: pts, backgroundColor: 'rgba(212,175,55,0.65)', borderColor: '#D4AF37', borderWidth: 1, pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(201,168,76,0.08)' } }, y: { position: 'right', grid: { color: 'rgba(201,168,76,0.08)' } } } }
+      });
+    }
+
+    async function drawWorldMap(containerId, riskData) {
+      const container = document.getElementById(containerId);
+      if (!container || !window.d3 || !window.topojson) return;
+      container.innerHTML = '';
+      const w = Math.max(320, container.clientWidth || 640), h = Math.round(w * 0.52);
+      const svg = d3.select(container).append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('width', '100%');
+      const proj = d3.geoNaturalEarth1().scale(w / 6.2).translate([w / 2, h / 2]);
+      const path = d3.geoPath(proj);
+      const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+      const color = (v) => v >= 80 ? '#A32D2D' : v >= 60 ? 'rgba(163,45,45,0.5)' : v >= 40 ? 'rgba(184,149,42,0.35)' : v >= 20 ? 'rgba(13,27,42,0.15)' : 'rgba(13,27,42,0.06)';
+      svg.selectAll('path')
+        .data(topojson.feature(world, world.objects.countries).features)
+        .join('path')
+        .attr('d', path)
+        .attr('fill', d => color(riskData[iso3ByNumeric[d.id]] || 0))
+        .attr('stroke', 'rgba(249,246,240,0.6)')
+        .attr('stroke-width', 0.4);
     }
 
     function drawGauge(canvas, value) {
