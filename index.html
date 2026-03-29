@@ -829,6 +829,7 @@ Read it. Then build it.
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     /* ── DESIGN TOKENS ─────────────────────────────────────────────── */
     :root {
@@ -1032,6 +1033,29 @@ Read it. Then build it.
     .scenario-btn.active-rates  { background: #FAEEDA; border-color: #854F0B; color: #633806; }
     .scenario-btn.active-supply { background: #E1F5EE; border-color: #0F6E56; color: #085041; }
     .scenario-btn.active-crash  { background: #EEEDFE; border-color: #534AB7; color: #3C3489; }
+    .row { margin-bottom: var(--space-4); }
+    .row-1 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .row-2 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+    .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+    .row-4 { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-4); }
+    .row-5 { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .metric-value { font-size: 26px; line-height: 1; margin-bottom: var(--space-2); }
+    .metric-sub { font-size: 12px; color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+    .metric-grid { display: grid; gap: var(--space-3); }
+    .mini-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: var(--border-panel); padding-bottom: var(--space-2); }
+    .mini-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .news-list { margin-top: var(--space-3); display: grid; gap: var(--space-2); }
+    .news-item { font-size: 12px; color: var(--color-text-secondary); border: var(--border-panel); border-radius: var(--radius-sm); padding: var(--space-2); background: var(--color-surface-tint); }
+    .risk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin-top: var(--space-3); }
+    .risk-chip { border: var(--border-panel); border-radius: var(--radius-sm); font-size: 11px; padding: 6px 8px; color: var(--color-text-secondary); text-align: center; background: var(--color-surface-tint); font-variant-numeric: tabular-nums; }
+    .banner { border: 0.5px solid rgba(184,149,42,0.6); color: #633806; background: #FAEEDA; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: 12px; margin-bottom: var(--space-3); }
+    .spark-wrap { position: relative; width: 140px; height: 52px; }
+    .gauge-wrap { display: flex; justify-content: center; align-items: center; margin-top: 4px; }
+    .indices-chart-wrap { position: relative; width: 100%; height: 190px; margin-top: 12px; }
+    @media (max-width: 1024px) {
+      .row-1, .row-2, .row-3, .row-4 { grid-template-columns: 1fr; }
+      .spark-wrap { width: 120px; }
+    }
   </style>
 </head>
 <body>
@@ -1045,23 +1069,38 @@ Read it. Then build it.
     <div class="nav-timestamp" id="navTimestamp">Loading…</div>
   </nav>
 
-  <!-- MAIN CONTENT — Codex fills this in using the layout spec above -->
   <main class="aurum-page">
-    <!-- Row 1: Hero strip -->
-    <!-- Row 2: Macro signals -->
-    <!-- Row 3: Metals | Indices | FX -->
-    <!-- Row 4: Geopolitical + news | Crypto -->
-    <!-- Row 5: Scenario overlay bar -->
+    <div id="staleBanner"></div>
+    <section class="row row-1" id="row1"></section>
+    <section class="row row-2" id="row2"></section>
+    <section class="row row-3" id="row3"></section>
+    <section class="row row-4" id="row4"></section>
+    <section class="row row-5 card" id="row5"></section>
   </main>
 
   <script>
-    // ── DATA BINDING ──────────────────────────────────────────────────
-    // Replace GIST_URL with your actual Gist raw URL after Claude writes fetch.js
-    const GIST_URL = 'YOUR_GIST_RAW_URL_HERE';
+    const GIST_URL = 'https://gist.githubusercontent.com/aninablack/d1685d358f752cad1b30f28f5412c918/raw/aurum-data.json';
+    const fmt = {
+      price: (n) => n != null ? '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—',
+      index: (n) => n != null ? Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }) : '—',
+      fx: (n) => n != null ? Number(n).toFixed(4) : '—',
+      pct: (n) => n != null ? `${n >= 0 ? '+' : '−'}${Math.abs(Number(n)).toFixed(2)}%` : '—',
+      rate: (n) => n != null ? Number(n).toFixed(2) + '%' : '—',
+      int: (n) => n != null ? Math.round(Number(n)).toString() : '—',
+    };
+    const deltaClass = (v) => v > 0 ? 'delta-up' : v < 0 ? 'delta-down' : 'delta-caut';
+    const charts = {};
+
+    if (window.Chart) {
+      Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+      Chart.defaults.font.size = 11;
+      Chart.defaults.color = '#8A96A4';
+    }
 
     async function loadData() {
       try {
-        const data = await fetch(GIST_URL).then(r => r.json());
+        const res = await fetch(GIST_URL, { cache: 'no-store' });
+        const data = await res.json();
         renderDashboard(data);
       } catch (err) {
         showError();
@@ -1069,28 +1108,129 @@ Read it. Then build it.
     }
 
     function renderDashboard(data) {
-      // Timestamp
-      const ts = new Date(data.meta.updated);
+      const ts = new Date(data?.meta?.updated || Date.now());
       document.getElementById('navTimestamp').textContent =
-        'Live · ' + ts.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' UTC';
+        'Live · ' + ts.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
 
-      // Stale data warning
       const ageHours = (Date.now() - ts) / 3600000;
-      if (ageHours > 4) showStaleBanner();
-
-      // Codex populates each panel render function below:
-      // renderHeroStrip(data.fearGreed);
-      // renderMacroStrip(data.macro);
-      // renderMetals(data.metals);
-      // renderIndices(data.indices);
-      // renderFX(data.fx);
-      // renderIntelligence(data.sentiment);
-      // renderCrypto(data.crypto);
+      document.getElementById('staleBanner').innerHTML = ageHours > 4 ? '<div class="banner">Data may be delayed</div>' : '';
+      renderHero(data);
+      renderMacro(data?.macro || {});
+      renderMain(data);
+      renderIntel(data);
+      renderScenarios();
     }
 
-    function formatDelta(val, prefix = '') {
-      const sign = val >= 0 ? '+' : '−';
-      return sign + prefix + Math.abs(val).toFixed(1) + '%';
+    function renderHero(data) {
+      const fg = data?.fearGreed || {};
+      const movers = [
+        ['Gold', data?.metals?.gold?.change],
+        ['S&P 500', data?.indices?.sp500?.change],
+        ['Bitcoin', data?.crypto?.bitcoin?.change],
+      ].filter(([,v]) => v != null).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1]));
+      const top = movers[0];
+      document.getElementById('row1').innerHTML = `
+        <div class="card card-hero">
+          <div class="data-label">Sentiment · Fear & Greed</div>
+          <div class="gauge-wrap"><canvas id="fearGreedGauge" width="280" height="160"></canvas></div>
+          <div class="metric-sub ${deltaClass((fg.value ?? 50) - (fg.previousClose ?? fg.value ?? 50))}" style="text-align:center">
+            ${fmt.int(fg.value)} · ${fg.classification || 'Neutral'} · Prev ${fmt.int(fg.previousClose)}
+          </div>
+        </div>
+        <div class="card card-hero">
+          <div class="data-label">Intelligence</div>
+          <div class="data-value metric-value">${top ? top[0] : 'No top mover'}</div>
+          <div class="${top ? deltaClass(top[1]) : 'metric-sub'}" style="font-size:12px">${top ? fmt.pct(top[1]) : '—'}</div>
+          <div class="intel-strip" style="padding-left:0;padding-right:0;border-top:0">
+            <span class="intel-dot"></span>
+            <span class="intel-text">${data?.sentiment?.headline || 'Markets stable — no dominant signals today.'}</span>
+          </div>
+        </div>`;
+      drawGauge(document.getElementById('fearGreedGauge'), Number(fg.value ?? 50));
+    }
+
+    function renderMacro(m) {
+      const items = [
+        ['10Y Yield', fmt.rate(m?.treasury10y?.value), fmt.pct(m?.treasury10y?.change)],
+        ['Yield Spread', m?.yieldSpread?.value != null ? ((m.yieldSpread.value >= 0 ? '+' : '') + Number(m.yieldSpread.value).toFixed(2)) : '—', fmt.pct(m?.yieldSpread?.change)],
+        ['CPI', m?.cpi?.yoyPct != null ? Number(m.cpi.yoyPct).toFixed(2) + '%' : '—', fmt.pct(m?.cpi?.change)],
+        ['Fed Funds', fmt.rate(m?.fedFunds?.value), fmt.pct(m?.fedFunds?.change)],
+      ];
+      document.getElementById('row2').innerHTML = items.map(([l, v, d]) => `
+        <div class="card">
+          <div class="data-label">${l}</div>
+          <div class="data-value metric-value">${v}</div>
+          <div class="metric-sub ${(d || '').startsWith('+') ? 'delta-up' : (d || '').startsWith('−') ? 'delta-down' : ''}">${d}</div>
+        </div>`).join('');
+    }
+
+    function assetRow(label, value, delta, sparkId = '') {
+      const cls = (delta || '').startsWith('+') ? 'delta-up' : (delta || '').startsWith('−') ? 'delta-down' : 'delta-caut';
+      return `<div class="mini-row"><div><div style="font-size:12px;color:var(--color-text-secondary)">${label}</div><div class="data-value" style="font-size:18px">${value}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="${cls}" style="font-size:12px">${delta}</div>${sparkId ? `<div class="spark-wrap"><canvas id="${sparkId}"></canvas></div>` : ''}</div></div>`;
+    }
+
+    function renderMain(data) {
+      const metals = data?.metals || {};
+      const indices = data?.indices || {};
+      const fx = data?.fx || {};
+      const history = data?.history || {};
+      document.getElementById('row3').innerHTML = `
+        <div class="card"><div class="data-label">Metals</div><div class="metric-grid">
+          ${assetRow('Gold', fmt.price(metals?.gold?.price), fmt.pct(metals?.gold?.change), 'spark-gold')}
+          ${assetRow('Silver', fmt.price(metals?.silver?.price), fmt.pct(metals?.silver?.change), 'spark-silver')}
+          ${assetRow('Platinum', fmt.price(metals?.platinum?.price), fmt.pct(metals?.platinum?.change), 'spark-platinum')}
+        </div></div>
+        <div class="card"><div class="data-label">Indices</div><div class="metric-grid">
+          ${assetRow('S&P 500', fmt.index(indices?.sp500?.price), fmt.pct(indices?.sp500?.change), 'spark-sp500')}
+          ${assetRow('DAX', fmt.index(indices?.dax?.price), fmt.pct(indices?.dax?.change), 'spark-dax')}
+          ${assetRow('FTSE', fmt.index(indices?.ftse?.price), fmt.pct(indices?.ftse?.change), 'spark-ftse')}
+          ${assetRow('Nikkei', fmt.index(indices?.nikkei?.price), fmt.pct(indices?.nikkei?.change), 'spark-nikkei')}
+          <div class="indices-chart-wrap"><canvas id="indicesBarChart"></canvas></div>
+        </div></div>
+        <div class="card"><div class="data-label">FX</div><div class="metric-grid">
+          ${assetRow('EUR/USD', fmt.fx(fx?.EURUSD?.rate), fmt.pct(fx?.EURUSD?.change), 'spark-eurusd')}
+          ${assetRow('GBP/USD', fmt.fx(fx?.GBPUSD?.rate), fmt.pct(fx?.GBPUSD?.change), 'spark-gbpusd')}
+          ${assetRow('USD/JPY', fmt.fx(fx?.USDJPY?.rate), fmt.pct(fx?.USDJPY?.change), 'spark-usdjpy')}
+          ${assetRow('USD/CHF', fmt.fx(fx?.USDCHF?.rate), fmt.pct(fx?.USDCHF?.change))}
+        </div></div>`;
+
+      makeSparkline('spark-gold', history.gold || [], '#D4AF37');
+      makeSparkline('spark-silver', history.silver || [], '#D4AF37');
+      makeSparkline('spark-platinum', history.platinum || [], '#D4AF37');
+      makeSparkline('spark-sp500', history.sp500 || [], pickTrend((history.sp500 || [])));
+      makeSparkline('spark-dax', history.dax || [], pickTrend((history.dax || [])));
+      makeSparkline('spark-ftse', history.ftse || [], pickTrend((history.ftse || [])));
+      makeSparkline('spark-nikkei', history.nikkei || [], pickTrend((history.nikkei || [])));
+      makeSparkline('spark-eurusd', history.eurusd || [], pickTrend((history.eurusd || [])));
+      makeSparkline('spark-gbpusd', history.gbpusd || [], pickTrend((history.gbpusd || [])));
+      makeSparkline('spark-usdjpy', history.usdjpy || [], pickTrend((history.usdjpy || [])));
+      buildIndicesBar(indices);
+    }
+
+    function renderIntel(data) {
+      const topRisk = Object.entries(data?.geopolitical?.riskByCountry || {}).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+      const news = data?.sentiment?.newsItems || [];
+      const history = data?.history || {};
+      document.getElementById('row4').innerHTML = `
+        <div class="card">
+          <div class="data-label">Geopolitical Risk</div>
+          <div class="risk-grid">${topRisk.map(([k,v]) => `<div class="risk-chip">${k}: ${v}</div>`).join('') || '<div class="risk-chip">No risk data</div>'}</div>
+          <div class="news-list">${news.slice(0,5).map(n => `<div class="news-item"><strong>${n.source || 'Source'}</strong> · ${n.text || ''}</div>`).join('') || '<div class="news-item">No headlines available</div>'}</div>
+        </div>
+        <div class="card">
+          <div class="data-label">Crypto Signals</div>
+          <div class="metric-grid">
+            ${assetRow('Bitcoin', fmt.price(data?.crypto?.bitcoin?.price), fmt.pct(data?.crypto?.bitcoin?.change), 'spark-btc')}
+            ${assetRow('Ethereum', fmt.price(data?.crypto?.ethereum?.price), fmt.pct(data?.crypto?.ethereum?.change), 'spark-eth')}
+          </div>
+        </div>`;
+      makeSparkline('spark-btc', history.bitcoin || [], pickTrend((history.bitcoin || [])));
+      makeSparkline('spark-eth', history.ethereum || [], pickTrend((history.ethereum || [])));
+    }
+
+    function renderScenarios() {
+      const labels = ['No scenario', 'Geopolitical conflict', 'Rate hike', 'Supply chain shock', 'Market correction'];
+      document.getElementById('row5').innerHTML = labels.map(l => `<button class="scenario-btn">${l}</button>`).join('');
     }
 
     function showError() {
@@ -1098,14 +1238,61 @@ Read it. Then build it.
         '<p style="color:var(--color-text-tertiary);font-size:13px;padding:48px 0;text-align:center">Unable to load market data — <button onclick="loadData()" style="color:var(--gold-600);background:none;border:none;cursor:pointer;font-size:13px">retry</button></p>';
     }
 
-    function showStaleBanner() {
-      const banner = document.createElement('div');
-      banner.style.cssText = 'background:rgba(184,149,42,0.1);border-bottom:0.5px solid rgba(184,149,42,0.3);padding:8px 24px;font-size:11px;color:var(--color-caution);font-family:var(--font-ui)';
-      banner.textContent = 'Market data may be delayed — last updated over 4 hours ago';
-      document.querySelector('.aurum-nav').after(banner);
+    function pickTrend(arr) {
+      if (!arr || arr.length < 2) return '#8A96A4';
+      return arr[arr.length - 1] >= arr[0] ? '#0F6E56' : '#A32D2D';
+    }
+
+    function makeSparkline(canvasId, dataArray, lineColor) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || !window.Chart) return;
+      if (charts[canvasId]) charts[canvasId].destroy();
+      const values = (dataArray || []).slice(-30);
+      charts[canvasId] = new Chart(canvas, {
+        type: 'line',
+        data: { labels: values.map((_, i) => i), datasets: [{ data: values, borderColor: lineColor, borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } }, animation: { duration: 300 } }
+      });
+    }
+
+    function buildIndicesBar(indices) {
+      const id = 'indicesBarChart';
+      const canvas = document.getElementById(id);
+      if (!canvas || !window.Chart) return;
+      if (charts[id]) charts[id].destroy();
+      const labels = ['S&P 500', 'DAX', 'FTSE', 'Nikkei'];
+      const vals = [indices?.sp500?.change, indices?.dax?.change, indices?.ftse?.change, indices?.nikkei?.change].map(v => v ?? 0);
+      charts[id] = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets: [{ data: vals, backgroundColor: vals.map(v => v >= 0 ? 'rgba(15,110,86,0.75)' : 'rgba(163,45,45,0.75)'), borderColor: vals.map(v => v >= 0 ? '#0F6E56' : '#A32D2D'), borderWidth: 0.5, borderRadius: 3 }] },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { color: 'rgba(201,168,76,0.08)' }, ticks: { callback: (v) => (v >= 0 ? '+' : '') + v + '%' } }, y: { grid: { display: false } } }
+        }
+      });
+    }
+
+    function drawGauge(canvas, value) {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const cx = canvas.width / 2, cy = canvas.height - 20, r = 100;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(201,168,76,0.1)';
+      ctx.lineWidth = 14; ctx.stroke();
+      const zones = [[0,25,'#A32D2D'],[25,45,'#B8952A'],[45,55,'#8A96A4'],[55,75,'#0F6E56'],[75,100,'#085041']];
+      zones.forEach(([s, e, col]) => { ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI * (1 + s / 100), Math.PI * (1 + e / 100)); ctx.strokeStyle = col; ctx.lineWidth = 14; ctx.stroke(); });
+      const angle = Math.PI * (1 + (Number(value) || 50) / 100);
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(angle) * (r - 18), cy + Math.sin(angle) * (r - 18)); ctx.strokeStyle = '#0D1B2A'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fillStyle = '#0D1B2A'; ctx.fill();
     }
 
     loadData();
+    setInterval(loadData, 15 * 60 * 1000);
   </script>
 
 </body>
