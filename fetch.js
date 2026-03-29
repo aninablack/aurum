@@ -136,6 +136,34 @@ function shouldFetchByInterval(existing, sourceKey, minHours, nowMs = Date.now()
   return hoursSince(lastTs, nowMs) >= minHours;
 }
 
+function getUtcDayKey(date = new Date()) {
+  return date.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function getUtcMonthKey(date = new Date()) {
+  return date.toISOString().slice(0, 7); // YYYY-MM
+}
+
+function getQuotaState(existing, sourceKey, now = new Date()) {
+  const q = existing?.meta?.quota?.[sourceKey] ?? {};
+  const dayKey = getUtcDayKey(now);
+  const monthKey = getUtcMonthKey(now);
+  return {
+    day: q.day === dayKey ? (q.dayCount ?? 0) : 0,
+    month: q.month === monthKey ? (q.monthCount ?? 0) : 0,
+    dayKey,
+    monthKey,
+  };
+}
+
+function withQuotaPolicy(existing, sourceKey, { minHours = 0, maxPerDay = null, maxPerMonth = null }, now = new Date()) {
+  const byInterval = shouldFetchByInterval(existing, sourceKey, minHours, now.getTime());
+  const state = getQuotaState(existing, sourceKey, now);
+  const byDay = maxPerDay == null ? true : state.day < maxPerDay;
+  const byMonth = maxPerMonth == null ? true : state.month < maxPerMonth;
+  return { allowed: byInterval && byDay && byMonth, state };
+}
+
 /**
  * Push a new value onto a rolling history array, trim to window size.
  * Mutates the array in place and returns it.
@@ -225,6 +253,7 @@ async function avCommodity(symbol) {
 }
 
 async function fetchIndicesAndMetals() {
+  const INDEX_SCALE = { sp500: 8.28, dax: 478, ftse: 8.05, nikkei: 476 };
   // Alpha Vantage free tier is very strict on per-minute rate limits.
   // Run sequentially with spacing to avoid intermittent empty quote payloads.
   const symbols = [
@@ -244,10 +273,11 @@ async function fetchIndicesAndMetals() {
 
   return {
     indices: {
-      sp500:  out.sp500 ?? null,
-      dax:    out.dax ?? null,
-      ftse:   out.ftse ?? null,
-      nikkei: out.nikkei ?? null,
+      sp500:  out.sp500 ? { ...out.sp500, price: round(out.sp500.price * INDEX_SCALE.sp500, 0) } : null,
+      dax:    out.dax ? { ...out.dax, price: round(out.dax.price * INDEX_SCALE.dax, 0) } : null,
+      ftse:   out.ftse ? { ...out.ftse, price: round(out.ftse.price * INDEX_SCALE.ftse, 0) } : null,
+      nikkei: out.nikkei ? { ...out.nikkei, price: round(out.nikkei.price * INDEX_SCALE.nikkei, 0) } : null,
+      isProxy: true,
     },
     silver: out.silver ?? null,
   };
@@ -257,13 +287,21 @@ async function fetchIndicesAndMetals() {
 async function fetchMetals() {
   const url = `https://api.metals.dev/v1/latest?api_key=${CONFIG.metalsdev}&currency=USD&unit=troy_ounce`;
   const data = await fetchJSON(url);
+  console.log('metals.dev raw response:', JSON.stringify(data, null, 2));
   const m = data?.metals;
   if (!m) throw new Error('No metals data returned');
+  const rawGold = m.XAU ?? m.gold ?? null;
+  let goldPerOz = rawGold;
+  if (rawGold != null && rawGold > 50 && rawGold < 200) {
+    goldPerOz = rawGold * 31.1035; // grams -> troy ounce
+  } else if (rawGold != null && rawGold > 3500 && rawGold < 8000) {
+    goldPerOz = rawGold / 2; // normalise high contract-style quote to spot-like level
+  }
   return {
-    gold:     { price: round(m.XAU, 2) },
-    silver:   { price: round(m.XAG, 2) },
-    platinum: { price: round(m.XPT, 2) },
-    palladium:{ price: round(m.XPD, 2) },
+    gold:     { price: round(goldPerOz, 2) },
+    silver:   { price: round(m.XAG ?? m.silver ?? null, 2) },
+    platinum: { price: round(m.XPT ?? m.platinum ?? null, 2) },
+    palladium:{ price: round(m.XPD ?? m.palladium ?? null, 2) },
   };
 }
 
@@ -282,6 +320,7 @@ async function fredSeries(seriesId, limit = 2) {
     previous: prev ? round(prev, 4) : null,
     change:   prev ? round(latest - prev, 4) : null,
     date:     obs[0].date,
+    observations: obs.map(o => round(parseFloat(o.value), 4)),
   };
 }
 
@@ -289,7 +328,7 @@ async function fetchMacro() {
   const [treasury10y, treasury2y, cpi, fedFunds, unrate, gdp, yieldSpreadSeries] = await Promise.allSettled([
     safe('FRED: 10Y yield',   () => fredSeries('DGS10')),
     safe('FRED: 2Y yield',    () => fredSeries('DGS2')),
-    safe('FRED: CPI',         () => fredSeries('CPIAUCSL')),
+    safe('FRED: CPI',         () => fredSeries('CPIAUCSL', 14)),
     safe('FRED: Fed Funds',   () => fredSeries('FEDFUNDS')),
     safe('FRED: Unemployment',() => fredSeries('UNRATE')),
     safe('FRED: GDP',         () => fredSeries('GDPC1')),
@@ -316,11 +355,17 @@ async function fetchMacro() {
         }
       : null;
 
+  const cpiSeries = get(cpi);
+  const cpiObs = cpiSeries?.observations ?? [];
+  const cpiYoY = (cpiObs.length >= 13 && cpiObs[12] !== 0)
+    ? round(((cpiObs[0] - cpiObs[12]) / cpiObs[12]) * 100, 2)
+    : null;
+
   return {
     treasury10y:  t10,
     treasury2y:   t2,
     yieldSpread,  // negative = inverted curve = recession signal
-    cpi:          get(cpi),
+    cpi:          cpiSeries ? { ...cpiSeries, yoyPct: cpiYoY } : null,
     fedFunds:     get(fedFunds),
     unemployment: get(unrate),
     gdp:          get(gdp),
@@ -484,7 +529,14 @@ async function readGist() {
       'Accept': 'application/vnd.github.v3+json',
     },
   });
-  const content = data?.files?.['aurum-data.json']?.content;
+  const file = data?.files?.['aurum-data.json'];
+  let content = file?.content;
+  if ((!content || file?.truncated) && file?.raw_url) {
+    const raw = await fetchJSON(file.raw_url, {
+      headers: { 'User-Agent': 'Aurum-Dashboard/1.0' }
+    });
+    return raw;
+  }
   if (!content) return null;
   try {
     return JSON.parse(content);
@@ -601,17 +653,23 @@ async function main() {
   // 2. Fetch all sources in parallel where possible
   console.log('\n── Fetching data sources...');
 
-  // Quota/cadence guardrails (UTC):
-  // - Alpha Vantage: 25/day free -> cap to every 6h (~4/day)
-  // - metals.dev: 100/month free -> dynamic cap ~ every 8h (<=3/day)
-  // - NewsAPI: 100/day free -> cap to every 1h (<=24/day)
-  const nowMs = Date.now();
-  const metalsMinHours = Math.max(8, Math.ceil((24 * daysInMonthUTC()) / 100)); // usually ~8h
+  // Quota/cadence guardrails (UTC) with hard caps:
+  // - Alpha Vantage: 25/day (hard cap) + 3h cadence
+  // - metals.dev: 100/month (hard cap) + 6h cadence
+  // - NewsAPI: 100/day (hard cap) + 30m cadence
+  // - GDELT: 2h cadence to reduce throttling pressure
+  const now = new Date();
+  const metalsMinHours = Math.max(6, Math.ceil((24 * daysInMonthUTC(now)) / 100)); // usually ~8h, floor at 6h
 
-  const canFetchAV = shouldFetchByInterval(existing, 'alphavantage', 6, nowMs);
-  const canFetchMetals = shouldFetchByInterval(existing, 'metalsdev', metalsMinHours, nowMs);
-  const canFetchNews = shouldFetchByInterval(existing, 'newsapi', 1, nowMs);
-  const canFetchGeo = shouldFetchByInterval(existing, 'gdelt', 4, nowMs);
+  const avPolicy = withQuotaPolicy(existing, 'alphavantage', { minHours: 3, maxPerDay: 25 }, now);
+  const metalsPolicy = withQuotaPolicy(existing, 'metalsdev', { minHours: metalsMinHours, maxPerMonth: 100 }, now);
+  const newsPolicy = withQuotaPolicy(existing, 'newsapi', { minHours: 0.5, maxPerDay: 100 }, now);
+  const gdeltPolicy = withQuotaPolicy(existing, 'gdelt', { minHours: 2 }, now);
+
+  const canFetchAV = avPolicy.allowed;
+  const canFetchMetals = metalsPolicy.allowed;
+  const canFetchNews = newsPolicy.allowed;
+  const canFetchGeo = gdeltPolicy.allowed;
 
   const [fearGreed, fx, goldCSV, avData, metals, macro, news, crypto, geo] =
     await Promise.all([
@@ -634,10 +692,10 @@ async function main() {
         : Promise.resolve(null),
     ]);
 
-  if (!canFetchAV) console.log('~ Alpha Vantage skipped (quota cadence, reusing cached values)');
-  if (!canFetchMetals) console.log('~ Metals.dev skipped (monthly quota cadence, reusing cached values)');
-  if (!canFetchNews) console.log('~ NewsAPI skipped (quota cadence, reusing cached values)');
-  if (!canFetchGeo) console.log('~ GDELT skipped (4h cadence, reusing cached geopolitical data)');
+  if (!canFetchAV) console.log(`~ Alpha Vantage skipped (quota/cadence; day count=${avPolicy.state.day}/25)`);
+  if (!canFetchMetals) console.log(`~ Metals.dev skipped (quota/cadence; month count=${metalsPolicy.state.month}/100)`);
+  if (!canFetchNews) console.log(`~ NewsAPI skipped (quota/cadence; day count=${newsPolicy.state.day}/100)`);
+  if (!canFetchGeo) console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
 
   // 3. Resolve best gold price (metals.dev preferred, CSV fallback)
   const goldPrice = metals?.gold?.price ?? goldCSV?.price ?? null;
@@ -645,6 +703,7 @@ async function main() {
   const platinumPrice = metals?.platinum?.price ?? null;
 
   // 4. Calculate FX changes vs previous snapshot
+  console.log('Existing FX from Gist:', JSON.stringify(existing?.fx, null, 2));
   const prevFX = existing?.fx;
   if (fx && prevFX) {
     for (const pair of ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'USDCNY']) {
@@ -704,6 +763,32 @@ async function main() {
       stale:    false,
       version:  '1.0',
       geoCached,
+      quota: {
+        alphavantage: {
+          day: avPolicy.state.dayKey,
+          dayCount: avPolicy.state.day + (avData ? 1 : 0),
+          month: avPolicy.state.monthKey,
+          monthCount: avPolicy.state.month, // no explicit monthly cap tracked for AV
+        },
+        metalsdev: {
+          day: metalsPolicy.state.dayKey,
+          dayCount: metalsPolicy.state.day + (metals ? 1 : 0),
+          month: metalsPolicy.state.monthKey,
+          monthCount: metalsPolicy.state.month + (metals ? 1 : 0),
+        },
+        newsapi: {
+          day: newsPolicy.state.dayKey,
+          dayCount: newsPolicy.state.day + (news ? 1 : 0),
+          month: newsPolicy.state.monthKey,
+          monthCount: newsPolicy.state.month, // no explicit monthly cap tracked for NewsAPI
+        },
+        gdelt: {
+          day: gdeltPolicy.state.dayKey,
+          dayCount: gdeltPolicy.state.day + (geo ? 1 : 0),
+          month: gdeltPolicy.state.monthKey,
+          monthCount: gdeltPolicy.state.month,
+        },
+      },
       lastFetch: {
         fearGreed:   fearGreed ? new Date().toISOString() : (existing?.meta?.lastFetch?.fearGreed ?? null),
         fx:          fx ? new Date().toISOString() : (existing?.meta?.lastFetch?.fx ?? null),
@@ -740,6 +825,7 @@ async function main() {
       dax:    avData?.indices?.dax    ?? existing?.indices?.dax    ?? null,
       ftse:   avData?.indices?.ftse   ?? existing?.indices?.ftse   ?? null,
       nikkei: avData?.indices?.nikkei ?? existing?.indices?.nikkei ?? null,
+      isProxy: true,
     },
 
     fx: fx ?? existing?.fx ?? null,
