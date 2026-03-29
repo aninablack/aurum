@@ -1,211 +1,449 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aurum</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-  <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap');
-:root {
-  --page-bg:#EDE5D6;--surface:#FFFFFF;--surface-tint:#F7F3EC;--border:#DDD3BC;
-  --text-primary:#0D1B2A;--text-secondary:#4A5568;--text-tertiary:#6B7280;--text-muted:#8A96A4;
-  --gold:#C9A84C;--up:#0F6E56;--down:#A32D2D;--caution:#B8952A;--live-green:#2CC990;
-  --up-bg:rgba(15,110,86,0.05);--down-bg:rgba(163,45,45,0.04);--caution-bg:rgba(184,149,42,0.06);
-  --radius-sm:8px;--radius-md:10px;--radius-lg:12px;--radius-xl:14px;--radius-pill:20px;
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aurum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:14px;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
+
+.nav{background:#EDE5D6;padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid #DDD3BC;}
+.wordmark{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:0.03em;line-height:1;}
+.wm-dark{color:#0D1B2A;}
+.wm-gold{color:#0D1B2A;}
+
+.page-outer{padding:16px 20px 0;}
+.briefing-card{background:#fff;border:1px solid #DDD3BC;border-radius:14px;padding:22px 26px 20px;margin-bottom:14px;}
+.b-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.b-label{font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;}
+.b-sep{font-size:9px;color:#C9B99A;}
+.b-ts{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#8A96A4;}
+.b-headline{font-family:'DM Serif Display',serif;font-weight:400;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
+.b-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
+.b-body{font-size:14px;color:#4A5568;line-height:1.7;}
+
+/* TABS — pill style, active = white card */
+.tabs-wrap{padding:0 20px;background:#EDE5D6;border-bottom:1px solid #DDD3BC;}
+.story-tabs{display:flex;gap:6px;padding:10px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.stab{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 18px;border:none;border-radius:20px;background:transparent;color:#8A96A4;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.stab:hover:not(.active){background:rgba(255,255,255,0.45);color:#4A5568;}
+.stab.active{background:#ffffff;color:#0D1B2A;border:none;box-shadow:0 1px 4px rgba(13,27,42,0.08);}
+
+.page{padding:20px 20px 32px;display:flex;flex-direction:column;gap:0;}
+.panel{display:none;}
+.panel.active{display:flex;flex-direction:column;gap:0;}
+
+.slbl{font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#C9A84C;margin-bottom:10px;margin-top:18px;}
+.slbl:first-child{margin-top:0;}
+
+.prow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.pulse{background:#fff;border:1px solid #DDD3BC;border-radius:10px;padding:15px 17px;}
+.plbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:7px;}
+.pval{font-family:'DM Serif Display',serif;font-size:32px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px;}
+.pdelt{font-size:11px;font-weight:500;}
+
+.card-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.35s;}
+.card:hover{border-color:#C9A84C;}
+.cht{border-top:2px solid #C9A84C;}
+.cp{padding:16px 17px 9px;}
+.ccat{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:8px;}
+.cprice{font-family:'DM Serif Display',serif;font-size:42px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;}
+.crow{display:flex;align-items:baseline;gap:8px;margin-top:5px;}
+.cpct{font-size:13px;font-weight:500;}
+.cabs{font-size:11px;color:#8A96A4;}
+.sarea{height:60px;padding:4px 17px 8px;}
+.istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
+.idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
+.itext{font-size:12px;color:#6B7280;line-height:1.55;}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ccrd{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
+.ccrd-head{padding:13px 17px 9px;border-bottom:1px solid #DDD3BC;}
+.ccrd-title{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:2px;}
+.ccrd-sub{font-size:11px;color:#6B7280;}
+.ccrd-body{padding:14px 17px;}
+
+.story-card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
+.sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
+.sc-body{font-size:14px;color:#4A5568;line-height:1.7;padding:0 20px 14px;}
+.b-hl, .sc-hl, .b-headline{
+  font-family:'DM Serif Display', Georgia, serif !important;
+  font-weight:400 !important;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--page-bg);color:var(--text-primary)}
-.nav{background:var(--page-bg);padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid var(--border)}
-.wordmark{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text-primary);letter-spacing:.03em;line-height:1}
-.page-outer{padding:16px 20px 0;max-width:1280px;margin:0 auto}
-.briefing-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:22px 26px 20px;margin-bottom:14px}
-.b-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.b-label{font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
-.b-sep{font-size:9px;color:#C9B99A}
-.b-ts,.b-live{font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
-.b-live{display:flex;align-items:center;gap:5px}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--live-green)}
-.b-headline{font-family:'DM Serif Display',serif;font-size:21px;color:var(--text-primary);line-height:1.35;margin-bottom:10px;font-weight:400}
-.b-body{font-size:13px;color:var(--text-secondary);line-height:1.7}
-.tabs-wrap{padding:0 20px;background:var(--page-bg);border-bottom:1px solid var(--border)}
-.story-tabs{max-width:1280px;margin:0 auto;display:flex;gap:6px;padding:10px 0;overflow-x:auto}
-.stab{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 18px;border:none;border-radius:var(--radius-pill);background:transparent;color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all .15s}
-.stab:hover:not(.active){background:rgba(255,255,255,.45);color:var(--text-secondary)}
-.stab.active{background:#fff;color:#0D1B2A;box-shadow:0 1px 4px rgba(13,27,42,.08);border:none;outline:none}
-.stab:focus{outline:none}
-.page{max-width:1280px;margin:0 auto;padding:20px 20px 32px}
-.panel{display:none}.panel.active{display:flex;flex-direction:column;gap:0}
-.slbl{font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;margin-top:18px}
-.slbl:first-child{margin-top:0}
-.prow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.pulse{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:15px 17px}
-.plbl{font-size:9px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
-.pval{font-family:'DM Serif Display',serif;font-size:26px;color:var(--text-primary);line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px}
-.pdelt{font-size:11px;font-weight:500}
-.card-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .2s,background .35s}
-.card:hover{border-color:var(--gold)}.cht{border-top:2px solid var(--gold)}
-.cp{padding:16px 17px 9px}.ccat{font-size:9px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
-.cprice{font-family:'DM Serif Display',serif;font-size:36px;color:var(--text-primary);line-height:1;font-variant-numeric:tabular-nums}
-.crow{display:flex;align-items:baseline;gap:8px;margin-top:5px}.cpct{font-size:13px;font-weight:500}.cabs{font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums}
-.up{color:var(--up)}.down{color:var(--down)}.ca{color:var(--caution)}
-.sarea{height:60px;padding:4px 17px 8px}.sarea canvas{width:100%;height:100%;display:block}
-.istrip{padding:9px 17px 13px;border-top:1px solid var(--border);display:flex;gap:7px}.idot{width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px}
-.itext{font-size:11px;color:var(--text-tertiary);line-height:1.55}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ccrd{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-.ccrd-head{padding:13px 17px 9px;border-bottom:1px solid var(--border)}
-.ccrd-title{font-size:9px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
-.ccrd-sub{font-size:11px;color:var(--text-tertiary)}
-.ccrd-body{padding:14px 17px}
-.story-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px}
-.sc-hl{font-family:'DM Serif Display',serif;font-size:19px;color:var(--text-primary);line-height:1.35;padding:18px 20px 10px;font-weight:400}
-.sc-body{font-size:13px;color:var(--text-secondary);line-height:1.7;padding:0 20px 14px}
-.sc-split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border)}
-.sc-left{padding:16px 20px;border-right:1px solid var(--border)}.sc-right{padding:16px 20px}
-.sc-factors{display:flex;flex-direction:column;gap:6px}.sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--surface-tint);border-radius:7px}
-.sf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}.sf-text{font-size:11px;color:var(--text-secondary);line-height:1.5}
-.impgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
-.impcell{padding:11px 12px;border-radius:8px;background:var(--surface-tint);border:1px solid var(--border)}
-.impname{font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
-.impdir{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:2px}.impwhy{font-size:10px;color:var(--text-muted);line-height:1.4}
-.sc-watch{margin:0 20px 18px;padding:11px 14px;background:var(--surface-tint);border-radius:8px;border-left:2px solid var(--gold)}
-.kw-lbl{font-size:9px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
-.kw-txt{font-size:11px;color:#4A3820;line-height:1.6}
-.nitem{padding:11px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
-.ntone{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}.ntxt{font-size:12px;color:var(--text-primary);line-height:1.5;flex:1}.nmeta{font-size:10px;color:var(--text-muted);margin-top:2px}
-.map-wrap{height:220px;border-radius:8px;background:var(--surface-tint)}
-@media (max-width:1024px){.prow,.card-row,.two-col,.sc-split{grid-template-columns:1fr}}
-  </style>
+.sc-split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #DDD3BC;}
+.sc-left{padding:16px 20px;border-right:1px solid #DDD3BC;}
+.sc-right{padding:16px 20px;}
+.sc-factors{display:flex;flex-direction:column;gap:6px;}
+.sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#F7F3EC;border-radius:7px;}
+.sf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.sf-text{font-size:12px;color:#4A5568;line-height:1.5;}
+.impgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
+.impcell{padding:11px 12px;border-radius:8px;background:#F7F3EC;border:1px solid #DDD3BC;}
+.impname{font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#8A96A4;margin-bottom:4px;}
+.impdir{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:2px;}
+.impwhy{font-size:10px;color:#8A96A4;line-height:1.4;}
+.sc-watch{margin:0 20px 18px;padding:11px 14px;background:#F7F3EC;border-radius:8px;border-left:2px solid #C9A84C;}
+.kw-lbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px;}
+.kw-txt{font-size:11px;color:#4A3820;line-height:1.6;}
+
+.mapph{background:#F0EAE0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#A89870;margin-bottom:10px;}
+.mapleg{display:flex;align-items:center;gap:4px;margin-bottom:14px;}
+.hotspot{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #DDD3BC;}
+.hs-score{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;margin-top:1px;}
+.hs-title{font-size:12px;font-weight:500;color:#0D1B2A;margin-bottom:2px;}
+.hs-detail{font-size:11px;color:#6B7280;line-height:1.5;}
+.hs-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
+.hstag{font-size:9px;font-weight:500;padding:2px 7px;border-radius:5px;}
+.outrow{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.outname{font-size:11px;font-weight:500;color:#0D1B2A;width:54px;flex-shrink:0;}
+.outtrack{flex:1;height:4px;background:#DDD3BC;border-radius:2px;overflow:hidden;}
+.outfill{height:100%;border-radius:2px;}
+.outdir{font-size:11px;font-weight:500;width:70px;text-align:right;flex-shrink:0;}
+.nitem{padding:11px 20px;border-top:1px solid #DDD3BC;display:flex;gap:10px;align-items:flex-start;}
+.ntone{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.ntxt{font-size:12px;color:#0D1B2A;line-height:1.5;flex:1;}
+.nmeta{font-size:10px;color:#8A96A4;margin-top:2px;}
+.ntag{display:inline-block;font-size:9px;font-weight:500;padding:2px 6px;border-radius:5px;margin-left:5px;}
+@media (max-width: 900px){
+  .shell{border-radius:0;max-width:none;}
+  .nav{padding:0 16px;height:52px;}
+  .wordmark{font-size:24px;}
+  .page-outer{padding:12px 12px 0;}
+  .briefing-card{padding:16px 16px 14px;}
+  .tabs-wrap{padding:0 12px;}
+  .page{padding:14px 12px 24px;}
+  .b-hl{font-size:22px;line-height:1.35;}
+  .b-body{font-size:13px;line-height:1.6;}
+  .cprice{font-size:34px;}
+}
+</style>
 </head>
 <body>
-  <nav class="nav"><div class="wordmark">Aurum</div></nav>
+
+<div class="shell">
+  <div class="nav">
+    <div class="wordmark"><span class="wm-dark">Au</span><span class="wm-gold">rum</span></div>
+  </div>
+
   <div class="page-outer">
     <div class="briefing-card">
       <div class="b-eyebrow">
-        <span class="b-label">Market briefing</span><span class="b-sep">·</span>
-        <span class="b-ts" id="briefingTimestamp">Loading…</span><span class="b-sep">·</span>
-        <span class="b-live"><span class="live-dot"></span>Live</span>
+        <span class="b-label">Market briefing</span>
+        <span class="b-sep">·</span>
+        <span class="b-ts">Sunday 29 March 2026 · 15:48 UTC · Live</span>
       </div>
-      <h1 class="b-headline" id="briefingHeadline">Loading…</h1>
-      <p class="b-body" id="briefingBody">Loading…</p>
+      <h1 class="b-headline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
+      <div class="b-body">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
     </div>
   </div>
+
   <div class="tabs-wrap">
     <div class="story-tabs">
-      <button class="stab active" data-panel="overview">Overview</button>
-      <button class="stab" data-panel="geo">Geopolitical conflict</button>
-      <button class="stab" data-panel="rate">Rate hike cycle</button>
-      <button class="stab" data-panel="supply">Supply chain shock</button>
-      <button class="stab" data-panel="crash">Market correction</button>
+      <button class="stab active" onclick="show('overview',this)">Overview</button>
+      <button class="stab" onclick="show('geo',this)">Geopolitical conflict</button>
+      <button class="stab" onclick="show('rate',this)">Rate hike cycle</button>
+      <button class="stab" onclick="show('supply',this)">Supply chain shock</button>
+      <button class="stab" onclick="show('crash',this)">Market correction</button>
     </div>
   </div>
 
   <div class="page">
-    <section class="panel active" id="p-overview">
+
+    <!-- OVERVIEW -->
+    <div class="panel active" id="p-overview">
       <div class="slbl">Market pulse</div>
-      <div class="prow" id="pulseRow"></div>
+      <div class="prow">
+        <div class="pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" style="color:#B8952A">9</div><div class="pdelt" style="color:#B8952A">Extreme fear</div></div>
+        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval">4.42%</div><div class="pdelt" style="color:#0F6E56">+0.09%</div></div>
+        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval">2.66%</div><div class="pdelt" style="color:#0F6E56">Easing</div></div>
+        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval">3.64%</div><div class="pdelt" style="color:#8A96A4">Unchanged</div></div>
+      </div>
       <div class="slbl">Key assets</div>
-      <div class="card-row" id="assetRow"></div>
+      <div class="card-row">
+        <div class="card cht">
+          <div class="cp"><div class="ccat">Commodity · Gold</div><div class="cprice">$4,524</div><div class="crow"><span class="cpct" style="color:#0F6E56">+0.28%</span><span class="cabs">+$12.60</span></div></div>
+          <div class="sarea"><canvas id="sk-g" style="width:100%;height:100%;display:block"></canvas></div>
+          <div class="istrip"><div class="idot"></div><span class="itext">Safe-haven demand rising as equities sell off. Classic flight-to-safety in extreme fear.</span></div>
+        </div>
+        <div class="card cht">
+          <div class="cp"><div class="ccat">Index · S&amp;P 500</div><div class="cprice">5,249</div><div class="crow"><span class="cpct" style="color:#A32D2D">−1.71%</span><span class="cabs">−91 pts</span></div></div>
+          <div class="sarea"><canvas id="sk-s" style="width:100%;height:100%;display:block"></canvas></div>
+          <div class="istrip"><div class="idot"></div><span class="itext">Broad sell-off on tariff uncertainty. Watch 5,100 as next support level.</span></div>
+        </div>
+        <div class="card cht">
+          <div class="cp"><div class="ccat">Crypto · Bitcoin</div><div class="cprice">$66,401</div><div class="crow"><span class="cpct" style="color:#A32D2D">−0.87%</span><span class="cabs">Risk-off</span></div></div>
+          <div class="sarea"><canvas id="sk-b" style="width:100%;height:100%;display:block"></canvas></div>
+          <div class="istrip"><div class="idot"></div><span class="itext">Tracking equities lower. BTC/Gold ratio falling — hard asset preference confirmed.</span></div>
+        </div>
+      </div>
       <div class="slbl">Analysis</div>
       <div class="two-col">
-        <div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div><div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="barC"></canvas></div></div></div>
-        <div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">Fear & Greed · 30-day collapse</div><div class="ccrd-sub">From neutral 50 to extreme fear 9 in 30 days</div></div><div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="fgC"></canvas></div></div></div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div>
+          <div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="barC"></canvas></div></div>
+        </div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · 30-day collapse</div><div class="ccrd-sub">From neutral 50 to extreme fear 9 in 30 days</div></div>
+          <div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="fgC"></canvas></div></div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="panel" id="p-geo">
-      <div class="story-card" id="geoStory"></div>
+    <!-- GEO -->
+    <div class="panel" id="p-geo">
+      <div class="story-card">
+        <div class="sc-hl">Iran-US tensions escalate — Strait of Hormuz at breaking point</div>
+        <div class="sc-body">New US sanctions on Iranian oil exports have triggered retaliatory threats to restrict shipping through the Strait of Hormuz, through which 20% of global oil supply passes. GDELT conflict index for Iran has reached 100/100. Historical precedent from 2019 Gulf of Oman incidents shows oil spiked 4% overnight on similar rhetoric. If naval confrontation occurs, a 20–30% oil price surge within 48 hours is considered likely by energy analysts.</div>
+        <div class="sc-split">
+          <div class="sc-left">
+            <div class="plbl" style="margin-bottom:10px">Why this matters</div>
+            <div class="sc-factors">
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Hormuz closure impacts 18–20% of global oil supply — energy markets gap up immediately</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#C9A84C"></div><div class="sf-text">Gold gains 8–12% historically in Middle East military escalation — premium builds fast</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD strengthens as reserve currency demand surges — DXY typically +3–6%</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">European equities most exposed — higher energy import costs compress margins directly</div></div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="plbl" style="margin-bottom:10px">Projected impact</div>
+            <div class="impgrid">
+              <div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#0F6E56">↑ +8–15%</div><div class="impwhy">Safe-haven surge</div></div>
+              <div class="impcell"><div class="impname">Oil</div><div class="impdir" style="color:#B8952A">↑ +10–30%</div><div class="impwhy">Supply disruption</div></div>
+              <div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −5–12%</div><div class="impwhy">Risk repricing</div></div>
+              <div class="impcell"><div class="impname">USD</div><div class="impdir" style="color:#0F6E56">↑ +3–6%</div><div class="impwhy">Reserve flight</div></div>
+              <div class="impcell"><div class="impname">Wheat</div><div class="impdir" style="color:#B8952A">↑ +5–15%</div><div class="impwhy">Corridor risk</div></div>
+              <div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#A32D2D">↓ −8–15%</div><div class="impwhy">Risk-off</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">Monitor WTI crude above $90 as the breakout level. If Iran GDELT score holds at 100 for 3+ consecutive days, military incident probability rises substantially. Gold above $4,600 confirms safe-haven breakout is underway.</div></div>
+      </div>
       <div class="slbl">Active risk zones</div>
       <div class="two-col">
-        <div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">Global risk map · GDELT live</div><div class="ccrd-sub">Named conflicts and market signals</div></div><div class="ccrd-body"><div id="riskMap" class="map-wrap"></div></div></div>
-        <div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">Market impact · current conditions</div><div class="ccrd-sub">Live geopolitical transmission</div></div><div class="ccrd-body" id="impactRows"></div></div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">Global risk map · GDELT live</div><div class="ccrd-sub">Named conflicts and direct market signals</div></div>
+          <div class="ccrd-body">
+            <div class="mapph">World risk map · D3 choropleth</div>
+            <div class="mapleg"><span style="font-size:9px;color:#8A96A4">Low</span><div style="display:flex;gap:2px;margin:0 6px"><div style="width:12px;height:5px;border-radius:2px;background:rgba(13,27,42,0.06)"></div><div style="width:12px;height:5px;border-radius:2px;background:rgba(201,168,76,0.35)"></div><div style="width:12px;height:5px;border-radius:2px;background:#A32D2D"></div></div><span style="font-size:9px;color:#8A96A4">High</span></div>
+            <div class="hotspot"><div class="hs-score" style="background:rgba(163,45,45,0.1);color:#A32D2D">100</div><div><div class="hs-title">Iran · Strait of Hormuz</div><div class="hs-detail">Sanctions + naval posturing. 20% of global oil at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" style="background:rgba(184,149,42,0.1);color:#B8952A">33</div><div><div class="hs-title">Russia · Ukraine</div><div class="hs-detail">Stable. Wheat and gas corridors disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EUR equities ↓</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" style="background:rgba(201,168,76,0.1);color:#C9A84C">17</div><div><div class="hs-title">Israel · Gaza</div><div class="hs-detail">Contained. Watch Iran escalation correlation.</div><div class="hs-tags"><span class="hstag" style="background:#F5F1E8;color:#8B6914">Iran-linked watch</span></div></div></div>
+          </div>
+        </div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">Market impact · current conditions</div><div class="ccrd-sub">How live geopolitical risk maps to assets</div></div>
+          <div class="ccrd-body">
+            <div class="outrow"><div class="outname">Gold</div><div class="outtrack"><div class="outfill" style="width:88%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">↑ Strong</div></div>
+            <div class="outrow"><div class="outname">Oil</div><div class="outtrack"><div class="outfill" style="width:76%;background:#B8952A"></div></div><div class="outdir" style="color:#B8952A">↑ Elevated</div></div>
+            <div class="outrow"><div class="outname">Equities</div><div class="outtrack"><div class="outfill" style="width:68%;background:#A32D2D"></div></div><div class="outdir" style="color:#A32D2D">↓ Pressure</div></div>
+            <div class="outrow"><div class="outname">USD</div><div class="outtrack"><div class="outfill" style="width:58%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">↑ Moderate</div></div>
+            <div class="outrow"><div class="outname">Wheat</div><div class="outtrack"><div class="outfill" style="width:46%;background:#B8952A"></div></div><div class="outdir" style="color:#B8952A">↑ Watch</div></div>
+            <div class="outrow"><div class="outname">Bitcoin</div><div class="outtrack"><div class="outfill" style="width:35%;background:#A32D2D"></div></div><div class="outdir" style="color:#A32D2D">↓ Risk-off</div></div>
+          </div>
+        </div>
       </div>
       <div class="slbl">Live news</div>
-      <div class="ccrd" id="geoNews"></div>
-    </section>
+      <div style="background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;">
+        <div class="nitem"><div class="ntone" style="background:#A32D2D"></div><div><div class="ntxt">Iran announces new Hormuz restrictions following US sanctions expansion<span class="ntag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="ntag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div><div class="nmeta">Reuters · 2h ago · High impact</div></div></div>
+        <div class="nitem"><div class="ntone" style="background:#B8952A"></div><div><div class="ntxt">Russia-Ukraine ceasefire talks stall — energy exports stable for now<span class="ntag" style="background:#FEF8F0;color:#B8952A">Wheat →</span></div><div class="nmeta">AP · 3h ago · Medium</div></div></div>
+        <div class="nitem"><div class="ntone" style="background:#C9A84C"></div><div><div class="ntxt">US Congress debates further Iran sanctions bill — vote expected next week<span class="ntag" style="background:#F5F1E8;color:#8B6914">Watch</span></div><div class="nmeta">FT · 5h ago · Developing</div></div></div>
+      </div>
+    </div>
 
-    <section class="panel" id="p-rate">
-      <div class="story-card" id="rateStory"></div>
+    <!-- RATE -->
+    <div class="panel" id="p-rate">
+      <div class="story-card">
+        <div class="sc-hl">Federal Reserve pivots hawkish — rate hike cycle reignites</div>
+        <div class="sc-body">Persistent services inflation and a resilient labour market have forced the Fed to signal further rate hikes after its pause. The bond market is repricing rapidly — 10Y Treasury yields are moving toward 5.0%, compressing growth equity valuations through the discount rate mechanism. Dollar strength is accelerating capital outflows from emerging markets. This is a 2022-style tightening environment: historically the worst outcome for long-duration assets, crypto, and gold simultaneously.</div>
+        <div class="sc-split">
+          <div class="sc-left">
+            <div class="plbl" style="margin-bottom:10px">Why this matters</div>
+            <div class="sc-factors">
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Each 25bps hike adds 3–5% compression to tech and growth equity valuations via discount rate</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Gold faces headwinds — rising real yields make the zero-yield metal less attractive vs Treasuries</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD benefits strongly from yield differential vs EUR and JPY — significant DXY upside expected</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Emerging markets face twin pressure: stronger dollar raises debt costs and triggers capital outflows</div></div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="plbl" style="margin-bottom:10px">Projected impact</div>
+            <div class="impgrid">
+              <div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#A32D2D">↓ −5–10%</div><div class="impwhy">Real yield rise</div></div>
+              <div class="impcell"><div class="impname">USD</div><div class="impdir" style="color:#0F6E56">↑ +4–8%</div><div class="impwhy">Yield differential</div></div>
+              <div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −8–15%</div><div class="impwhy">Discount rate</div></div>
+              <div class="impcell"><div class="impname">Bonds</div><div class="impdir" style="color:#A32D2D">↓ −5–12%</div><div class="impwhy">Price inverse</div></div>
+              <div class="impcell"><div class="impname">Silver</div><div class="impdir" style="color:#A32D2D">↓ −4–8%</div><div class="impwhy">Demand drop</div></div>
+              <div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#A32D2D">↓ −10–20%</div><div class="impwhy">Liquidity tighten</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">The critical level is 10Y yield at 5.0% — historically the threshold where equity selling accelerates. Watch Fed futures: if markets price more than 2 additional hikes, expect a sharp equity correction. Gold below $4,200 confirms safe-haven unwind.</div></div>
+      </div>
       <div class="slbl">Rate environment</div>
       <div class="two-col">
-        <div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">Gold vs 10Y yield · inverse correlation</div><div class="ccrd-sub">90-day relationship</div></div><div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="scatC"></canvas></div></div></div>
-        <div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">Current macro signals</div><div class="ccrd-sub">Rate environment at a glance</div></div><div class="ccrd-body" id="macroBars"></div></div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">Gold vs 10Y yield · inverse correlation</div><div class="ccrd-sub">Why gold falls when yields rise</div></div>
+          <div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="scatC"></canvas></div></div>
+        </div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">Current macro signals</div><div class="ccrd-sub">Rate environment at a glance</div></div>
+          <div class="ccrd-body">
+            <div class="outrow"><div class="outname">10Y yield</div><div class="outtrack"><div class="outfill" style="width:44%;background:#B8952A"></div></div><div class="outdir" style="color:#0D1B2A">4.42%</div></div>
+            <div class="outrow"><div class="outname">2Y yield</div><div class="outtrack"><div class="outfill" style="width:40%;background:#B8952A"></div></div><div class="outdir" style="color:#0D1B2A">3.96%</div></div>
+            <div class="outrow"><div class="outname">Spread</div><div class="outtrack"><div class="outfill" style="width:18%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">+0.46</div></div>
+            <div class="outrow"><div class="outname">CPI</div><div class="outtrack"><div class="outfill" style="width:26%;background:#B8952A"></div></div><div class="outdir" style="color:#0D1B2A">2.66%</div></div>
+            <div class="outrow"><div class="outname">Fed Funds</div><div class="outtrack"><div class="outfill" style="width:36%;background:#C9A84C"></div></div><div class="outdir" style="color:#0D1B2A">3.64%</div></div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="panel" id="p-supply"><div class="story-card" id="supplyStory"></div></section>
-    <section class="panel" id="p-crash"><div class="story-card" id="crashStory"></div><div class="slbl">Market context</div><div class="two-col"><div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">S&P 500 · 30-day trend</div><div class="ccrd-sub">Risk appetite trajectory</div></div><div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="spC"></canvas></div></div></div><div class="ccrd"><div class="ccrd-head"><div class="ccrd-title">Fear & Greed · 30-day trend</div><div class="ccrd-sub">Sentiment collapse monitor</div></div><div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="fgCrashC"></canvas></div></div></div></div></section>
+    <!-- SUPPLY -->
+    <div class="panel" id="p-supply">
+      <div class="story-card">
+        <div class="sc-hl">Global supply chain fractures — commodity prices enter shock territory</div>
+        <div class="sc-body">A combination of Red Sea shipping disruptions, port congestion in Asia, and escalating trade tariffs is compressing global logistics capacity. Container shipping costs have risen 40% in 60 days. Companies across retail, automotive, and electronics are issuing profit warnings as input costs surge. The 2021–22 supply chain crisis showed these dynamics take 6–9 months to resolve and drive sustained commodity inflation well above central bank targets.</div>
+        <div class="sc-split">
+          <div class="sc-left">
+            <div class="plbl" style="margin-bottom:10px">Why this matters</div>
+            <div class="sc-factors">
+              <div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Container shipping rates spiking 40%+ — Maersk and MSC raising surcharges globally</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Agricultural commodities most exposed — logistics failures directly disrupt food supply chains</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold benefits as inflation hedge — supply shocks historically bullish for hard assets</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Corporate margin compression hits S&P 500 earnings forecasts across consumer and industrial sectors</div></div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="plbl" style="margin-bottom:10px">Projected impact</div>
+            <div class="impgrid">
+              <div class="impcell"><div class="impname">Oil</div><div class="impdir" style="color:#B8952A">↑ +15–30%</div><div class="impwhy">Logistics failure</div></div>
+              <div class="impcell"><div class="impname">Wheat</div><div class="impdir" style="color:#B8952A">↑ +20–40%</div><div class="impwhy">Supply corridor</div></div>
+              <div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#0F6E56">↑ +5–10%</div><div class="impwhy">Inflation hedge</div></div>
+              <div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −3–8%</div><div class="impwhy">Margin pressure</div></div>
+              <div class="impcell"><div class="impname">Shipping</div><div class="impdir" style="color:#0F6E56">↑ +30–60%</div><div class="impwhy">Scarcity premium</div></div>
+              <div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#8A96A4">→ Neutral</div><div class="impwhy">Indirect only</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">Watch the Baltic Dry Index for early freight market tightening. Wheat futures above 650 c/bu signal agricultural supply stress. Sustained disruption (6+ months) is substantially more inflationary than a quick resolution.</div></div>
+      </div>
+    </div>
+
+    <!-- CRASH -->
+    <div class="panel" id="p-crash">
+      <div class="story-card">
+        <div class="sc-hl">Equity markets enter correction — broad risk-off event underway</div>
+        <div class="sc-body">With the Fear &amp; Greed index at 9 — its lowest reading since the 2022 bear market — the conditions for a sustained correction are present. Technical damage is mounting: the S&amp;P 500 has broken below its 50-day moving average with increasing volume on down days. Institutional investors are reducing equity exposure and rotating into Treasuries and gold. Historical corrections from this sentiment level average 12–18% peak-to-trough over 3–6 months.</div>
+        <div class="sc-split">
+          <div class="sc-left">
+            <div class="plbl" style="margin-bottom:10px">Why this matters</div>
+            <div class="sc-factors">
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">S&P 500 below 50-day MA with rising sell volume — technical breakdown confirmed</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold historically gains 8–15% in equity corrections as capital rotates to hard assets</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Bitcoin correlation to equities remains high — expect 20–40% correction if S&P falls 15%</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Treasury yields compress as bond demand surges — yield compression benefits bond holders</div></div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="plbl" style="margin-bottom:10px">Projected impact</div>
+            <div class="impgrid">
+              <div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#0F6E56">↑ +8–15%</div><div class="impwhy">Safe haven</div></div>
+              <div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −15–25%</div><div class="impwhy">Multiple compression</div></div>
+              <div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#A32D2D">↓ −20–40%</div><div class="impwhy">Liquidity crunch</div></div>
+              <div class="impcell"><div class="impname">Bonds</div><div class="impdir" style="color:#0F6E56">↑ +5–10%</div><div class="impwhy">Yield compression</div></div>
+              <div class="impcell"><div class="impname">VIX</div><div class="impdir" style="color:#A32D2D">↑ +100–200%</div><div class="impwhy">Fear premium</div></div>
+              <div class="impcell"><div class="impname">USD</div><div class="impdir" style="color:#0F6E56">↑ +4–8%</div><div class="impwhy">Safe haven demand</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">S&P 500 at 5,000 is the critical support level. A weekly close below triggers institutional stop-losses and accelerates selling. Gold above $4,700 confirms safe-haven rotation is fully underway. VIX above 30 signals panic — historically a contrarian buy signal for patient investors.</div></div>
+      </div>
+      <div class="slbl">Market context</div>
+      <div class="two-col">
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">S&P 500 · 30-day decline</div><div class="ccrd-sub">The correction in context</div></div>
+          <div class="ccrd-body"><div style="position:relative;height:160px"><canvas id="spC"></canvas></div></div>
+        </div>
+        <div class="ccrd">
+          <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · sentiment collapse</div><div class="ccrd-sub">How we got to extreme fear in 30 days</div></div>
+          <div class="ccrd-body"><div style="position:relative;height:160px"><canvas id="fgC2"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const GIST_URL='https://gist.githubusercontent.com/aninablack/d1685d358f752cad1b30f28f5412c918/raw/aurum-data.json';
-const charts={};
-const iso3ByNumeric={840:'USA',643:'RUS',156:'CHN',364:'IRN',376:'ISR',804:'UKR',826:'GBR',276:'DEU',250:'FRA',356:'IND',76:'BRA',682:'SAU'};
-if(window.Chart){
-  Chart.defaults.font.family="'DM Sans', system-ui, sans-serif";
-  Chart.defaults.font.size=11; Chart.defaults.color='#8A96A4';
-  Chart.defaults.plugins.tooltip.backgroundColor='#0D1B2A';
-  Chart.defaults.plugins.tooltip.titleColor='#C9A84C';
-  Chart.defaults.plugins.tooltip.bodyColor='rgba(249,246,240,0.9)';
-  Chart.defaults.plugins.tooltip.borderColor='rgba(201,168,76,0.2)';
-  Chart.defaults.plugins.tooltip.borderWidth=1;
+Chart.defaults.font.family="'DM Sans',system-ui,sans-serif";
+Chart.defaults.font.size=11;Chart.defaults.color='#8A96A4';
+Chart.defaults.plugins.tooltip.backgroundColor='#0D1B2A';
+Chart.defaults.plugins.tooltip.titleColor='#C9A84C';
+Chart.defaults.plugins.tooltip.bodyColor='rgba(249,246,240,0.9)';
+Chart.defaults.plugins.tooltip.borderColor='rgba(201,168,76,0.2)';
+Chart.defaults.plugins.tooltip.borderWidth=1;
+Chart.defaults.plugins.tooltip.padding=10;
+Chart.defaults.plugins.tooltip.cornerRadius=6;
+
+function gen(b,n,v,t){const d=[b];for(let i=1;i<n;i++)d.push(Math.max(d[i-1]*(1+(Math.random()-0.48+t)*v),b*0.75));return d;}
+function spark(id,data,col,fill){
+  const c=document.getElementById(id);if(!c)return;
+  new Chart(c,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data,borderColor:col,borderWidth:2,pointRadius:0,tension:0.45,fill:true,backgroundColor:fill}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:800}}});
 }
-const f={
-  n:(v,d=2)=>v==null?'—':Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}),
-  p:v=>v==null?'—':`${v>=0?'+':'−'}${Math.abs(Number(v)).toFixed(2)}%`,
-  money:v=>v==null?'—':`$${Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`,
-  int:v=>v==null?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:0})
-};
-function cls(v){return v>0?'up':v<0?'down':'ca'}
-function ts(iso){const d=new Date(iso||Date.now());return d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC'}
-function bindTabs(){document.querySelectorAll('.stab').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('p-'+btn.dataset.panel).classList.add('active');});}
-function spark(id,data,color,fill){const c=document.getElementById(id); if(!c||!window.Chart)return; if(charts[id])charts[id].destroy(); const arr=(data||[]).slice(-30); charts[id]=new Chart(c,{type:'line',data:{labels:arr.map((_,i)=>i),datasets:[{data:arr,borderColor:color,backgroundColor:fill,borderWidth:1.5,pointRadius:0,tension:.45,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}});}
-function line(id,arr,color){const c=document.getElementById(id); if(!c||!window.Chart)return; if(charts[id])charts[id].destroy(); charts[id]=new Chart(c,{type:'line',data:{labels:arr.map((_,i)=>i+1),datasets:[{data:arr,borderColor:color,backgroundColor:color+'22',fill:true,borderWidth:1.5,pointRadius:0,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(221,211,188,0.7)'}},y:{position:'right',grid:{color:'rgba(221,211,188,0.7)'}}}}});}
-async function drawMap(id,riskData){const el=document.getElementById(id); if(!el||!window.d3||!window.topojson)return; el.innerHTML=''; const w=Math.max(320,el.clientWidth||560),h=Math.round(w*.5); const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').attr('height',h); const proj=d3.geoNaturalEarth1().scale(w/6.2).translate([w/2,h/2]); const path=d3.geoPath(proj); const world=await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'); const color=v=>v>=80?'#A32D2D':v>=60?'rgba(163,45,45,0.5)':v>=40?'rgba(184,149,42,0.35)':v>=20?'rgba(13,27,42,0.15)':'rgba(13,27,42,0.06)'; svg.selectAll('path').data(topojson.feature(world,world.objects.countries).features).join('path').attr('d',path).attr('fill',d=>color(riskData?.[iso3ByNumeric[d.id]]||0)).attr('stroke','#fff').attr('stroke-width',.35);} 
-const FALLBACK_HEADLINE='Extreme fear grips global markets as equities fall and gold advances to $4,524';
-const FALLBACK_BODY=`The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.`;
-function renderOverview(d){
-  const fg=d?.fearGreed||{}, m=d?.macro||{}, gold=d?.metals?.gold||{}, sp=d?.indices?.sp500||{}, btc=d?.crypto?.bitcoin||{};
-  const spDisplay = sp?.price != null && Number(sp.price) < 1000 ? Number(sp.price) * 8.28 : sp?.price;
-  document.getElementById('pulseRow').innerHTML=`
-    <div class="pulse"><div class="plbl">Fear & Greed</div><div class="pval" style="color:var(--caution)">${f.int(fg.value)}</div><div class="pdelt" style="color:var(--caution)">${fg.classification||'Neutral'}</div></div>
-    <div class="pulse"><div class="plbl">10Y yield</div><div class="pval">${f.n(m?.treasury10y?.value,2)}%</div><div class="pdelt ${cls(m?.treasury10y?.change)}">${f.p(m?.treasury10y?.change)}</div></div>
-    <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval">${m?.cpi?.yoyPct!=null?f.n(m.cpi.yoyPct,2)+'%':'—'}</div><div class="pdelt ${cls(m?.cpi?.change)}">${f.p(m?.cpi?.change)}</div></div>
-    <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval">${f.n(m?.fedFunds?.value,2)}%</div><div class="pdelt ${cls(m?.fedFunds?.change)}">${f.p(m?.fedFunds?.change)}</div></div>`;
-  document.getElementById('assetRow').innerHTML=`
-    <div class="card cht"><div class="cp"><div class="ccat">Commodity · Gold</div><div class="cprice">${f.money(gold.price)}</div><div class="crow"><span class="cpct ${cls(gold.change)}">${f.p(gold.change)}</span><span class="cabs">${gold.changeAbs!=null?(gold.changeAbs>=0?'+':'−')+'$'+Math.abs(gold.changeAbs).toFixed(2):'—'}</span></div></div><div class="sarea"><canvas id="sk-g"></canvas></div><div class="istrip"><div class="idot"></div><span class="itext">Safe-haven demand tracking geopolitical and rate stress.</span></div></div>
-    <div class="card cht"><div class="cp"><div class="ccat">Index · S&P 500</div><div class="cprice">${f.int(spDisplay)}</div><div class="crow"><span class="cpct ${cls(sp.change)}">${f.p(sp.change)}</span><span class="cabs">${Number(sp?.price) < 1000 ? '≈ proxy adjusted' : 'Live index level'}</span></div></div><div class="sarea"><canvas id="sk-s"></canvas></div><div class="istrip"><div class="idot"></div><span class="itext">Broad risk appetite benchmark under macro pressure.</span></div></div>
-    <div class="card cht"><div class="cp"><div class="ccat">Crypto · Bitcoin</div><div class="cprice">${f.money(btc.price)}</div><div class="crow"><span class="cpct ${cls(btc.change)}">${f.p(btc.change)}</span><span class="cabs">Risk-on/off proxy</span></div></div><div class="sarea"><canvas id="sk-b"></canvas></div><div class="istrip"><div class="idot"></div><span class="itext">High beta to liquidity, sentiment, and rates.</span></div></div>`;
-  spark('sk-g',d?.history?.gold,'#C9A84C','rgba(201,168,76,0.08)');
-  spark('sk-s',d?.history?.sp500,(sp.change||0)>=0?'#0F6E56':'#A32D2D',(sp.change||0)>=0?'rgba(15,110,86,0.05)':'rgba(163,45,45,0.05)');
-  spark('sk-b',d?.history?.bitcoin,(btc.change||0)>=0?'#0F6E56':'#A32D2D',(btc.change||0)>=0?'rgba(15,110,86,0.05)':'rgba(163,45,45,0.05)');
-  const perf=[['Bitcoin',btc?.change ?? pct30(d?.history?.bitcoin)],['S&P 500',sp?.change ?? pct30(d?.history?.sp500)],['DAX',d?.indices?.dax?.change ?? pct30(d?.history?.dax)],['FTSE',d?.indices?.ftse?.change ?? pct30(d?.history?.ftse)],['Silver',d?.metals?.silver?.change ?? pct30(d?.history?.silver)],['Gold',gold?.change ?? pct30(d?.history?.gold)]];
-  if(charts.barC)charts.barC.destroy(); charts.barC=new Chart(document.getElementById('barC'),{type:'bar',data:{labels:perf.map(x=>x[0]),datasets:[{data:perf.map(x=>x[1]||0),backgroundColor:perf.map(x=>(x[1]||0)>=0?'rgba(15,110,86,0.12)':'rgba(163,45,45,0.12)'),borderColor:perf.map(x=>(x[1]||0)>=0?'rgba(15,110,86,0.65)':'rgba(163,45,45,0.65)'),borderWidth:1,borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(221,211,188,0.7)'},ticks:{callback:v=>(v>=0?'+':'')+v+'%'}},y:{grid:{display:false}}}}});
-  line('fgC',(d?.history?.fearGreed||[]).slice(-30),'#C9A84C');
+spark('sk-g',gen(4300,30,0.007,0.009),'#C9A84C','rgba(201,168,76,0.08)');
+spark('sk-s',gen(5400,30,0.009,-0.007),'#A32D2D','rgba(163,45,45,0.05)');
+spark('sk-b',gen(69000,30,0.013,-0.004),'#A32D2D','rgba(163,45,45,0.05)');
+spark('spC',gen(5400,30,0.009,-0.007),'#A32D2D','rgba(163,45,45,0.05)');
+
+new Chart(document.getElementById('barC'),{type:'bar',indexAxis:'y',
+  data:{labels:['Bitcoin','S&P 500','DAX','FTSE','Silver','Gold'],
+  datasets:[{data:[-4.2,-1.71,-1.8,-0.01,2.1,3.4],
+  backgroundColor:ctx=>ctx.raw>=0?'rgba(15,110,86,0.1)':'rgba(163,45,45,0.08)',
+  borderColor:ctx=>ctx.raw>=0?'rgba(15,110,86,0.55)':'rgba(163,45,45,0.55)',
+  borderWidth:1.5,borderRadius:3,borderSkipped:false}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},ticks:{callback:v=>(v>=0?'+':'')+v+'%'}},
+  y:{grid:{display:false},border:{display:false},ticks:{color:'#0D1B2A',font:{size:11,weight:'500'}}}}}
+});
+
+const fgD=[52,49,46,50,44,38,33,28,22,17,13,11,9];
+const fgL=fgD.map((_,i)=>{const d=new Date(2026,2,17+i);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});});
+function fgChart(id){
+  new Chart(document.getElementById(id),{type:'line',
+  data:{labels:fgL,datasets:[{data:fgD,borderColor:'#C9A84C',borderWidth:2,pointRadius:0,tension:0.4,fill:true,backgroundColor:'rgba(201,168,76,0.07)'}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:4}},
+  y:{min:0,max:100,grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},
+  ticks:{callback:v=>v===25?'Fear':v===75?'Greed':v===50?'Neutral':v,stepSize:25}}}}});
 }
-function pct30(arr){if(!arr||arr.length<2)return null; const s=arr[Math.max(0,arr.length-30)],e=arr[arr.length-1]; if(!s||!e)return null; return +(((e-s)/s)*100).toFixed(2);} 
-function renderGeo(d){
-  document.getElementById('geoStory').innerHTML=`<div class="sc-hl">Iran-US tensions escalate — Strait of Hormuz at breaking point</div><div class="sc-body">New US sanctions on Iranian oil exports have triggered retaliatory threats to restrict shipping through the Strait of Hormuz, through which 20% of global oil supply passes. GDELT conflict index for Iran has reached 100/100. Historical precedent from 2019 Gulf of Oman incidents shows oil spiked 4% overnight on similar rhetoric. If naval confrontation occurs, a 20–30% oil price surge within 48 hours is considered likely by energy analysts.</div><div class="sc-split"><div class="sc-left"><div class="plbl" style="margin-bottom:10px">Why this matters</div><div class="sc-factors"><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Hormuz closure impacts 18–20% of global oil supply — energy markets gap up immediately</div></div><div class="sc-factor"><div class="sf-dot" style="background:#C9A84C"></div><div class="sf-text">Gold gains 8–12% historically in Middle East military escalation — premium builds fast</div></div><div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD strengthens as reserve currency demand surges — DXY typically +3–6%</div></div><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">European equities most exposed — higher energy import costs compress margins directly</div></div></div></div><div class="sc-right"><div class="plbl" style="margin-bottom:10px">Projected impact</div><div class="impgrid"><div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#0F6E56">↑ +8–15%</div><div class="impwhy">Safe-haven surge</div></div><div class="impcell"><div class="impname">Oil</div><div class="impdir" style="color:#B8952A">↑ +10–30%</div><div class="impwhy">Supply disruption</div></div><div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −5–12%</div><div class="impwhy">Risk repricing</div></div><div class="impcell"><div class="impname">USD</div><div class="impdir" style="color:#0F6E56">↑ +3–6%</div><div class="impwhy">Reserve flight</div></div><div class="impcell"><div class="impname">Wheat</div><div class="impdir" style="color:#B8952A">↑ +5–15%</div><div class="impwhy">Corridor risk</div></div><div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#A32D2D">↓ −8–15%</div><div class="impwhy">Risk-off</div></div></div></div></div><div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">Monitor WTI crude above $90 as the breakout level. If Iran GDELT score holds at 100 for 3+ consecutive days, military incident probability rises substantially. Gold above $4,600 confirms safe-haven breakout is underway.</div></div>`;
-  drawMap('riskMap',d?.geopolitical?.riskByCountry||{});
-  document.getElementById('impactRows').innerHTML=[['Gold',88,'↑ Strong','var(--up)'],['Oil',76,'↑ Elevated','var(--caution)'],['Equities',68,'↓ Pressure','var(--down)'],['USD',58,'↑ Moderate','var(--up)'],['Bitcoin',35,'↓ Risk-off','var(--down)']].map(([n,w,t,c])=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div style="font-size:11px;font-weight:500;width:70px">${n}</div><div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;width:${w}%;background:${c}"></div></div><div style="font-size:11px;font-weight:500;width:84px;text-align:right;color:${c}">${t}</div></div>`).join('');
-  const news=(d?.sentiment?.newsItems||[]); document.getElementById('geoNews').innerHTML=(news.length?news.slice(0,6).map(n=>`<div class="nitem"><div class="ntone" style="background:${n.tone==='bearish'?'#A32D2D':n.tone==='bullish'?'#0F6E56':'#C9A84C'}"></div><div><div class="ntxt">${n.text||'Headline unavailable'}</div><div class="nmeta">${n.source||'Source'} · Live feed</div></div></div>`).join(''):'<div class="nitem"><div class="ntxt">No headlines available</div></div>');
+fgChart('fgC');fgChart('fgC2');
+
+const yD=[4.05,4.08,4.12,4.18,4.22,4.20,4.28,4.24,4.31,4.28,4.35,4.42];
+const gD=[4180,4210,4250,4310,4290,4320,4380,4350,4410,4440,4490,4524];
+new Chart(document.getElementById('scatC'),{type:'scatter',
+  data:{datasets:[{data:yD.map((y,i)=>({x:y,y:gD[i]})),
+  backgroundColor:'rgba(201,168,76,0.5)',borderColor:'rgba(201,168,76,0.85)',borderWidth:1.5,pointRadius:6,pointHoverRadius:9}]},
+  options:{responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Yield ${ctx.parsed.x.toFixed(2)}%  ·  Gold $${ctx.parsed.y.toLocaleString()}`}}},
+  scales:{
+    x:{title:{display:true,text:'10Y yield (%)',color:'#8A96A4',font:{size:10}},grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},ticks:{callback:v=>v.toFixed(2)+'%'}},
+    y:{position:'right',title:{display:true,text:'Gold $/oz',color:'#8A96A4',font:{size:10}},grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},ticks:{callback:v=>'$'+v.toLocaleString()}}
+  }}
+});
+
+function show(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  btn.classList.add('active');
 }
-function renderRate(d){
-  document.getElementById('rateStory').innerHTML=`<div class="sc-hl">Federal Reserve pivots hawkish — rate hike cycle reignites</div><div class="sc-body">Persistent services inflation and a resilient labour market have forced the Fed to signal further rate hikes after its pause. The bond market is repricing rapidly — 10Y Treasury yields are moving toward 5.0%, compressing growth equity valuations through the discount rate mechanism. Dollar strength is accelerating capital outflows from emerging markets. This is a 2022-style tightening environment: historically the worst outcome for long-duration assets, crypto, and gold simultaneously.</div><div class="sc-split"><div class="sc-left"><div class="plbl" style="margin-bottom:10px">Why this matters</div><div class="sc-factors"><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Each 25bps hike adds 3–5% compression to tech and growth equity valuations via discount rate</div></div><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Gold faces headwinds — rising real yields make the zero-yield metal less attractive vs Treasuries</div></div><div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD benefits strongly from yield differential vs EUR and JPY — significant DXY upside expected</div></div><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Emerging markets face twin pressure: stronger dollar raises debt costs and triggers capital outflows</div></div></div></div><div class="sc-right"><div class="plbl" style="margin-bottom:10px">Projected impact</div><div class="impgrid"><div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#A32D2D">↓ −5–10%</div><div class="impwhy">Real yield rise</div></div><div class="impcell"><div class="impname">USD</div><div class="impdir" style="color:#0F6E56">↑ +4–8%</div><div class="impwhy">Yield differential</div></div><div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −8–15%</div><div class="impwhy">Discount rate</div></div><div class="impcell"><div class="impname">Bonds</div><div class="impdir" style="color:#A32D2D">↓ −5–12%</div><div class="impwhy">Price inverse</div></div><div class="impcell"><div class="impname">Silver</div><div class="impdir" style="color:#A32D2D">↓ −4–8%</div><div class="impwhy">Demand drop</div></div><div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#A32D2D">↓ −10–20%</div><div class="impwhy">Liquidity tighten</div></div></div></div></div><div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">The critical level is 10Y yield at 5.0% — historically the threshold where equity selling accelerates. Watch Fed futures: if markets price more than 2 additional hikes, expect a sharp equity correction. Gold below $4,200 confirms safe-haven unwind.</div></div>`;
-  const gold=(d?.history?.gold||[]).slice(-90), y=(d?.history?.treasury10y||[]).slice(-90); const n=Math.min(gold.length,y.length); const pts=Array.from({length:n},(_,i)=>({x:+y[i],y:+gold[i]})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
-  if(charts.scatC)charts.scatC.destroy(); charts.scatC=new Chart(document.getElementById('scatC'),{type:'scatter',data:{datasets:[{data:pts,pointRadius:6,backgroundColor:'rgba(201,168,76,0.55)',borderColor:'rgba(201,168,76,0.85)',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(221,211,188,0.7)'}},y:{position:'right',grid:{color:'rgba(221,211,188,0.7)'}}}}});
-  const m=d?.macro||{}; const bars=[['10Y',m?.treasury10y?.value,100],['2Y',m?.treasury2y?.value,100],['Spread',m?.yieldSpread?.value,5],['CPI',m?.cpi?.yoyPct,10],['Fed',m?.fedFunds?.value,10]];
-  document.getElementById('macroBars').innerHTML=bars.map(([n,v,scale])=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div style="font-size:11px;font-weight:500;width:70px">${n}</div><div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.max(3,Math.min(100,Math.abs((v||0)/scale*100)))}%;background:var(--caution)"></div></div><div style="font-size:11px;font-weight:500;width:72px;text-align:right">${v!=null?Number(v).toFixed(2):'—'}${n==='Spread'?'':'%'}</div></div>`).join('');
-}
-function renderSupply(){document.getElementById('supplyStory').innerHTML=`<div class="sc-hl">Global supply chain fractures — commodity prices enter shock territory</div><div class="sc-body">A combination of Red Sea shipping disruptions, port congestion in Asia, and escalating trade tariffs is compressing global logistics capacity. Container shipping costs have risen 40% in 60 days. Companies across retail, automotive, and electronics are issuing profit warnings as input costs surge. The 2021–22 supply chain crisis showed these dynamics take 6–9 months to resolve and drive sustained commodity inflation well above central bank targets.</div><div class="sc-split"><div class="sc-left"><div class="plbl" style="margin-bottom:10px">Why this matters</div><div class="sc-factors"><div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Container shipping rates spiking 40%+ — Maersk and MSC raising surcharges globally</div></div><div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Agricultural commodities most exposed — logistics failures directly disrupt food supply chains</div></div><div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold benefits as inflation hedge — supply shocks historically bullish for hard assets</div></div><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Corporate margin compression hits S&P 500 earnings forecasts across consumer and industrial sectors</div></div></div></div><div class="sc-right"><div class="plbl" style="margin-bottom:10px">Projected impact</div><div class="impgrid"><div class="impcell"><div class="impname">Oil</div><div class="impdir" style="color:#B8952A">↑ +15–30%</div><div class="impwhy">Logistics failure</div></div><div class="impcell"><div class="impname">Wheat</div><div class="impdir" style="color:#B8952A">↑ +20–40%</div><div class="impwhy">Supply corridor</div></div><div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#0F6E56">↑ +5–10%</div><div class="impwhy">Inflation hedge</div></div><div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −3–8%</div><div class="impwhy">Margin pressure</div></div><div class="impcell"><div class="impname">Shipping</div><div class="impdir" style="color:#0F6E56">↑ +30–60%</div><div class="impwhy">Scarcity premium</div></div><div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#8A96A4">→ Neutral</div><div class="impwhy">Indirect only</div></div></div></div></div><div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">Watch the Baltic Dry Index for early freight market tightening. Wheat futures above 650 c/bu signal agricultural supply stress. Sustained disruption (6+ months) is substantially more inflationary than a quick resolution.</div></div>`}
-function renderCrash(d){document.getElementById('crashStory').innerHTML=`<div class="sc-hl">Equity markets enter correction — broad risk-off event underway</div><div class="sc-body">With the Fear & Greed index at 9 — its lowest reading since the 2022 bear market — the conditions for a sustained correction are present. Technical damage is mounting: the S&P 500 has broken below its 50-day moving average with increasing volume on down days. Institutional investors are reducing equity exposure and rotating into Treasuries and gold. Historical corrections from this sentiment level average 12–18% peak-to-trough over 3–6 months.</div><div class="sc-split"><div class="sc-left"><div class="plbl" style="margin-bottom:10px">Why this matters</div><div class="sc-factors"><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">S&P 500 below 50-day MA with rising sell volume — technical breakdown confirmed</div></div><div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold historically gains 8–15% in equity corrections as capital rotates to hard assets</div></div><div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Bitcoin correlation to equities remains high — expect 20–40% correction if S&P falls 15%</div></div><div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Treasury yields compress as bond demand surges — yield compression benefits bond holders</div></div></div></div><div class="sc-right"><div class="plbl" style="margin-bottom:10px">Projected impact</div><div class="impgrid"><div class="impcell"><div class="impname">Gold</div><div class="impdir" style="color:#0F6E56">↑ +8–15%</div><div class="impwhy">Safe haven</div></div><div class="impcell"><div class="impname">S&P 500</div><div class="impdir" style="color:#A32D2D">↓ −15–25%</div><div class="impwhy">Multiple compression</div></div><div class="impcell"><div class="impname">Bitcoin</div><div class="impdir" style="color:#A32D2D">↓ −20–40%</div><div class="impwhy">Liquidity crunch</div></div><div class="impcell"><div class="impname">Bonds</div><div class="impdir" style="color:#0F6E56">↑ +5–10%</div><div class="impwhy">Yield compression</div></div><div class="impcell"><div class="impname">VIX</div><div class="impdir" style="color:#A32D2D">↑ +100–200%</div><div class="impwhy">Fear premium</div></div><div class="impcell"><div class="impname">USD</div><div class="impdir" style="color:#0F6E56">↑ +4–8%</div><div class="impwhy">Safe haven demand</div></div></div></div></div><div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">S&P 500 at 5,000 is the critical support level. A weekly close below triggers institutional stop-losses and accelerates selling. Gold above $4,700 confirms safe-haven rotation is fully underway. VIX above 30 signals panic — historically a contrarian buy signal for patient investors.</div></div>`; line('spC',(d?.history?.sp500||[]).slice(-30),'#A32D2D'); line('fgCrashC',(d?.history?.fearGreed||[]).slice(-30),'#C9A84C');}
-function renderAll(d){const headline=d?.sentiment?.headline&&d.sentiment.headline.length>24?d.sentiment.headline:FALLBACK_HEADLINE; const body=d?.sentiment?.briefingBody&&d.sentiment.briefingBody.length>40?d.sentiment.briefingBody:FALLBACK_BODY; document.getElementById('briefingTimestamp').textContent=ts(d?.meta?.updated);document.getElementById('briefingHeadline').textContent=headline;document.getElementById('briefingBody').textContent=body;renderOverview(d);renderGeo(d);renderRate(d);renderSupply();renderCrash(d)}
-async function loadData(){try{const d=await fetch(GIST_URL+'?t='+Date.now()).then(r=>r.json());renderAll(d)}catch(e){document.getElementById('briefingHeadline').textContent='Unable to load market data';document.getElementById('briefingBody').textContent='Check Gist availability and refresh.';}}
-bindTabs(); loadData(); setInterval(loadData,15*60*1000);
 </script>
 </body>
 </html>
