@@ -1,0 +1,24 @@
+{
+  "name": "aurum",
+  "version": "1.0.0",
+  "description": "Premium financial intelligence dashboard with macro, sentiment, and geopolitical overlays.",
+  "main": "fetch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aninablack/aurum.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/aninablack/aurum/issues"
+  },
+  "homepage": "https://github.com/aninablack/aurum#readme",
+  "dependencies": {
+    "yahoo-finance2": "^3.14.0"
+  }
+}

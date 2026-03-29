@@ -30,6 +30,8 @@
 const https = require('https');
 const fs = require('fs/promises');
 const path = require('path');
+const YahooFinance = require('yahoo-finance2').default;
+const yahooFinance = new YahooFinance();
 
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 const CONFIG = {
@@ -49,6 +51,12 @@ const HISTORY_WINDOW = 90;
 
 // Timeout per request (ms) — fail fast, don't block the pipeline
 const REQUEST_TIMEOUT = 8000;
+
+const SANITY = {
+  gold:     { min: 2000, max: 6000 },
+  silver:   { min: 10,   max: 150  },
+  platinum: { min: 400,  max: 3000 },
+};
 
 // ── UTILITIES ────────────────────────────────────────────────────────────────
 
@@ -119,6 +127,16 @@ const round = (n, decimals = 2) =>
     : null;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+function sane(key, value) {
+  if (value == null) return null;
+  const { min, max } = SANITY[key];
+  if (value < min || value > max) {
+    console.warn(`Sanity fail: ${key} = ${value} (expected ${min}-${max})`);
+    return null;
+  }
+  return value;
+}
 
 function hoursSince(isoTs, nowMs = Date.now()) {
   if (!isoTs) return Infinity;
@@ -261,7 +279,7 @@ async function fetchIndicesAndMetals() {
     ['dax',    'AV: DAX',     'EWG'],     // ETF proxy for DAX
     ['ftse',   'AV: FTSE',    'ISF.LON'],
     ['nikkei', 'AV: Nikkei',  'EWJ'],     // ETF proxy for Nikkei
-    ['silver', 'AV: Silver',  'SLV'],     // ETF proxy for silver
+    ['silver', 'AV: Silver SLV', 'SLV'],  // ETF proxy for silver
   ];
 
   const out = {};
@@ -287,21 +305,36 @@ async function fetchIndicesAndMetals() {
 async function fetchMetals() {
   const url = `https://api.metals.dev/v1/latest?api_key=${CONFIG.metalsdev}&currency=USD&unit=troy_ounce`;
   const data = await fetchJSON(url);
-  console.log('metals.dev raw response:', JSON.stringify(data, null, 2));
+  console.log('metals.dev FULL response:', JSON.stringify(data, null, 2));
+  console.log('metals.dev status:', data?.status);
+  console.log('metals.dev unit:', data?.unit);
+  console.log('metals.dev currency:', data?.currency);
+  console.log('metals.dev base:', data?.base);
   const m = data?.metals;
   if (!m) throw new Error('No metals data returned');
   const rawGold = m.XAU ?? m.gold ?? null;
-  let goldPerOz = rawGold;
-  if (rawGold != null && rawGold > 50 && rawGold < 200) {
-    goldPerOz = rawGold * 31.1035; // grams -> troy ounce
-  } else if (rawGold != null && rawGold > 3500 && rawGold < 8000) {
-    goldPerOz = rawGold / 2; // normalise high contract-style quote to spot-like level
-  }
+  const rawSilver = m.XAG ?? m.silver ?? null;
   return {
-    gold:     { price: round(goldPerOz, 2) },
-    silver:   { price: round(m.XAG ?? m.silver ?? null, 2) },
+    // Keep metals.dev values as fallback only due free-tier data quality variance.
+    gold:     { price: round(rawGold, 2) },
+    silver:   { price: round(rawSilver, 2) },
     platinum: { price: round(m.XPT ?? m.platinum ?? null, 2) },
     palladium:{ price: round(m.XPD ?? m.palladium ?? null, 2) },
+  };
+}
+
+async function fetchMetalsYahoo() {
+  const [gold, silver, platinum] = await Promise.allSettled([
+    yahooFinance.quote('GC=F'),
+    yahooFinance.quote('SI=F'),
+    yahooFinance.quote('PL=F'),
+  ]);
+  const get = (s) => s.status === 'fulfilled' ? s.value : null;
+  const g = get(gold), si = get(silver), pl = get(platinum);
+  return {
+    gold:     g  ? { price: round(g.regularMarketPrice, 2) }  : null,
+    silver:   si ? { price: round(si.regularMarketPrice, 2) } : null,
+    platinum: pl ? { price: round(pl.regularMarketPrice, 2) } : null,
   };
 }
 
@@ -671,14 +704,14 @@ async function main() {
   const canFetchNews = newsPolicy.allowed;
   const canFetchGeo = gdeltPolicy.allowed;
 
-  const [fearGreed, fx, goldCSV, avData, metals, macro, news, crypto, geo] =
+  const [fearGreed, fx, avData, metalsYahoo, metals, macro, news, crypto, geo] =
     await Promise.all([
       safe('Fear & Greed',    fetchFearGreed),
       safe('FX rates',        fetchFX),
-      safe('Gold CSV',        fetchGoldCSV),
       canFetchAV
         ? safe('Alpha Vantage', fetchIndicesAndMetals)
         : Promise.resolve(null),
+      safe('Yahoo metals futures', fetchMetalsYahoo),
       canFetchMetals
         ? safe('Metals.dev', fetchMetals)
         : Promise.resolve(null),
@@ -697,10 +730,14 @@ async function main() {
   if (!canFetchNews) console.log(`~ NewsAPI skipped (quota/cadence; day count=${newsPolicy.state.day}/100)`);
   if (!canFetchGeo) console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
 
-  // 3. Resolve best gold price (metals.dev preferred, CSV fallback)
-  const goldPrice = metals?.gold?.price ?? goldCSV?.price ?? null;
-  const silverPrice = metals?.silver?.price ?? avData?.silver?.price ?? null;
-  const platinumPrice = metals?.platinum?.price ?? null;
+  // 3. Metals source priority with sanity guards
+  // Yahoo futures primary; metals.dev fallback.
+  const goldCandidate = metalsYahoo?.gold?.price ?? metals?.gold?.price ?? null;
+  const silverCandidate = metalsYahoo?.silver?.price ?? metals?.silver?.price ?? null;
+  const platinumCandidate = metalsYahoo?.platinum?.price ?? metals?.platinum?.price ?? null;
+  const goldPrice = sane('gold', goldCandidate);
+  const silverPrice = sane('silver', silverCandidate);
+  const platinumPrice = sane('platinum', platinumCandidate);
 
   // 4. Calculate FX changes vs previous snapshot
   console.log('Existing FX from Gist:', JSON.stringify(existing?.fx, null, 2));
@@ -792,7 +829,7 @@ async function main() {
       lastFetch: {
         fearGreed:   fearGreed ? new Date().toISOString() : (existing?.meta?.lastFetch?.fearGreed ?? null),
         fx:          fx ? new Date().toISOString() : (existing?.meta?.lastFetch?.fx ?? null),
-        goldCSV:     goldCSV ? new Date().toISOString() : (existing?.meta?.lastFetch?.goldCSV ?? null),
+        goldCSV:     existing?.meta?.lastFetch?.goldCSV ?? null,
         alphavantage:avData ? new Date().toISOString() : (existing?.meta?.lastFetch?.alphavantage ?? null),
         metalsdev:   metals ? new Date().toISOString() : (existing?.meta?.lastFetch?.metalsdev ?? null),
         fred:        macro ? new Date().toISOString() : (existing?.meta?.lastFetch?.fred ?? null),
