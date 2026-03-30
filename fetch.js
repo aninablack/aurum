@@ -458,15 +458,8 @@ async function fetchNews() {
   );
   const q2 = `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=8&apiKey=${CONFIG.newsapi}`;
 
-  const fallbackItems = [
-    { text: 'Markets on edge as global uncertainty weighs on investor sentiment', source: 'Aurum Intelligence', tone: 'bearish', url: '#', published: new Date().toISOString() },
-    { text: 'Gold holds firm as safe-haven demand persists amid macro headwinds', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
-    { text: 'Federal Reserve policy path remains key focus for bond and equity markets', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
-  ];
-
   let items = await tryNewsQuery(q1);
   if (!items.length) items = await tryNewsQuery(q2, true);
-  if (!items.length) items = fallbackItems;
 
   const bearCount = items.filter(i => i.tone === 'bearish').length;
   const bullCount = items.filter(i => i.tone === 'bullish').length;
@@ -821,6 +814,15 @@ async function main() {
 
   const geoResolved = geo ?? existing?.geopolitical ?? null;
   const geoCached = (geo === null && existing?.geopolitical != null);
+  const sentinelItems = [
+    { text: 'Markets on edge as global uncertainty weighs on investor sentiment', source: 'Aurum Intelligence', tone: 'bearish', url: '#', published: new Date().toISOString() },
+    { text: 'Gold holds firm as safe-haven demand persists amid macro headwinds', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
+    { text: 'Federal Reserve policy path remains key focus for bond and equity markets', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
+  ];
+  const resolvedNewsItems =
+    (news?.items?.length > 0) ? news.items :
+    (existing?.sentiment?.newsItems?.length > 0) ? existing.sentiment.newsItems :
+    sentinelItems;
 
   // 8. Assemble the final snapshot
   const snapshot = {
@@ -902,9 +904,7 @@ async function main() {
     sentiment: {
       signal:    news?.signal ?? existing?.sentiment?.signal ?? 'neutral',
       headline:  narrative,
-      newsItems: (news?.items?.length > 0)
-        ? news.items
-        : (existing?.sentiment?.newsItems ?? []),
+      newsItems: resolvedNewsItems,
     },
 
     geopolitical: geoResolved,
