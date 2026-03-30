@@ -1,0 +1,360 @@
+
+<style>
+  * { box-sizing: border-box; }
+  .ref { font-family: var(--font-sans); }
+  .section-title { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .api-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 4px; }
+  .api-table th { font-size: 10px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px 6px 0; text-align: left; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .api-table td { padding: 8px 10px 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; color: var(--color-text-primary); line-height: 1.5; }
+  .api-table tr:last-child td { border-bottom: none; }
+  .badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; white-space: nowrap; display: inline-block; }
+  .b-free  { background: #E1F5EE; color: #085041; }
+  .b-key   { background: #FAEEDA; color: #633806; }
+  .b-bonus { background: #EEEDFE; color: #3C3489; }
+  .endpoint { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); background: var(--color-background-secondary); padding: 2px 5px; border-radius: 4px; word-break: break-all; }
+  .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .swatch { width: 36px; height: 36px; border-radius: 6px; flex-shrink: 0; }
+  .swatch-label { font-size: 10px; color: var(--color-text-tertiary); margin-top: 3px; text-align: center; }
+  .swatch-wrap { display: flex; flex-direction: column; align-items: center; }
+  .token-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 4px; }
+  .token-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+  .token-name  { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 3px; }
+  .token-val   { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-primary); margin: 0; }
+  .priority-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .priority-row:last-child { border-bottom: none; }
+  .p-num { width: 20px; height: 20px; border-radius: 50%; background: #FAEEDA; color: #633806; font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .p-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 2px; }
+  .p-url  { font-size: 11px; color: var(--color-text-tertiary); margin: 0; font-family: var(--font-mono); }
+  .data-used { font-size: 11px; color: var(--color-text-secondary); margin: 3px 0 0; }
+  .panel-preview { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 4px; }
+  .panel-header { background: var(--color-background-secondary); padding: 8px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; gap: 8px; }
+  .panel-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .panel-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+  .panel-body  { padding: 10px 12px; }
+  .mock-val    { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 2px; }
+  .mock-delta  { font-size: 12px; margin: 0; }
+  .mock-up     { color: #0F6E56; }
+  .mock-down   { color: #A32D2D; }
+  .mock-bar-track { height: 3px; background: var(--color-border-tertiary); border-radius: 2px; margin-top: 8px; }
+  .mock-bar-fill  { height: 3px; border-radius: 2px; }
+  .gold-line { width: 100%; height: 1px; background: #C9A84C; opacity: 0.35; margin: 4px 0 8px; }
+  .tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 16px; }
+  .tab { padding: 8px 14px; font-size: 12px; font-weight: 500; color: var(--color-text-tertiary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: all 0.15s; }
+  .tab.active { color: var(--color-text-primary); border-bottom-color: #B8952A; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+
+<div class="ref">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('apis')">API stack</div>
+    <div class="tab" onclick="switchTab('design')">Design system</div>
+    <div class="tab" onclick="switchTab('panels')">Panel specs</div>
+    <div class="tab" onclick="switchTab('signup')">Sign-up order</div>
+  </div>
+
+  <div id="tab-apis" class="tab-panel active">
+    <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 12px">All verified March 2026. Free tiers confirmed.</p>
+
+    <div class="section-title">Keyless — no signup, call directly</div>
+    <table class="api-table">
+      <tr><th style="width:24%">Data</th><th style="width:14%">Source</th><th>Endpoint</th><th style="width:14%">Refresh</th><th style="width:10%">Tier</th></tr>
+      <tr>
+        <td>Fear &amp; Greed index</td>
+        <td>alternative.me</td>
+        <td><span class="endpoint">https://api.alternative.me/fng/?limit=1</span></td>
+        <td>Daily</td>
+        <td><span class="badge b-free">Keyless</span></td>
+      </tr>
+      <tr>
+        <td>FX rates (170+ pairs)</td>
+        <td>open.er-api.com</td>
+        <td><span class="endpoint">https://open.er-api.com/v6/latest/USD</span></td>
+        <td>Daily</td>
+        <td><span class="badge b-free">Keyless</span></td>
+      </tr>
+      <tr>
+        <td>Gold price historical (768 yrs)</td>
+        <td>freegoldapi.com</td>
+        <td><span class="endpoint">https://freegoldapi.com/data/latest.csv</span></td>
+        <td>Daily 6am UTC</td>
+        <td><span class="badge b-free">Keyless</span></td>
+      </tr>
+      <tr>
+        <td>Stocks, indices, ETFs</td>
+        <td>yahoo-finance2 (npm)</td>
+        <td>Node.js package — unofficial but stable</td>
+        <td>Near-live</td>
+        <td><span class="badge b-free">Keyless</span></td>
+      </tr>
+      <tr>
+        <td>GDELT geopolitical events</td>
+        <td>GDELT Project</td>
+        <td><span class="endpoint">https://api.gdeltproject.org/api/v2/doc/doc</span></td>
+        <td>15-min updates</td>
+        <td><span class="badge b-free">Keyless</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Free tier with key — get these (priority order)</div>
+    <table class="api-table">
+      <tr><th style="width:24%">Data</th><th style="width:14%">Source</th><th>What you get free</th><th style="width:14%">Limit</th><th style="width:10%">Tier</th></tr>
+      <tr>
+        <td>Indices + stocks + FX + commodities</td>
+        <td>Alpha Vantage</td>
+        <td>All endpoints — S&amp;P, DAX, FTSE, gold, silver, FX, technicals</td>
+        <td>25 req/day</td>
+        <td><span class="badge b-key">API key</span></td>
+      </tr>
+      <tr>
+        <td>Financial news + sentiment</td>
+        <td>NewsAPI</td>
+        <td>100 req/day, financial keyword search, publishedAt sort</td>
+        <td>100 req/day</td>
+        <td><span class="badge b-key">API key</span></td>
+      </tr>
+      <tr>
+        <td>Macro: CPI, Fed rate, GDP, yields</td>
+        <td>FRED (St. Louis Fed)</td>
+        <td>800k+ series — CPI, FEDFUNDS, DGS10, UNRATE, T10Y2Y</td>
+        <td>120 req/min</td>
+        <td><span class="badge b-key">API key</span></td>
+      </tr>
+      <tr>
+        <td>Precious metals (gold, silver, platinum)</td>
+        <td>metals.dev</td>
+        <td>Live spot prices from LBMA/LME/MCX, 170+ currencies</td>
+        <td>100 req/month</td>
+        <td><span class="badge b-key">API key</span></td>
+      </tr>
+      <tr>
+        <td>Bitcoin + crypto prices</td>
+        <td>CoinGecko</td>
+        <td>30 calls/min, BTC/ETH prices, market cap, Fear&amp;Greed (crypto)</td>
+        <td>10k/month</td>
+        <td><span class="badge b-key">API key</span></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Bonus sources — adds depth to Aurum's intelligence layer</div>
+    <table class="api-table">
+      <tr><th style="width:24%">Data</th><th style="width:14%">Source</th><th>Why it's valuable for Aurum</th><th style="width:10%">Tier</th></tr>
+      <tr>
+        <td>US Treasury yields (live)</td>
+        <td>FRED series DGS10</td>
+        <td>10-yr yield is the single most important macro signal — affects every asset class</td>
+        <td><span class="badge b-bonus">FRED key</span></td>
+      </tr>
+      <tr>
+        <td>Inverted yield curve signal</td>
+        <td>FRED series T10Y2Y</td>
+        <td>10y–2y spread — negative = recession warning. Perfect for Aurum's risk layer</td>
+        <td><span class="badge b-bonus">FRED key</span></td>
+      </tr>
+      <tr>
+        <td>US inflation (CPI)</td>
+        <td>FRED series CPIAUCSL</td>
+        <td>Monthly — feeds central bank rate expectations and gold correlation</td>
+        <td><span class="badge b-bonus">FRED key</span></td>
+      </tr>
+      <tr>
+        <td>Fed Funds rate (live)</td>
+        <td>FRED series FEDFUNDS</td>
+        <td>Current rate + trend drives FX, gold, and bond pricing simultaneously</td>
+        <td><span class="badge b-bonus">FRED key</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div id="tab-design" class="tab-panel">
+    <div class="section-title">Gold palette — Aurum's primary accent system</div>
+    <div class="swatch-row">
+      <div class="swatch-wrap"><div class="swatch" style="background:#F9F3E3;border:0.5px solid #e8d9b0"></div><div class="swatch-label">#F9F3E3<br>Parchment</div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#F0DFA0"></div><div class="swatch-label">#F0DFA0<br>Gold 100</div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#D4AF37"></div><div class="swatch-label">#D4AF37<br>Gold 400<br><em>primary</em></div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#C9A84C"></div><div class="swatch-label">#C9A84C<br>Gold 500<br><em>border</em></div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#B8952A"></div><div class="swatch-label">#B8952A<br>Gold 600<br><em>active</em></div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#8B6914"></div><div class="swatch-label">#8B6914<br>Gold 800<br><em>text</em></div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#F5F5F0;border:0.5px solid #e5e5de"></div><div class="swatch-label">#F5F5F0<br>Surface</div></div>
+      <div class="swatch-wrap"><div class="swatch" style="background:#FAFAF8;border:0.5px solid #e5e5de"></div><div class="swatch-label">#FAFAF8<br>Page bg</div></div>
+    </div>
+    <div class="gold-line"></div>
+
+    <div class="section-title">Design tokens</div>
+    <div class="token-grid">
+      <div class="token-card"><p class="token-name">Page background</p><p class="token-val">#FAFAF8 — off-white, not pure white</p></div>
+      <div class="token-card"><p class="token-name">Card surface</p><p class="token-val">#FFFFFF — white on off-white page</p></div>
+      <div class="token-card"><p class="token-name">Card border</p><p class="token-val">0.5px solid #C9A84C at 30% opacity</p></div>
+      <div class="token-card"><p class="token-name">Gold accent line</p><p class="token-val">1px solid #D4AF37 — top of hero strip</p></div>
+      <div class="token-card"><p class="token-name">Primary typeface</p><p class="token-val">Inter or system-ui, 400 + 500 only</p></div>
+      <div class="token-card"><p class="token-name">Data label size</p><p class="token-val">10px / 0.06em letter-spacing / uppercase</p></div>
+      <div class="token-card"><p class="token-name">Primary value size</p><p class="token-val">24px weight 500 — index/price display</p></div>
+      <div class="token-card"><p class="token-name">Delta up / down</p><p class="token-val">#0F6E56 teal-green / #A32D2D deep red</p></div>
+      <div class="token-card"><p class="token-name">Border radius</p><p class="token-val">10px cards, 6px inner elements, 16px pills</p></div>
+      <div class="token-card"><p class="token-name">Spacing unit</p><p class="token-val">Base 8px — margins at 8/16/24/32px</p></div>
+    </div>
+
+    <div class="section-title">Typography hierarchy</div>
+    <div style="padding:14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:13px;line-height:2">
+      <div style="font-size:10px;font-weight:500;color:#B8952A;text-transform:uppercase;letter-spacing:0.08em">COMMODITY · GOLD</div>
+      <div style="font-size:24px;font-weight:500;color:var(--color-text-primary);line-height:1.2">$2,340.50</div>
+      <div style="font-size:12px;color:#0F6E56">+1.8% today</div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">Updated 14:32 UTC</div>
+    </div>
+
+    <div class="section-title">What makes it feel premium</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.8">
+      <div style="padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)">Page background is <em>slightly warm off-white</em> (#FAFAF8) — pure white reads clinical, warm reads expensive</div>
+      <div style="padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)">Gold is used <em>sparingly</em> — border accents, active states, the hero strip line only. Never fill.</div>
+      <div style="padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)">Cards have <em>no shadow</em> — elevation through border colour, not depth illusion</div>
+      <div style="padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)">Data labels are <em>10px uppercase tracked</em> — same language as Bloomberg, Monocle, Wallpaper*</div>
+      <div style="padding:5px 0">Generous whitespace — <em>fewer panels, breathing room</em> between them signals confidence</div>
+    </div>
+  </div>
+
+  <div id="tab-panels" class="tab-panel">
+    <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 14px">Each panel maps to one or more API sources. This is the complete dashboard layout.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <div class="panel-preview">
+        <div class="panel-header"><div class="panel-dot" style="background:#D4AF37"></div><span class="panel-label">Hero strip</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Fear &amp; Greed + top mover + timestamp</div>
+          <div style="display:flex;gap:12px;align-items:baseline">
+            <div><div style="font-size:10px;color:var(--color-text-tertiary)">SENTIMENT</div><div style="font-size:20px;font-weight:500">42 — Fear</div></div>
+            <div style="width:0.5px;height:30px;background:var(--color-border-tertiary)"></div>
+            <div><div style="font-size:10px;color:var(--color-text-tertiary)">TOP MOVER</div><div style="font-size:16px;font-weight:500">Gold +2.1%</div></div>
+          </div>
+          <div style="font-size:10px;color:#B8952A;margin-top:6px">alternative.me · Alpha Vantage</div>
+        </div>
+      </div>
+
+      <div class="panel-preview">
+        <div class="panel-header"><div class="panel-dot" style="background:#C9A84C"></div><span class="panel-label">Precious metals</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Gold, silver, platinum — live spot</div>
+          <div class="mock-val">$2,340</div>
+          <div class="mock-delta mock-up">+1.8% · Gold (XAU)</div>
+          <div class="mock-bar-track"><div class="mock-bar-fill" style="width:72%;background:#D4AF37"></div></div>
+          <div style="font-size:10px;color:#B8952A;margin-top:6px">metals.dev · freegoldapi.com</div>
+        </div>
+      </div>
+
+      <div class="panel-preview">
+        <div class="panel-header"><div class="panel-dot" style="background:#378ADD"></div><span class="panel-label">Global indices</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">S&amp;P 500, DAX, FTSE 100, Nikkei</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+            <div><span style="color:var(--color-text-tertiary)">S&amp;P 500 </span><span class="mock-up">+0.4%</span></div>
+            <div><span style="color:var(--color-text-tertiary)">DAX </span><span class="mock-down">-0.2%</span></div>
+            <div><span style="color:var(--color-text-tertiary)">FTSE </span><span class="mock-up">+0.6%</span></div>
+            <div><span style="color:var(--color-text-tertiary)">Nikkei </span><span class="mock-up">+1.1%</span></div>
+          </div>
+          <div style="font-size:10px;color:#B8952A;margin-top:8px">Alpha Vantage · yahoo-finance2</div>
+        </div>
+      </div>
+
+      <div class="panel-preview">
+        <div class="panel-header"><div class="panel-dot" style="background:#1D9E75"></div><span class="panel-label">FX rates</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Major pairs — USD base</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+            <div><span style="color:var(--color-text-tertiary)">EUR/USD </span><span>1.082</span></div>
+            <div><span style="color:var(--color-text-tertiary)">GBP/USD </span><span>1.264</span></div>
+            <div><span style="color:var(--color-text-tertiary)">USD/JPY </span><span>151.4</span></div>
+            <div><span style="color:var(--color-text-tertiary)">USD/CHF </span><span>0.893</span></div>
+          </div>
+          <div style="font-size:10px;color:#B8952A;margin-top:8px">open.er-api.com (keyless)</div>
+        </div>
+      </div>
+
+      <div class="panel-preview">
+        <div class="panel-header"><div class="panel-dot" style="background:#534AB7"></div><span class="panel-label">Macro signals</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Yield curve, CPI, Fed rate</div>
+          <div style="font-size:12px;display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--color-text-tertiary)">10Y Treasury</span><span>4.28%</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--color-text-tertiary)">10Y–2Y spread</span><span class="mock-up">+0.14</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--color-text-tertiary)">CPI (YoY)</span><span>3.1%</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--color-text-tertiary)">Fed Funds</span><span>5.25–5.50%</span></div>
+          </div>
+          <div style="font-size:10px;color:#B8952A;margin-top:8px">FRED API (free key)</div>
+        </div>
+      </div>
+
+      <div class="panel-preview">
+        <div class="panel-header"><div class="panel-dot" style="background:#D85A30"></div><span class="panel-label">Geopolitical risk + news</span></div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">GDELT events + NewsAPI headlines</div>
+          <div style="font-size:12px;color:var(--color-text-primary);line-height:1.6">
+            <div style="padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary)">Fed signals pause · neutral</div>
+            <div style="padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary)">Middle East tensions rise · bearish oil</div>
+            <div style="padding:3px 0">ECB rate decision Thu · watch EUR</div>
+          </div>
+          <div style="font-size:10px;color:#B8952A;margin-top:8px">GDELT (keyless) · NewsAPI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-signup" class="tab-panel">
+    <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 14px">Sign up in this order. Each takes under 5 minutes. No credit card required for any of them.</p>
+
+    <div class="priority-row">
+      <div class="p-num">1</div>
+      <div>
+        <p class="p-name">Alpha Vantage — markets, FX, commodities</p>
+        <p class="p-url">alphavantage.co/support/#api-key</p>
+        <p class="data-used">S&P 500, DAX, FTSE, Nikkei · Gold, silver, oil · EUR/USD, GBP/USD · Free, instant</p>
+      </div>
+    </div>
+    <div class="priority-row">
+      <div class="p-num">2</div>
+      <div>
+        <p class="p-name">FRED — macro economic data</p>
+        <p class="p-url">fred.stlouisfed.org → My Account → API Keys</p>
+        <p class="data-used">CPI, Fed Funds rate, 10Y Treasury, yield curve spread · 120 req/min free · US Fed</p>
+      </div>
+    </div>
+    <div class="priority-row">
+      <div class="p-num">3</div>
+      <div>
+        <p class="p-name">NewsAPI — financial headlines</p>
+        <p class="p-url">newsapi.org/register</p>
+        <p class="data-used">100 req/day, search "finance OR markets OR gold OR Fed" · Classify bullish/bearish</p>
+      </div>
+    </div>
+    <div class="priority-row">
+      <div class="p-num">4</div>
+      <div>
+        <p class="p-name">metals.dev — precious metals spot prices</p>
+        <p class="p-url">metals.dev → sign up (no card)</p>
+        <p class="data-used">Gold, silver, platinum live from LBMA/MCX · 100 req/month (snapshot once daily = 30)</p>
+      </div>
+    </div>
+    <div class="priority-row">
+      <div class="p-num">5</div>
+      <div>
+        <p class="p-name">CoinGecko — Bitcoin + crypto as macro signal</p>
+        <p class="p-url">coingecko.com/en/api → Demo API key</p>
+        <p class="data-used">BTC, ETH prices + market cap · crypto Fear &amp; Greed · 30 calls/min free</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;padding:12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary);border-left:2px solid #D4AF37;border-radius:0">
+      All five keys go into a <span style="font-family:var(--font-mono)">.env</span> file at the root of the repo — never committed to GitHub. Netlify reads them as environment variables at build time. The GitHub Actions pipeline reads them as repository secrets.
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const panels = ['apis','design','panels','signup'];
+    t.classList.toggle('active', panels[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-'+name);
+  });
+}
+</script>

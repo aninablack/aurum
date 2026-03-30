@@ -1,21 +1,13 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Aurum</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:14px;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
+.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:14px;overflow:hidden;max-width:860px;}
 
 .nav{background:#EDE5D6;padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid #DDD3BC;}
 .wordmark{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:0.03em;line-height:1;}
 .wm-dark{color:#0D1B2A;}
-.wm-gold{color:#0D1B2A;}
+.wm-gold{color:#C9A84C;}
 
 .page-outer{padding:16px 20px 0;}
 .briefing-card{background:#fff;border:1px solid #DDD3BC;border-radius:14px;padding:22px 26px 20px;margin-bottom:14px;}
@@ -23,16 +15,15 @@
 .b-label{font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;}
 .b-sep{font-size:9px;color:#C9B99A;}
 .b-ts{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#8A96A4;}
-h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
-.b-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
-.b-body{font-size:14px;color:#4A5568;line-height:1.7;}
+.b-hl{font-family:'DM Serif Display',serif;font-size:21px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
+.b-body{font-size:13px;color:#4A5568;line-height:1.7;}
 
 /* TABS — pill style, active = white card */
 .tabs-wrap{padding:0 20px;background:#EDE5D6;border-bottom:1px solid #DDD3BC;}
-.story-tabs{display:flex;gap:6px;padding:10px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.story-tabs{display:flex;gap:6px;padding:10px 0;overflow-x:auto;}
 .stab{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 18px;border:none;border-radius:20px;background:transparent;color:#8A96A4;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
 .stab:hover:not(.active){background:rgba(255,255,255,0.45);color:#4A5568;}
-.stab.active{background:#ffffff;color:#0D1B2A;border:none;box-shadow:0 1px 4px rgba(13,27,42,0.08);}
+.stab.active{background:#fff;color:#0D1B2A;box-shadow:0 1px 4px rgba(13,27,42,0.08);}
 
 .page{padding:20px 20px 32px;display:flex;flex-direction:column;gap:0;}
 .panel{display:none;}
@@ -44,7 +35,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .prow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
 .pulse{background:#fff;border:1px solid #DDD3BC;border-radius:10px;padding:15px 17px;}
 .plbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:7px;}
-.pval{font-family:'DM Serif Display',serif;font-size:32px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px;}
+.pval{font-family:'DM Serif Display',serif;font-size:26px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px;}
 .pdelt{font-size:11px;font-weight:500;}
 
 .card-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
@@ -53,14 +44,14 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .cht{border-top:2px solid #C9A84C;}
 .cp{padding:16px 17px 9px;}
 .ccat{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:8px;}
-.cprice{font-family:'DM Serif Display',serif;font-size:42px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;}
+.cprice{font-family:'DM Serif Display',serif;font-size:36px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;}
 .crow{display:flex;align-items:baseline;gap:8px;margin-top:5px;}
 .cpct{font-size:13px;font-weight:500;}
 .cabs{font-size:11px;color:#8A96A4;}
 .sarea{height:60px;padding:4px 17px 8px;}
 .istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
-.itext{font-size:12px;color:#6B7280;line-height:1.55;}
+.itext{font-size:11px;color:#6B7280;line-height:1.55;}
 
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ccrd{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
@@ -70,23 +61,19 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .ccrd-body{padding:14px 17px;}
 
 .story-card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
-.sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
-.sc-body{font-size:14px;color:#4A5568;line-height:1.7;padding:0 20px 14px;}
-.b-hl, .sc-hl, .b-headline{
-  font-family:'DM Serif Display', Georgia, serif !important;
-  font-weight:400 !important;
-}
+.sc-hl{font-family:'DM Serif Display',serif;font-size:19px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
+.sc-body{font-size:13px;color:#4A5568;line-height:1.7;padding:0 20px 14px;}
 .sc-split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #DDD3BC;}
 .sc-left{padding:16px 20px;border-right:1px solid #DDD3BC;}
 .sc-right{padding:16px 20px;}
 .sc-factors{display:flex;flex-direction:column;gap:6px;}
 .sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#F7F3EC;border-radius:7px;}
 .sf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.sf-text{font-size:12px;color:#4A5568;line-height:1.5;}
+.sf-text{font-size:11px;color:#4A5568;line-height:1.5;}
 .impgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
 .impcell{padding:11px 12px;border-radius:8px;background:#F7F3EC;border:1px solid #DDD3BC;}
 .impname{font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#8A96A4;margin-bottom:4px;}
-.impdir{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:2px;}
+.impdir{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:2px;}
 .impwhy{font-size:10px;color:#8A96A4;line-height:1.4;}
 .sc-watch{margin:0 20px 18px;padding:11px 14px;background:#F7F3EC;border-radius:8px;border-left:2px solid #C9A84C;}
 .kw-lbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px;}
@@ -110,21 +97,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .ntxt{font-size:12px;color:#0D1B2A;line-height:1.5;flex:1;}
 .nmeta{font-size:10px;color:#8A96A4;margin-top:2px;}
 .ntag{display:inline-block;font-size:9px;font-weight:500;padding:2px 6px;border-radius:5px;margin-left:5px;}
-@media (max-width: 900px){
-  .shell{border-radius:0;max-width:none;}
-  .nav{padding:0 16px;height:52px;}
-  .wordmark{font-size:24px;}
-  .page-outer{padding:12px 12px 0;}
-  .briefing-card{padding:16px 16px 14px;}
-  .tabs-wrap{padding:0 12px;}
-  .page{padding:14px 12px 24px;}
-  .b-hl{font-size:22px;line-height:1.35;}
-  .b-body{font-size:13px;line-height:1.6;}
-  .cprice{font-size:34px;}
-}
 </style>
-</head>
-<body>
 
 <div class="shell">
   <div class="nav">
@@ -138,7 +111,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <span class="b-sep">·</span>
         <span class="b-ts">Sunday 29 March 2026 · 15:48 UTC · Live</span>
       </div>
-      <h1 class="b-headline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
+      <div class="b-hl">Extreme fear grips global markets as equities fall and gold advances to $4,524</div>
       <div class="b-body">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
     </div>
   </div>
@@ -446,5 +419,3 @@ function show(id,btn){
   btn.classList.add('active');
 }
 </script>
-</body>
-</html>

@@ -1,0 +1,221 @@
+
+<style>
+  .aurum-wrap { font-family: var(--font-sans); padding: 0; }
+  .scenario-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .s-btn {
+    padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary);
+    color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s;
+  }
+  .s-btn:hover { background: var(--color-background-primary); color: var(--color-text-primary); }
+  .s-btn.active { border-width: 1.5px; }
+  .s-btn.s-war.active    { background: #FCEBEB; border-color: #A32D2D; color: #791F1F; }
+  .s-btn.s-rates.active  { background: #FAEEDA; border-color: #854F0B; color: #633806; }
+  .s-btn.s-supply.active { background: #E1F5EE; border-color: #0F6E56; color: #085041; }
+  .s-btn.s-crash.active  { background: #EEEDFE; border-color: #534AB7; color: #3C3489; }
+  .s-btn.s-none.active   { background: var(--color-background-primary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+  .asset-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 20px; }
+  .asset-card {
+    background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg); padding: 12px 14px; transition: all 0.35s;
+    position: relative; overflow: hidden;
+  }
+  .asset-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0; transition: opacity 0.35s; pointer-events: none;
+    border-radius: var(--border-radius-lg);
+  }
+  .asset-card.tint-up::before   { background: #E1F5EE; opacity: 1; }
+  .asset-card.tint-down::before { background: #FCEBEB; opacity: 1; }
+  .asset-card.tint-warn::before { background: #FAEEDA; opacity: 1; }
+  .asset-card.tint-dim::before  { background: var(--color-background-secondary); opacity: 1; }
+  .asset-card > * { position: relative; z-index: 1; }
+  .asset-label { font-size: 11px; color: var(--color-text-tertiary); margin: 0 0 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .asset-name  { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 6px; }
+  .asset-val   { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 3px; }
+  .asset-delta { font-size: 12px; margin: 0; transition: color 0.35s; }
+  .delta-up   { color: #0F6E56; }
+  .delta-down { color: #A32D2D; }
+  .delta-flat { color: var(--color-text-secondary); }
+  .impact-bar { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .impact-label { font-size: 10px; color: var(--color-text-tertiary); width: 28px; flex-shrink: 0; }
+  .impact-track { flex: 1; height: 3px; background: var(--color-border-tertiary); border-radius: 2px; overflow: hidden; }
+  .impact-fill  { height: 100%; border-radius: 2px; transition: width 0.5s, background 0.35s; width: 0%; }
+  .intel-box {
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: 14px 16px; transition: border-color 0.35s;
+  }
+  .intel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .intel-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-border-secondary); flex-shrink: 0; transition: background 0.35s; }
+  .intel-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+  .intel-badge {
+    margin-left: auto; font-size: 10px; font-weight: 500; padding: 3px 8px;
+    border-radius: 10px; background: var(--color-background-secondary);
+    color: var(--color-text-secondary); transition: all 0.35s;
+  }
+  .intel-text { font-size: 13px; color: var(--color-text-primary); line-height: 1.6; margin: 0; }
+  .affected-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .aff-tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 10px;
+    border: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-secondary); color: var(--color-text-secondary);
+    transition: all 0.35s;
+  }
+  .tag-up   { background: #E1F5EE; border-color: #0F6E56; color: #085041; }
+  .tag-down { background: #FCEBEB; border-color: #A32D2D; color: #791F1F; }
+  .tag-warn { background: #FAEEDA; border-color: #854F0B; color: #633806; }
+</style>
+
+<div class="aurum-wrap">
+  <div class="scenario-bar" id="scenarioBar">
+    <button class="s-btn s-none active" data-s="none">No scenario</button>
+    <button class="s-btn s-war"    data-s="war">Geopolitical conflict</button>
+    <button class="s-btn s-rates"  data-s="rates">Rate hike cycle</button>
+    <button class="s-btn s-supply" data-s="supply">Supply chain shock</button>
+    <button class="s-btn s-crash"  data-s="crash">Market correction</button>
+  </div>
+
+  <div class="asset-grid" id="assetGrid"></div>
+
+  <div class="intel-box" id="intelBox">
+    <div class="intel-header">
+      <div class="intel-dot" id="intelDot"></div>
+      <span class="intel-title">Scenario intelligence</span>
+      <span class="intel-badge" id="intelBadge">Neutral</span>
+    </div>
+    <p class="intel-text" id="intelText">Activate a scenario above to see how market conditions, asset classes, and geopolitical signals would interact under that macro environment.</p>
+    <div class="affected-row" id="affectedRow"></div>
+  </div>
+</div>
+
+<script>
+const ASSETS = [
+  { key:'gold',    label:'Commodity', name:'Gold',         base:2340, unit:'$/oz' },
+  { key:'oil',     label:'Commodity', name:'Brent crude',  base:83.4, unit:'$/bbl' },
+  { key:'sp500',   label:'Index',     name:'S&P 500',      base:5248, unit:'pts' },
+  { key:'dax',     label:'Index',     name:'DAX',          base:18210,unit:'pts' },
+  { key:'usdeur',  label:'FX',        name:'USD / EUR',    base:0.924,unit:'' },
+  { key:'wheat',   label:'Commodity', name:'Wheat',        base:547,  unit:'c/bu' },
+];
+
+const SCENARIOS = {
+  none: {
+    deltas:  { gold:0, oil:0, sp500:0, dax:0, usdeur:0, wheat:0 },
+    impacts: { gold:0, oil:0, sp500:0, dax:0, usdeur:0, wheat:0 },
+    tints:   { gold:'', oil:'', sp500:'', dax:'', usdeur:'', wheat:'' },
+    dotColor:'var(--color-border-secondary)',
+    badge:'Neutral', badgeStyle:'',
+    text:'Activate a scenario above to see how market conditions, asset classes, and geopolitical signals would interact under that macro environment.',
+    tags:[]
+  },
+  war: {
+    deltas:  { gold:+6.2, oil:+11.4, sp500:-4.8, dax:-6.1, usdeur:-1.9, wheat:+8.7 },
+    impacts: { gold:90, oil:95, sp500:80, dax:85, usdeur:55, wheat:75 },
+    tints:   { gold:'tint-up', oil:'tint-up', sp500:'tint-down', dax:'tint-down', usdeur:'tint-down', wheat:'tint-up' },
+    dotColor:'#A32D2D',
+    badge:'High risk', badgeStyle:'background:#FCEBEB;color:#791F1F;border-color:#A32D2D',
+    text:'Conflict escalation historically drives a flight to safety. Gold surges as the primary store of value. Oil spikes on supply disruption fears — especially if near Strait of Hormuz or Black Sea corridors. Equities reprice downward on earnings uncertainty. Wheat becomes a pressure point if breadbasket regions are affected.',
+    tags:[
+      { label:'Gold hedge', type:'up' }, { label:'Oil spike', type:'warn' },
+      { label:'Equities sell-off', type:'down' }, { label:'Wheat pressure', type:'warn' },
+      { label:'USD safe haven', type:'up' }
+    ]
+  },
+  rates: {
+    deltas:  { gold:-3.1, oil:-2.4, sp500:-5.6, dax:-4.2, usdeur:+2.8, wheat:-1.2 },
+    impacts: { gold:70, oil:45, sp500:85, dax:75, usdeur:80, wheat:30 },
+    tints:   { gold:'tint-down', oil:'tint-dim', sp500:'tint-down', dax:'tint-down', usdeur:'tint-up', wheat:'tint-dim' },
+    dotColor:'#854F0B',
+    badge:'Monetary pressure', badgeStyle:'background:#FAEEDA;color:#633806;border-color:#854F0B',
+    text:'Aggressive rate hiking cycles strengthen the dollar as yield differentials widen. This pressures gold (which pays no yield) and tightens equity valuations through higher discount rates. Growth-heavy indices like the S&P 500 are most exposed. Commodities soften on demand destruction fears. FX pairs see significant repricing.',
+    tags:[
+      { label:'USD strengthens', type:'up' }, { label:'Gold softens', type:'down' },
+      { label:'Growth stocks hit', type:'down' }, { label:'Bonds reprice', type:'warn' }
+    ]
+  },
+  supply: {
+    deltas:  { gold:+1.8, oil:+7.3, sp500:-2.1, dax:-3.4, usdeur:-0.8, wheat:+12.6 },
+    impacts: { gold:35, oil:88, sp500:60, dax:65, usdeur:30, wheat:95 },
+    tints:   { gold:'tint-up', oil:'tint-up', sp500:'tint-down', dax:'tint-down', usdeur:'', wheat:'tint-up' },
+    dotColor:'#0F6E56',
+    badge:'Supply disruption', badgeStyle:'background:#E1F5EE;color:#085041;border-color:#0F6E56',
+    text:'Supply chain shocks transmit through commodities first — oil and agricultural goods see the sharpest moves. Wheat is acutely sensitive to shipping lane disruptions and port closures. Equities reprice on margin compression as input costs rise. This scenario connects directly to drone and unmanned logistics technology as a structural hedge.',
+    tags:[
+      { label:'Wheat surge', type:'warn' }, { label:'Oil disruption', type:'warn' },
+      { label:'Logistics premium', type:'up' }, { label:'Margin compression', type:'down' },
+      { label:'Defence tech bid', type:'up' }
+    ]
+  },
+  crash: {
+    deltas:  { gold:+4.1, oil:-8.6, sp500:-18.4, dax:-15.2, usdeur:+1.2, wheat:-3.8 },
+    impacts: { gold:85, oil:90, sp500:98, dax:95, usdeur:60, wheat:40 },
+    tints:   { gold:'tint-up', oil:'tint-down', sp500:'tint-down', dax:'tint-down', usdeur:'tint-up', wheat:'tint-dim' },
+    dotColor:'#534AB7',
+    badge:'Risk-off', badgeStyle:'background:#EEEDFE;color:#3C3489;border-color:#534AB7',
+    text:'A market correction triggers broad risk-off positioning. Equities sell off sharply — growth and tech names lead the decline. Gold re-asserts as the premier safe haven. Oil falls on demand recession fears. The Fear & Greed index would be in extreme fear territory. Historical analogues: 2008, 2020 COVID shock, 2022 rate correction.',
+    tags:[
+      { label:'Extreme fear', type:'down' }, { label:'Gold safe haven', type:'up' },
+      { label:'Equities -15-20%', type:'down' }, { label:'Oil demand fears', type:'down' },
+      { label:'Cash flight', type:'warn' }
+    ]
+  }
+};
+
+function fmt(asset, delta) {
+  const v = asset.base * (1 + delta/100);
+  if (asset.unit === '') return v.toFixed(3);
+  if (v > 1000) return v.toLocaleString('en-GB', { maximumFractionDigits: 0 });
+  return v.toFixed(1);
+}
+
+function renderGrid(scenario) {
+  const s = SCENARIOS[scenario];
+  const grid = document.getElementById('assetGrid');
+  grid.innerHTML = '';
+  ASSETS.forEach(a => {
+    const d = s.deltas[a.key];
+    const imp = s.impacts[a.key];
+    const tint = s.tints[a.key];
+    const dClass = d > 0 ? 'delta-up' : d < 0 ? 'delta-down' : 'delta-flat';
+    const dSign = d > 0 ? '+' : '';
+    const impColor = imp > 70 ? (d > 0 ? '#0F6E56' : '#A32D2D') : imp > 40 ? '#854F0B' : 'var(--color-border-secondary)';
+    const card = document.createElement('div');
+    card.className = 'asset-card' + (tint ? ' ' + tint : '');
+    card.innerHTML = `
+      <p class="asset-label">${a.label}</p>
+      <p class="asset-name">${a.name}</p>
+      <p class="asset-val">${fmt(a, d)}${a.unit ? ' <span style="font-size:11px;color:var(--color-text-tertiary)">${a.unit}</span>' : ''}</p>
+      <p class="asset-delta ${dClass}">${scenario === 'none' ? '—' : dSign + d.toFixed(1) + '%'}</p>
+      ${scenario !== 'none' ? `<div class="impact-bar"><span class="impact-label">Impact</span><div class="impact-track"><div class="impact-fill" style="width:${imp}%;background:${impColor}"></div></div></div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderIntel(scenario) {
+  const s = SCENARIOS[scenario];
+  document.getElementById('intelDot').style.background = s.dotColor;
+  document.getElementById('intelBadge').style.cssText = s.badgeStyle || '';
+  document.getElementById('intelBadge').textContent = s.badge;
+  document.getElementById('intelText').textContent = s.text;
+  const row = document.getElementById('affectedRow');
+  row.innerHTML = s.tags.map(t => `<span class="aff-tag tag-${t.type}">${t.label}</span>`).join('');
+}
+
+let current = 'none';
+document.getElementById('scenarioBar').addEventListener('click', e => {
+  const btn = e.target.closest('.s-btn');
+  if (!btn) return;
+  const s = btn.dataset.s;
+  if (s === current) return;
+  current = s;
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid(s);
+  renderIntel(s);
+});
+
+renderGrid('none');
+renderIntel('none');
+</script>

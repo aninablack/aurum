@@ -1,0 +1,235 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500&display=swap');
+  .ds { font-family: 'DM Sans', sans-serif; }
+  .navy { color: #0D1B2A; }
+  .gold-text { color: #C9A84C; }
+  .sec { color: #4A5568; }
+  .ter { color: #8A96A4; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(201,168,76,0.3); margin-bottom: 20px; }
+  .tab { padding: 8px 16px; font-size: 12px; font-weight: 500; color: #8A96A4; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .tab.active { color: #0D1B2A; border-bottom-color: #C9A84C; }
+  .tp { display: none; }
+  .tp.active { display: block; }
+
+  .specimen-card {
+    background: #F9F6F0;
+    border: 0.5px solid rgba(201,168,76,0.4);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 12px;
+  }
+  .spec-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #C9A84C; margin: 0 0 12px; font-family: 'DM Sans', sans-serif; }
+  .rec-badge { display: inline-block; background: #D4AF37; color: #fff; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; font-family: 'DM Sans', sans-serif; }
+
+  .price-display { font-family: 'DM Serif Display', serif; font-size: 38px; color: #0D1B2A; line-height: 1; margin: 0 0 4px; }
+  .price-display-cg { font-family: 'Cormorant Garamond', serif; font-size: 42px; color: #0D1B2A; line-height: 1; margin: 0 0 4px; font-weight: 400; }
+  .price-display-out { font-family: 'Outfit', sans-serif; font-size: 36px; color: #0D1B2A; line-height: 1; margin: 0 0 4px; font-weight: 300; letter-spacing: -0.02em; }
+
+  .meta-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #8A96A4; font-family: 'DM Sans', sans-serif; margin: 0 0 4px; }
+  .delta-up { font-size: 13px; color: #0F6E56; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+  .body-text { font-size: 13px; color: #4A5568; line-height: 1.6; margin: 8px 0 0; }
+  .body-dm   { font-family: 'DM Sans', sans-serif; }
+  .body-cg   { font-family: 'Cormorant Garamond', serif; font-size: 15px; }
+  .body-out  { font-family: 'Outfit', sans-serif; }
+
+  .verdict { font-size: 11px; color: #4A5568; padding: 8px 10px; background: rgba(201,168,76,0.08); border-radius: 6px; margin-top: 10px; font-family: 'DM Sans', sans-serif; border-left: 2px solid #C9A84C; border-radius: 0; }
+
+  .palette-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .sw-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .sw { width: 44px; height: 44px; border-radius: 8px; }
+  .sw-lab { font-size: 10px; color: #8A96A4; text-align: center; font-family: 'DM Sans', sans-serif; line-height: 1.4; }
+
+  .token-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .token-table tr { border-bottom: 0.5px solid rgba(201,168,76,0.2); }
+  .token-table tr:last-child { border-bottom: none; }
+  .token-table td { padding: 7px 0; vertical-align: top; }
+  .token-table td:first-child { color: #8A96A4; width: 40%; font-family: 'DM Sans', sans-serif; }
+  .token-table td:last-child { color: #0D1B2A; font-family: var(--font-mono,'monospace'); font-size: 11px; }
+
+  .live-card {
+    background: #FAFAF6;
+    border: 0.5px solid rgba(201,168,76,0.35);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .lc-header {
+    background: #0D1B2A;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lc-wordmark { font-family: 'DM Serif Display', serif; font-size: 16px; color: #D4AF37; letter-spacing: 0.04em; }
+  .lc-tagline  { font-family: 'DM Sans', sans-serif; font-size: 10px; color: rgba(212,175,55,0.6); letter-spacing: 0.1em; text-transform: uppercase; }
+  .lc-body { padding: 16px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+  .lc-cell { }
+  .lc-meta  { font-family: 'DM Sans', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #C9A84C; margin: 0 0 3px; }
+  .lc-val   { font-family: 'DM Serif Display', serif; font-size: 22px; color: #0D1B2A; line-height: 1; margin: 0 0 2px; }
+  .lc-delta { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; margin: 0; }
+  .lc-divider { height: 0.5px; background: rgba(201,168,76,0.2); margin: 0 16px; }
+  .lc-intel { padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .lc-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
+  .lc-brief { font-family: 'DM Sans', sans-serif; font-size: 11px; color: #4A5568; line-height: 1.5; }
+</style>
+
+<div class="ds">
+  <div class="tabs">
+    <div class="tab active" onclick="sw('type')">Type pairing</div>
+    <div class="tab" onclick="sw('palette')">Colour system</div>
+    <div class="tab" onclick="sw('tokens')">Tokens</div>
+    <div class="tab" onclick="sw('live')">Live preview</div>
+  </div>
+
+  <div id="tp-type" class="tp active">
+
+    <div class="specimen-card">
+      <div class="spec-label">Option A — DM Serif Display + DM Sans <span class="rec-badge">Recommended</span></div>
+      <div class="meta-label">Commodity · Gold (XAU/USD)</div>
+      <div class="price-display">$2,340.50</div>
+      <div class="delta-up">+1.8%&nbsp;&nbsp;+$41.20 today</div>
+      <div class="body-text body-dm">Gold surges as dollar weakens on Fed pause signals. GDELT conflict index elevated across MENA region — historically correlated with +3–6% gold moves within 30 days.</div>
+      <div class="verdict">DM Serif Display on prices reads authoritative and precise — the high stroke contrast makes numerals feel like they mean something. DM Sans body keeps data labels crisp and scannable. Same type family, zero friction. This is the one.</div>
+    </div>
+
+    <div class="specimen-card">
+      <div class="spec-label">Option B — Cormorant Garamond + DM Sans</div>
+      <div class="meta-label">Commodity · Gold (XAU/USD)</div>
+      <div class="price-display-cg">$2,340.50</div>
+      <div class="delta-up">+1.8%&nbsp;&nbsp;+$41.20 today</div>
+      <div class="body-text body-dm">Gold surges as dollar weakens on Fed pause signals. GDELT conflict index elevated across MENA region — historically correlated with +3–6% gold moves within 30 days.</div>
+      <div class="verdict">More editorial and romantic than Option A. Beautiful but slightly too delicate for a data dashboard — very thin strokes can disappear at small sizes on lower-res screens. Better suited to a luxury editorial product than a financial intelligence tool.</div>
+    </div>
+
+    <div class="specimen-card">
+      <div class="spec-label">Option C — Outfit Light + Outfit Regular</div>
+      <div class="meta-label">Commodity · Gold (XAU/USD)</div>
+      <div class="price-display-out">$2,340.50</div>
+      <div class="delta-up">+1.8%&nbsp;&nbsp;+$41.20 today</div>
+      <div class="body-text body-out">Gold surges as dollar weakens on Fed pause signals. GDELT conflict index elevated across MENA region — historically correlated with +3–6% gold moves within 30 days.</div>
+      <div class="verdict">Modern, clean, geometric — feels closer to a consumer fintech app (Revolut, Monzo). Less distinctive. No serif means no typographic contrast between data values and supporting text — everything lives at the same visual weight.</div>
+    </div>
+
+  </div>
+
+  <div id="tp-palette" class="tp">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px;font-family:'DM Sans',sans-serif">Navy replaces black throughout. Gold used for accents, active states, and data category labels only — never as a fill colour on large areas.</p>
+
+    <div style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#8A96A4;margin-bottom:8px;font-family:'DM Sans',sans-serif">Primary navy scale</div>
+    <div class="palette-row">
+      <div class="sw-wrap"><div class="sw" style="background:#0D1B2A"></div><div class="sw-lab">#0D1B2A<br>Navy 900<br><em>text</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#1A2E42"></div><div class="sw-lab">#1A2E42<br>Navy 800<br><em>header bg</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#243D56"></div><div class="sw-lab">#243D56<br>Navy 700</div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#4A5568"></div><div class="sw-lab">#4A5568<br>Navy 500<br><em>secondary</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#8A96A4"></div><div class="sw-lab">#8A96A4<br>Navy 400<br><em>tertiary</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#C8D0D8;border:0.5px solid #ddd"></div><div class="sw-lab">#C8D0D8<br>Navy 200<br><em>border</em></div></div>
+    </div>
+
+    <div style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#8A96A4;margin-bottom:8px;font-family:'DM Sans',sans-serif">Gold accent scale</div>
+    <div class="palette-row">
+      <div class="sw-wrap"><div class="sw" style="background:#F9F6F0;border:0.5px solid #e8dfc4"></div><div class="sw-lab">#F9F6F0<br>Page bg</div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#F0DFA0"></div><div class="sw-lab">#F0DFA0<br>Gold 100</div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#D4AF37"></div><div class="sw-lab">#D4AF37<br>Gold 400<br><em>primary</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#C9A84C"></div><div class="sw-lab">#C9A84C<br>Gold 500<br><em>border</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#B8952A"></div><div class="sw-lab">#B8952A<br>Gold 600<br><em>active</em></div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#8B6914"></div><div class="sw-lab">#8B6914<br>Gold 800<br><em>text on bg</em></div></div>
+    </div>
+
+    <div style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#8A96A4;margin-bottom:8px;font-family:'DM Sans',sans-serif">Signal colours</div>
+    <div class="palette-row">
+      <div class="sw-wrap"><div class="sw" style="background:#0F6E56"></div><div class="sw-lab">#0F6E56<br>Up / positive</div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#A32D2D"></div><div class="sw-lab">#A32D2D<br>Down / negative</div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#B8952A"></div><div class="sw-lab">#B8952A<br>Caution / risk</div></div>
+      <div class="sw-wrap"><div class="sw" style="background:#243D56"></div><div class="sw-lab">#243D56<br>Neutral / info</div></div>
+    </div>
+
+    <div style="padding:10px 12px;background:rgba(201,168,76,0.08);border-left:2px solid #C9A84C;font-size:11px;color:#4A5568;font-family:'DM Sans',sans-serif;line-height:1.6">
+      The navy-on-warm-white combination gives Aurum its signature warmth. Pure black on white reads clinical and free. Navy on #F9F6F0 reads <em>considered</em> — like a private bank's letterhead.
+    </div>
+  </div>
+
+  <div id="tp-tokens" class="tp">
+    <table class="token-table">
+      <tr><td>Page background</td><td>#F9F6F0 — warm off-white</td></tr>
+      <tr><td>Card surface</td><td>#FFFFFF — white lifts from page</td></tr>
+      <tr><td>Card border</td><td>0.5px solid rgba(201,168,76,0.35)</td></tr>
+      <tr><td>Primary text</td><td>#0D1B2A — deep navy, not black</td></tr>
+      <tr><td>Secondary text</td><td>#4A5568 — blue-grey</td></tr>
+      <tr><td>Tertiary / labels</td><td>#8A96A4 — muted blue-grey</td></tr>
+      <tr><td>Display font</td><td>DM Serif Display — prices &amp; values</td></tr>
+      <tr><td>UI / body font</td><td>DM Sans 300/400/500 — all else</td></tr>
+      <tr><td>Data label style</td><td>10px · 500 · 0.08em tracking · uppercase · gold</td></tr>
+      <tr><td>Primary value size</td><td>DM Serif Display 28–38px</td></tr>
+      <tr><td>Delta positive</td><td>#0F6E56 · 500 weight</td></tr>
+      <tr><td>Delta negative</td><td>#A32D2D · 500 weight</td></tr>
+      <tr><td>Gold accent usage</td><td>Labels, borders, active underlines — never fills</td></tr>
+      <tr><td>Border radius</td><td>10px cards · 6px inner · 20px pills</td></tr>
+      <tr><td>Card border top accent</td><td>2px solid #D4AF37 — hero panels only</td></tr>
+      <tr><td>Header / nav bg</td><td>#0D1B2A navy — wordmark in gold</td></tr>
+    </table>
+  </div>
+
+  <div id="tp-live" class="tp">
+    <p style="font-size:11px;color:#8A96A4;margin:0 0 12px;font-family:'DM Sans',sans-serif">Full design system applied — this is what Aurum's panels will look like.</p>
+    <div class="live-card">
+      <div class="lc-header">
+        <div>
+          <div class="lc-wordmark">Aurum</div>
+          <div class="lc-tagline">Market intelligence</div>
+        </div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(212,175,55,0.5);letter-spacing:0.06em">Live · 14:32 UTC</div>
+      </div>
+      <div class="lc-body">
+        <div class="lc-cell">
+          <div class="lc-meta">Gold</div>
+          <div class="lc-val">$2,340</div>
+          <div class="lc-delta" style="color:#0F6E56">+1.8%</div>
+        </div>
+        <div class="lc-cell">
+          <div class="lc-meta">S&P 500</div>
+          <div class="lc-val">5,248</div>
+          <div class="lc-delta" style="color:#0F6E56">+0.4%</div>
+        </div>
+        <div class="lc-cell">
+          <div class="lc-meta">EUR/USD</div>
+          <div class="lc-val">1.082</div>
+          <div class="lc-delta" style="color:#A32D2D">−0.2%</div>
+        </div>
+        <div class="lc-cell">
+          <div class="lc-meta">Fear index</div>
+          <div class="lc-val">42</div>
+          <div class="lc-delta" style="color:#B8952A">Fear</div>
+        </div>
+        <div class="lc-cell">
+          <div class="lc-meta">10Y yield</div>
+          <div class="lc-val">4.28%</div>
+          <div class="lc-delta" style="color:#0F6E56">+0.04</div>
+        </div>
+        <div class="lc-cell">
+          <div class="lc-meta">Bitcoin</div>
+          <div class="lc-val">$71.4k</div>
+          <div class="lc-delta" style="color:#A32D2D">−2.1%</div>
+        </div>
+      </div>
+      <div class="lc-divider"></div>
+      <div class="lc-intel">
+        <div class="lc-dot"></div>
+        <div class="lc-brief">Gold and treasuries both advancing — classic flight-to-safety signal. Fed pause expectations firm. Watch EUR/USD for ECB divergence Thursday.</div>
+      </div>
+    </div>
+    <div style="padding:10px 12px;background:rgba(13,27,42,0.04);border-radius:6px;font-size:11px;color:#4A5568;font-family:'DM Sans',sans-serif;line-height:1.6">
+      The dark navy header with gold wordmark anchors Aurum's identity at the top of every panel. DM Serif Display on the data values gives them gravity. The intelligence strip at the bottom is where Aurum's voice lives — always one sentence, always gold-dotted.
+    </div>
+  </div>
+</div>
+
+<script>
+function sw(name) {
+  ['type','palette','tokens','live'].forEach(n => {
+    document.querySelector('.tab:nth-child(' + (['type','palette','tokens','live'].indexOf(n)+1) + ')').classList.toggle('active', n===name);
+    document.getElementById('tp-'+n).classList.toggle('active', n===name);
+  });
+}
+</script>

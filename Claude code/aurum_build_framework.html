@@ -1,0 +1,164 @@
+
+<style>
+  .fw { font-family: var(--font-sans); }
+  .phase-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr) minmax(0,1fr); gap: 0; margin-bottom: 1px; }
+  .phase-head { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr) minmax(0,1fr); gap: 0; margin-bottom: 2px; padding: 0 0 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .col-h { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px; }
+  .phase-block {
+    padding: 11px 10px; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 0; margin: 0; font-size: 13px;
+    border-right: none;
+  }
+  .phase-block:first-child { border-radius: var(--border-radius-md) 0 0 var(--border-radius-md); }
+  .phase-block:last-child  { border-right: 0.5px solid var(--color-border-tertiary); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; }
+  .phase-row + .phase-row .phase-block { border-top: none; }
+  .phase-row:first-of-type .phase-block:first-child { border-radius: var(--border-radius-md) 0 0 0; }
+  .phase-row:first-of-type .phase-block:last-child  { border-radius: 0 var(--border-radius-md) 0 0; }
+  .phase-row:last-of-type  .phase-block:first-child { border-radius: 0 0 0 var(--border-radius-md); }
+  .phase-row:last-of-type  .phase-block:last-child  { border-radius: 0 0 var(--border-radius-md) 0; }
+  .p-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); margin: 0 0 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .p-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 4px; }
+  .p-sub   { font-size: 12px; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+  .owner-claude { background: #EEEDFE; }
+  .owner-codex  { background: #E1F5EE; }
+  .owner-you    { background: var(--color-background-secondary); }
+  .owner-col { display: flex; align-items: center; justify-content: center; }
+  .owner-pill {
+    font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 12px;
+  }
+  .pill-claude { background: #CECBF6; color: #3C3489; }
+  .pill-codex  { background: #9FE1CB; color: #085041; }
+  .pill-both   { background: #FAC775; color: #633806; }
+  .pill-you    { background: var(--color-border-tertiary); color: var(--color-text-secondary); }
+  .section-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 8px; }
+  .dir-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .dir-card {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 12px 14px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .dir-card:hover { border-color: var(--color-border-primary); }
+  .dir-num  { font-size: 11px; color: var(--color-text-tertiary); margin: 0 0 4px; }
+  .dir-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 4px; }
+  .dir-desc { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px; line-height: 1.5; }
+  .dir-tag  { font-size: 10px; padding: 2px 7px; border-radius: 8px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-tertiary); display: inline-block; margin-right: 4px; }
+  .legend-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+  .leg-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+</style>
+
+<div class="fw">
+  <div class="legend-row">
+    <span class="leg-item"><span class="leg-dot" style="background:#CECBF6"></span>Claude</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#9FE1CB"></span>Codex</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#FAC775"></span>Both</span>
+  </div>
+
+  <div class="phase-head">
+    <div class="col-h" style="padding-left:10px">Step</div>
+    <div class="col-h">What gets built</div>
+    <div class="col-h" style="text-align:center">Owner</div>
+  </div>
+
+  <div class="phase-row">
+    <div class="phase-block">
+      <p class="p-label">Phase 1</p>
+      <p class="p-title">Architecture + APIs</p>
+      <p class="p-sub">Repo structure, API keys, data schema</p>
+    </div>
+    <div class="phase-block">
+      <p class="p-sub" style="margin-top:2px">Decide free vs key-gated APIs. Design the JSON snapshot format that GitHub Actions will write. Set up Netlify deploy hook. Verify CORS on each data source before writing a line of UI.</p>
+    </div>
+    <div class="phase-block owner-claude owner-col"><span class="owner-pill pill-claude">Claude</span></div>
+  </div>
+
+  <div class="phase-row">
+    <div class="phase-block">
+      <p class="p-label">Phase 2</p>
+      <p class="p-title">Data pipeline</p>
+      <p class="p-sub">GitHub Actions + snapshot gist</p>
+    </div>
+    <div class="phase-block">
+      <p class="p-sub" style="margin-top:2px">Node.js fetch script hitting each API. Writes a single <code>aurum-data.json</code> to a GitHub Gist. Actions workflow triggers every 15 min. Same proven pattern as your cyber dashboard.</p>
+    </div>
+    <div class="phase-block owner-claude owner-col"><span class="owner-pill pill-claude">Claude</span></div>
+  </div>
+
+  <div class="phase-row">
+    <div class="phase-block">
+      <p class="p-label">Phase 3</p>
+      <p class="p-title">UI scaffold</p>
+      <p class="p-sub">HTML/CSS shell, gold design system</p>
+    </div>
+    <div class="phase-block">
+      <p class="p-sub" style="margin-top:2px">Light surface, gold accent tokens, typography scale. The hero strip, grid layout, panel containers. No live data yet — static placeholder values to get the aesthetic right first.</p>
+    </div>
+    <div class="phase-block owner-codex owner-col"><span class="owner-pill pill-codex">Codex</span></div>
+  </div>
+
+  <div class="phase-row">
+    <div class="phase-block">
+      <p class="p-label">Phase 4</p>
+      <p class="p-title">Data binding</p>
+      <p class="p-sub">Wire Gist → UI panels</p>
+    </div>
+    <div class="phase-block">
+      <p class="p-sub" style="margin-top:2px">Fetch <code>aurum-data.json</code> on page load, populate each panel. Handle loading states, stale data warnings, error fallbacks. Claude writes the binding logic; Codex handles the repetitive panel-fill functions.</p>
+    </div>
+    <div class="phase-block owner-you owner-col"><span class="owner-pill pill-both">Both</span></div>
+  </div>
+
+  <div class="phase-row">
+    <div class="phase-block">
+      <p class="p-label">Phase 5</p>
+      <p class="p-title">Intelligence layer</p>
+      <p class="p-sub">Fear &amp; Greed, sentiment, GDELT</p>
+    </div>
+    <div class="phase-block">
+      <p class="p-sub" style="margin-top:2px">Integrate the three signal sources that differentiate Aurum. Fear &amp; Greed JSON endpoint. NewsAPI headline classifier. GDELT event feed filtered to market-moving categories. Claude designs the signal logic.</p>
+    </div>
+    <div class="phase-block owner-claude owner-col"><span class="owner-pill pill-claude">Claude</span></div>
+  </div>
+
+  <div class="phase-row">
+    <div class="phase-block">
+      <p class="p-label">Phase 6</p>
+      <p class="p-title">Deploy + polish</p>
+      <p class="p-sub">Netlify, domain, portfolio framing</p>
+    </div>
+    <div class="phase-block">
+      <p class="p-sub" style="margin-top:2px">Netlify deploy, custom subdomain if wanted, performance pass. Then the portfolio wrapper — case study copy, LinkedIn post, positioning for CV.</p>
+    </div>
+    <div class="phase-block owner-codex owner-col"><span class="owner-pill pill-both">Both</span></div>
+  </div>
+
+  <p class="section-label">Expansion directions — after core is live</p>
+
+  <div class="dir-grid">
+    <div class="dir-card" onclick="sendPrompt('Build the Aurum AI daily briefing feature')">
+      <p class="dir-num">Direction 1</p>
+      <p class="dir-name">AI daily briefing</p>
+      <p class="dir-desc">Morning intelligence note generated from live data. Aurum gains a voice — opinionated, concise, timestamped.</p>
+      <span class="dir-tag">Claude API call</span><span class="dir-tag">High impact</span>
+    </div>
+    <div class="dir-card" onclick="sendPrompt('Build the Aurum scenario overlay into the live dashboard')">
+      <p class="dir-num">Direction 2</p>
+      <p class="dir-name">Scenario overlay</p>
+      <p class="dir-desc">The prototype we just built, wired to live data. War, rate hike, supply shock — tints the real numbers.</p>
+      <span class="dir-tag">Already prototyped</span><span class="dir-tag">Portfolio-ready</span>
+    </div>
+    <div class="dir-card" onclick="sendPrompt('How would I connect Aurum to the drone brand concept for the portfolio?')">
+      <p class="dir-num">Direction 3</p>
+      <p class="dir-name">Drone brand tie-in</p>
+      <p class="dir-desc">Defence stocks, rare earth metals, aerospace indices. Aurum and the drone brand as one portfolio thesis.</p>
+      <span class="dir-tag">Brand narrative</span><span class="dir-tag">Differentiator</span>
+    </div>
+    <div class="dir-card" onclick="sendPrompt('Design the Aurum brand identity — logo, colour system, typography')">
+      <p class="dir-num">Direction 4</p>
+      <p class="dir-name">Aurum brand identity</p>
+      <p class="dir-desc">Logo mark, gold colour system, type scale. Turns a dashboard into a product with a name and a face.</p>
+      <span class="dir-tag">Your domain</span><span class="dir-tag">LinkedIn-ready</span>
+    </div>
+  </div>
+</div>
+<script>void 0;</script>

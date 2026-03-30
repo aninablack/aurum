@@ -1,0 +1,301 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=DM+Serif+Display&display=swap');
+  .ac { font-family:'DM Sans',sans-serif; color:#0D1B2A; }
+  .tabs { display:flex; gap:0; border-bottom:1px solid rgba(201,168,76,0.3); margin-bottom:18px; }
+  .tab { padding:8px 14px; font-size:12px; font-weight:500; color:#8A96A4; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:'DM Sans',sans-serif; }
+  .tab.active { color:#0D1B2A; border-bottom-color:#D4AF37; }
+  .tp { display:none; }
+  .tp.active { display:block; }
+  .chart-label { font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:#C9A84C; margin:0 0 4px; }
+  .chart-val { font-family:'DM Serif Display',serif; font-size:22px; color:#0D1B2A; margin:0 0 2px; }
+  .chart-delta { font-size:12px; font-weight:500; margin:0 0 12px; }
+  .card { background:#fff; border:0.5px solid rgba(201,168,76,0.35); border-radius:10px; padding:16px; margin-bottom:12px; }
+  .card-hero { border-top:2px solid #D4AF37; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .mini-legend { display:flex; gap:14px; margin-bottom:10px; font-size:11px; color:#8A96A4; }
+  .leg-dot { width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:4px; }
+  .desc { font-size:11px; color:#8A96A4; margin:8px 0 0; font-style:italic; }
+</style>
+
+<div class="ac">
+  <div class="tabs">
+    <div class="tab active" onclick="st('spark')">Sparklines</div>
+    <div class="tab" onclick="st('area')">Area chart</div>
+    <div class="tab" onclick="st('gauge')">F&amp;G gauge</div>
+    <div class="tab" onclick="st('bar')">Index bars</div>
+    <div class="tab" onclick="st('scatter')">Correlation</div>
+    <div class="tab" onclick="st('map')">World map</div>
+  </div>
+
+  <div id="tp-spark" class="tp active">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px">Every asset panel carries a 30-day sparkline. No axes — the shape is the signal. Colour encodes direction: gold for metals, teal-green for positive, red for negative.</p>
+    <div class="row2">
+      <div class="card card-hero">
+        <div class="chart-label">Commodity · Gold</div>
+        <div class="chart-val">$2,340</div>
+        <div class="chart-delta" style="color:#0F6E56">+1.8% today</div>
+        <div style="position:relative;width:100%;height:52px"><canvas id="spk1"></canvas></div>
+        <p class="desc">30-day trend · hover for date + price</p>
+      </div>
+      <div class="card card-hero">
+        <div class="chart-label">Index · S&P 500</div>
+        <div class="chart-val">5,248</div>
+        <div class="chart-delta" style="color:#0F6E56">+0.4% today</div>
+        <div style="position:relative;width:100%;height:52px"><canvas id="spk2"></canvas></div>
+        <p class="desc">30-day trend · hover for date + value</p>
+      </div>
+      <div class="card">
+        <div class="chart-label">FX · EUR/USD</div>
+        <div class="chart-val">1.0821</div>
+        <div class="chart-delta" style="color:#A32D2D">−0.2% today</div>
+        <div style="position:relative;width:100%;height:52px"><canvas id="spk3"></canvas></div>
+        <p class="desc">30-day trend</p>
+      </div>
+      <div class="card">
+        <div class="chart-label">Macro · 10Y yield</div>
+        <div class="chart-val">4.28%</div>
+        <div class="chart-delta" style="color:#0F6E56">+0.04 today</div>
+        <div style="position:relative;width:100%;height:52px"><canvas id="spk4"></canvas></div>
+        <p class="desc">30-day trend</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tp-area" class="tp">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px">The full gold price chart — 90-day view with time range selector. The fill uses a very light gold tint. Tooltips show date, price, and daily change.</p>
+    <div class="card card-hero">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div class="chart-label">Commodity · Gold (XAU/USD)</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;color:#0D1B2A;line-height:1">$2,340.50</div>
+          <div style="font-size:12px;font-weight:500;color:#0F6E56;margin-top:2px">+$41.20 · +1.8% · 90 days</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="setRange(7)"  id="r7"  style="font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:16px;border:0.5px solid rgba(201,168,76,0.4);background:transparent;color:#8A96A4;cursor:pointer">7D</button>
+          <button onclick="setRange(30)" id="r30" style="font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:16px;border:0.5px solid rgba(201,168,76,0.4);background:transparent;color:#8A96A4;cursor:pointer">30D</button>
+          <button onclick="setRange(90)" id="r90" style="font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:16px;border:0.5px solid #D4AF37;background:rgba(212,175,55,0.08);color:#B8952A;cursor:pointer;font-weight:500">90D</button>
+        </div>
+      </div>
+      <div style="position:relative;width:100%;height:180px"><canvas id="areaChart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tp-gauge" class="tp">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px">The Fear &amp; Greed gauge renders as a semicircular arc — not a bar. The needle and value update when you drag the slider below.</p>
+    <div class="card card-hero" style="text-align:center">
+      <div class="chart-label" style="text-align:left">Market sentiment · Fear &amp; Greed index</div>
+      <canvas id="gaugeCanvas" width="320" height="180" style="display:block;margin:0 auto"></canvas>
+      <div id="gaugeVal" style="font-family:'DM Serif Display',serif;font-size:36px;color:#0D1B2A;margin-top:-24px">42</div>
+      <div id="gaugeLabel" style="font-size:13px;font-weight:500;color:#B8952A;margin:2px 0 16px">Fear</div>
+      <input type="range" min="0" max="100" value="42" id="gaugeSlider" style="width:80%;accent-color:#D4AF37" oninput="updateGauge(this.value)">
+      <p class="desc" style="margin-top:8px">Drag to simulate index value · updated daily from alternative.me</p>
+    </div>
+  </div>
+
+  <div id="tp-bar" class="tp">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px">Global indices shown as a horizontal bar chart — makes relative performance immediately scannable across regions. Bars coloured by direction.</p>
+    <div class="card card-hero">
+      <div class="chart-label">Global indices · daily performance</div>
+      <div style="position:relative;width:100%;height:200px;margin-top:10px"><canvas id="barChart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tp-scatter" class="tp">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px">The correlation scatter plots gold price against the 10Y yield — the relationship that defines the macro cycle. Negative correlation = gold and yields moving opposite = flight to safety.</p>
+    <div class="card card-hero">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div class="chart-label">Correlation · Gold vs 10Y Treasury yield</div>
+        <div style="font-size:11px;font-weight:500;color:#A32D2D">r = −0.72 · strong inverse</div>
+      </div>
+      <div style="position:relative;width:100%;height:200px"><canvas id="scatterChart"></canvas></div>
+      <p class="desc">Each point = one trading day (90 days). Negative r confirms flight-to-safety signal.</p>
+    </div>
+  </div>
+
+  <div id="tp-map" class="tp">
+    <p style="font-size:12px;color:#4A5568;margin:0 0 14px">The geopolitical risk map shades countries by GDELT conflict intensity. Darker = higher event frequency in the last 7 days. Pairs with the news feed panel.</p>
+    <div class="card card-hero">
+      <div class="chart-label">Geopolitical risk · GDELT conflict intensity · 7-day</div>
+      <div id="worldMap" style="width:100%;margin-top:10px"></div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:10px">
+        <span style="font-size:10px;color:#8A96A4">Low</span>
+        <div style="display:flex;gap:2px">
+          <div style="width:16px;height:8px;background:rgba(13,27,42,0.06);border-radius:2px"></div>
+          <div style="width:16px;height:8px;background:rgba(13,27,42,0.15);border-radius:2px"></div>
+          <div style="width:16px;height:8px;background:rgba(184,149,42,0.4);border-radius:2px"></div>
+          <div style="width:16px;height:8px;background:rgba(163,45,45,0.5);border-radius:2px"></div>
+          <div style="width:16px;height:8px;background:#A32D2D;border-radius:2px"></div>
+        </div>
+        <span style="font-size:10px;color:#8A96A4">High</span>
+      </div>
+      <p class="desc">Live from GDELT Project · keyless API · updates every 15 min</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+function st(name) {
+  ['spark','area','gauge','bar','scatter','map'].forEach((n,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', n===name);
+    document.getElementById('tp-'+n).classList.toggle('active', n===name);
+  });
+  if (name==='map' && !window.mapDrawn) drawMap();
+}
+
+const NAVY='#0D1B2A', GOLD='#D4AF37', GOLD5='#C9A84C', UP='#0F6E56', DOWN='#A32D2D', MUTED='#8A96A4';
+
+function makeSpark(id, data, color) {
+  new Chart(document.getElementById(id), {
+    type:'line',
+    data:{ labels:data.map((_,i)=>i), datasets:[{ data, borderColor:color, borderWidth:1.5, pointRadius:0, tension:0.3, fill:false }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{enabled:false}}, scales:{ x:{display:false}, y:{display:false} }, animation:{duration:600} }
+  });
+}
+
+function genPrice(base, days, vol) {
+  const d=[base]; for(let i=1;i<days;i++) d.push(Math.max(d[i-1]*(1+(Math.random()-0.48)*vol),base*0.85)); return d;
+}
+
+makeSpark('spk1', genPrice(2280,30,0.01), GOLD);
+makeSpark('spk2', genPrice(5100,30,0.008), UP);
+makeSpark('spk3', genPrice(1.095,30,0.005), DOWN);
+makeSpark('spk4', genPrice(4.1,30,0.008), UP);
+
+let areaData = genPrice(2200,90,0.008);
+let areaChart;
+function buildArea(days) {
+  const d = areaData.slice(-days);
+  const labels = Array.from({length:days},(_,i)=>{
+    const dt=new Date(); dt.setDate(dt.getDate()-(days-1-i));
+    return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  });
+  if(areaChart) areaChart.destroy();
+  areaChart = new Chart(document.getElementById('areaChart'),{
+    type:'line',
+    data:{ labels, datasets:[{ data:d, borderColor:GOLD, borderWidth:1.5, pointRadius:0, tension:0.3, fill:true, backgroundColor:'rgba(212,175,55,0.07)' }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>'$'+ctx.parsed.y.toFixed(2) } } },
+      scales:{
+        x:{ grid:{color:'rgba(201,168,76,0.08)'}, ticks:{color:MUTED,font:{size:10},maxTicksLimit:6} },
+        y:{ position:'right', grid:{color:'rgba(201,168,76,0.08)'}, ticks:{color:MUTED,font:{size:10},callback:v=>'$'+v.toFixed(0)} }
+      }
+    }
+  });
+}
+buildArea(90);
+
+function setRange(d) {
+  ['r7','r30','r90'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(id==='r'+d){ el.style.borderColor='#D4AF37'; el.style.background='rgba(212,175,55,0.08)'; el.style.color='#B8952A'; el.style.fontWeight='500'; }
+    else { el.style.borderColor='rgba(201,168,76,0.4)'; el.style.background='transparent'; el.style.color='#8A96A4'; el.style.fontWeight='400'; }
+  });
+  buildArea(d);
+}
+
+function drawGauge(val) {
+  const c=document.getElementById('gaugeCanvas'), ctx=c.getContext('2d');
+  c.width=320; c.height=180;
+  ctx.clearRect(0,0,320,180);
+  const cx=160, cy=155, r=110, sw=14;
+  const zones=[
+    [0,25,'#A32D2D'],[25,45,'#B8952A'],[45,55,'#8A96A4'],[55,75,'#0F6E56'],[75,100,'#085041']
+  ];
+  zones.forEach(([s,e,col])=>{
+    ctx.beginPath();
+    ctx.arc(cx,cy,r, Math.PI*(1+(s/100)), Math.PI*(1+(e/100)));
+    ctx.strokeStyle=col; ctx.lineWidth=sw; ctx.lineCap='butt'; ctx.stroke();
+  });
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,Math.PI,2*Math.PI);
+  ctx.strokeStyle='rgba(201,168,76,0.1)'; ctx.lineWidth=1; ctx.stroke();
+  const angle=Math.PI*(1+(val/100));
+  const nx=cx+Math.cos(angle)*(r-20), ny=cy+Math.sin(angle)*(r-20);
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(nx,ny);
+  ctx.strokeStyle=NAVY; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,5,0,2*Math.PI);
+  ctx.fillStyle=NAVY; ctx.fill();
+  ['0','25','50','75','100'].forEach((label,i)=>{
+    const a=Math.PI*(1+(i*25/100));
+    const tx=cx+Math.cos(a)*(r+18), ty=cy+Math.sin(a)*(r+18);
+    ctx.fillStyle=MUTED; ctx.font='10px DM Sans,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(label,tx,ty);
+  });
+}
+
+function updateGauge(val) {
+  drawGauge(val);
+  document.getElementById('gaugeVal').textContent=val;
+  const labels=['Extreme fear','Fear','Neutral','Greed','Extreme greed'];
+  const colors=['#A32D2D','#B8952A','#8A96A4','#0F6E56','#085041'];
+  const z=val<25?0:val<45?1:val<55?2:val<75?3:4;
+  document.getElementById('gaugeLabel').textContent=labels[z];
+  document.getElementById('gaugeLabel').style.color=colors[z];
+}
+drawGauge(42);
+
+new Chart(document.getElementById('barChart'),{
+  type:'bar',
+  data:{
+    labels:['Nikkei 225','DAX','S&P 500','FTSE 100','CAC 40','Hang Seng'],
+    datasets:[{
+      data:[1.1,0.3,0.4,-0.2,0.7,-1.4],
+      backgroundColor:d=>d.raw>=0?'rgba(15,110,86,0.7)':'rgba(163,45,45,0.7)',
+      borderColor:d=>d.raw>=0?UP:DOWN,
+      borderWidth:0.5,
+      borderRadius:3,
+    }]
+  },
+  options:{
+    indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{label:ctx=>(ctx.parsed.x>=0?'+':'')+ctx.parsed.x.toFixed(1)+'%'} } },
+    scales:{
+      x:{ grid:{color:'rgba(201,168,76,0.08)'}, ticks:{color:MUTED,font:{size:10},callback:v=>(v>=0?'+':'')+v+'%'}, border:{display:false} },
+      y:{ grid:{display:false}, ticks:{color:NAVY,font:{size:11,family:'DM Sans,sans-serif'}}, border:{display:false} }
+    }
+  }
+});
+
+const yields=[4.05,4.12,4.08,4.15,4.22,4.18,4.25,4.20,4.28,4.24,4.31,4.28];
+const golds =[2280,2295,2288,2310,2302,2318,2308,2325,2318,2332,2328,2340];
+new Chart(document.getElementById('scatterChart'),{
+  type:'scatter',
+  data:{ datasets:[{
+    data: yields.map((y,i)=>({x:y,y:golds[i]})),
+    backgroundColor:'rgba(212,175,55,0.6)', borderColor:GOLD, borderWidth:1, pointRadius:5, pointHoverRadius:7
+  }] },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{
+      x:{ title:{display:true,text:'10Y yield (%)',color:MUTED,font:{size:10}}, grid:{color:'rgba(201,168,76,0.08)'}, ticks:{color:MUTED,font:{size:10},callback:v=>v+'%'} },
+      y:{ title:{display:true,text:'Gold ($/oz)',color:MUTED,font:{size:10}}, position:'right', grid:{color:'rgba(201,168,76,0.08)'}, ticks:{color:MUTED,font:{size:10},callback:v=>'$'+v} }
+    }
+  }
+});
+
+let mapDrawn=false;
+function drawMap() {
+  mapDrawn=true;
+  const risk={'USA':20,'RUS':85,'CHN':45,'IRN':90,'ISR':95,'UKR':99,'GBR':10,'DEU':12,'FRA':15,'IND':40,'BRA':30,'SAU':60,'SYR':88,'YEM':92,'SDN':78,'MMR':75,'ETH':70,'COD':82,'PAK':55,'AFG':88,'NGA':65,'MOZ':50};
+  const colour=v=>v===undefined?'rgba(13,27,42,0.06)':v<20?'rgba(13,27,42,0.1)':v<40?'rgba(184,149,42,0.25)':v<60?'rgba(184,149,42,0.5)':v<80?'rgba(163,45,45,0.5)':'#A32D2D';
+  const w=document.getElementById('worldMap').offsetWidth||600, h=Math.round(w*0.52);
+  const svg=d3.select('#worldMap').append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%');
+  const proj=d3.geoNaturalEarth1().scale(w/6.2).translate([w/2,h/2]);
+  const path=d3.geoPath(proj);
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+    const idToName={};
+    [['004','AFG'],['050','BGD'],['076','BRA'],['156','CHN'],['180','COD'],['231','ETH'],['250','FRA'],['276','DEU'],['356','IND'],['364','IRN'],['376','ISR'],['392','JPN'],['566','NGA'],['586','PAK'],['634','QAT'],['682','SAU'],['710','ZAF'],['729','SDN'],['760','SYR'],['804','UKR'],['784','ARE'],['826','GBR'],['840','USA'],['887','YEM'],['643','RUS'],['104','MMR'],['508','MOZ']].forEach(([id,c])=>idToName[id]=c);
+    svg.selectAll('path').data(topojson.feature(world,world.objects.countries).features).join('path')
+      .attr('d',path)
+      .attr('fill',d=>{ const iso=String(d.id).padStart(3,'0'); return colour(risk[idToName[iso]]); })
+      .attr('stroke','rgba(249,246,240,0.6)').attr('stroke-width',0.4);
+  }).catch(()=>{
+    svg.append('text').attr('x',w/2).attr('y',h/2).attr('text-anchor','middle').attr('fill',MUTED).attr('font-size',12).text('Map loading — requires network access');
+  });
+}
+</script>
