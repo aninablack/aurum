@@ -194,6 +194,17 @@ function pushHistory(arr, value) {
   return arr;
 }
 
+/**
+ * One-time cleanup for mixed-scale history values.
+ * Keeps values within a broad median band to drop legacy proxy-scale outliers.
+ */
+function sanitizeHistory(arr) {
+  if (!Array.isArray(arr) || arr.length < 2) return Array.isArray(arr) ? arr : [];
+  const sorted = [...arr].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  return arr.filter(v => v > median / 4 && v < median * 4);
+}
+
 // ── FEAR & GREED — alternative.me (keyless) ──────────────────────────────────
 async function fetchFearGreed() {
   const data = await fetchJSON('https://api.alternative.me/fng/?limit=2&format=json');
@@ -427,7 +438,9 @@ function classifyTone(headline) {
 }
 
 async function fetchNews() {
-  const query = encodeURIComponent(SENTIMENT_KEYWORDS.slice(0, 5).join(' OR '));
+  const query = encodeURIComponent(
+    '(gold OR "federal reserve" OR "interest rate" OR inflation OR "stock market" OR recession OR "treasury yield" OR "geopolitical" OR sanctions OR "oil price") AND NOT (basketball OR football OR soccer OR sports OR NCAA)'
+  );
   const url = `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${CONFIG.newsapi}`;
   const data = await fetchJSON(url);
   const articles = data?.articles ?? [];
@@ -683,6 +696,12 @@ async function main() {
     ethereum:    [],
   };
 
+  // Clean legacy mixed-scale proxy values before appending fresh index points.
+  history.sp500 = sanitizeHistory(history.sp500 ?? []);
+  history.dax = sanitizeHistory(history.dax ?? []);
+  history.ftse = sanitizeHistory(history.ftse ?? []);
+  history.nikkei = sanitizeHistory(history.nikkei ?? []);
+
   // 2. Fetch all sources in parallel where possible
   console.log('\n── Fetching data sources...');
 
@@ -740,17 +759,12 @@ async function main() {
   const platinumPrice = sane('platinum', platinumCandidate);
 
   // 4. Calculate FX changes vs previous snapshot
-  console.log('Existing FX from Gist:', JSON.stringify(existing?.fx, null, 2));
-  const prevFX = existing?.fx;
-  if (fx && prevFX) {
-    for (const pair of ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'USDCNY']) {
-      if (fx[pair] && prevFX[pair]) {
-        const curr = fx[pair].rate;
-        const prev = prevFX[pair].rate;
-        fx[pair].change = (curr && prev && prev !== 0)
-          ? round(((curr - prev) / prev) * 100, 2)
-          : null;
-      }
+  console.log('Previous FX from Gist:', JSON.stringify(existing?.fx?.EURUSD));
+  for (const pair of ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'USDCNY']) {
+    const curr = fx?.[pair]?.rate;
+    const prev = existing?.fx?.[pair]?.rate;
+    if (curr != null && prev != null && prev !== 0) {
+      fx[pair].change = round(((curr - prev) / prev) * 100, 4);
     }
   }
 
@@ -840,7 +854,7 @@ async function main() {
       sources: {
         fearGreed:  fearGreed  !== null,
         fx:         fx         !== null,
-        metals:     metals     !== null,
+        metals:     false,
         indices:    avData     !== null,
         macro:      macro      !== null,
         news:       news       !== null,
@@ -889,6 +903,8 @@ async function main() {
 
     history,
   };
+
+  snapshot.meta.sources.metals = snapshot.metals?.gold?.price != null;
 
   // 9. Write output
   if (DRY_RUN) {
