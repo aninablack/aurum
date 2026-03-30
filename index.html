@@ -10,7 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:14px;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
+html,body{width:100%;max-width:100%;overflow-x:hidden;}
+body{font-size:15px;}
+.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:0;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
 
 .nav{background:#EDE5D6;padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid #DDD3BC;}
 .wordmark{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:0.03em;line-height:1;}
@@ -18,20 +20,20 @@
 .wm-gold{color:#0D1B2A;}
 
 .page-outer{padding:16px 20px 0;}
-.briefing-card{background:#fff;border:1px solid #DDD3BC;border-radius:14px;padding:22px 26px 20px;margin-bottom:14px;}
+.briefing-card{background:#fff;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:22px 26px 20px;margin-bottom:14px;}
 .b-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .b-label{font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;}
-.b-sep{font-size:9px;color:#C9B99A;}
-.b-ts{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#8A96A4;}
+.b-sep{font-size:9px;color:#6B7280;}
+.b-ts{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7280;}
 h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
 .b-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
-.b-body{font-size:14px;color:#4A5568;line-height:1.7;}
+.b-body{font-size:14px;color:#3F4B5B;line-height:1.75;}
 
 /* TABS — pill style, active = white card */
 .tabs-wrap{padding:0 20px;background:#EDE5D6;border-bottom:1px solid #DDD3BC;}
 .story-tabs{display:flex;gap:6px;padding:10px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.stab{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 18px;border:none;border-radius:20px;background:transparent;color:#8A96A4;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
-.stab:hover:not(.active){background:rgba(255,255,255,0.45);color:#4A5568;}
+.stab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:9px 18px;border:none;border-radius:20px;background:transparent;color:#6B7280;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.stab:hover:not(.active){background:rgba(255,255,255,0.45);color:#374151;}
 .stab.active{background:#ffffff;color:#0D1B2A;border:none;box-shadow:0 1px 4px rgba(13,27,42,0.08);}
 
 .page{padding:20px 20px 32px;display:flex;flex-direction:column;gap:0;}
@@ -42,13 +44,18 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .slbl:first-child{margin-top:0;}
 
 .prow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-.pulse{background:#fff;border:1px solid #DDD3BC;border-radius:10px;padding:15px 17px;}
-.plbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:7px;}
+.pulse{background:#fff;border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:15px 17px;}
+.plbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#6B7280;margin-bottom:7px;}
 .pval{font-family:'DM Serif Display',serif;font-size:32px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px;}
 .pdelt{font-size:11px;font-weight:500;}
+.fg-extreme-fear .pval,.fg-extreme-fear .pdelt{color:#A32D2D !important;}
+.fg-fear .pval,.fg-fear .pdelt{color:#B8952A !important;}
+.fg-neutral .pval,.fg-neutral .pdelt{color:#8A96A4 !important;}
+.fg-greed .pval,.fg-greed .pdelt{color:#0F6E56 !important;}
+.fg-extreme-greed .pval,.fg-extreme-greed .pdelt{color:#085041 !important;}
 
 .card-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
-.card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.35s;}
+.card{background:#fff;border:1px solid rgba(201,168,76,0.25);border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.35s;}
 .card:hover{border-color:#C9A84C;}
 .cht{border-top:2px solid #C9A84C;}
 .cp{padding:16px 17px 9px;}
@@ -60,16 +67,16 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .sarea{height:60px;padding:4px 17px 8px;}
 .istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
-.itext{font-size:12px;color:#6B7280;line-height:1.55;}
+.itext{font-size:12px;color:#4B5563;line-height:1.55;}
 
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.ccrd{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
+.ccrd{background:#fff;border:1px solid rgba(201,168,76,0.25);border-radius:12px;overflow:hidden;}
 .ccrd-head{padding:13px 17px 9px;border-bottom:1px solid #DDD3BC;}
 .ccrd-title{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:2px;}
-.ccrd-sub{font-size:11px;color:#6B7280;}
+.ccrd-sub{font-size:12px;color:#4A5568;}
 .ccrd-body{padding:14px 17px;}
 
-.story-card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
+.story-card{background:#fff;border:1px solid rgba(201,168,76,0.25);border-radius:12px;overflow:hidden;}
 .sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
 .sc-body{font-size:14px;color:#4A5568;line-height:1.7;padding:0 20px 14px;}
 .b-hl, .sc-hl, .b-headline{
@@ -80,24 +87,24 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .sc-left{padding:16px 20px;border-right:1px solid #DDD3BC;}
 .sc-right{padding:16px 20px;}
 .sc-factors{display:flex;flex-direction:column;gap:6px;}
-.sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#F7F3EC;border-radius:7px;}
+.sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#F7F3EC;border-radius:7px;border:1px solid rgba(201,168,76,0.25);}
 .sf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.sf-text{font-size:12px;color:#4A5568;line-height:1.5;}
+.sf-text{font-size:12px;color:#374151;line-height:1.5;}
 .impgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
-.impcell{padding:11px 12px;border-radius:8px;background:#F7F3EC;border:1px solid #DDD3BC;}
+.impcell{padding:11px 12px;border-radius:8px;background:#F7F3EC;border:1px solid rgba(201,168,76,0.25);}
 .impname{font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#8A96A4;margin-bottom:4px;}
 .impdir{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:2px;}
 .impwhy{font-size:10px;color:#8A96A4;line-height:1.4;}
-.sc-watch{margin:0 20px 18px;padding:11px 14px;background:#F7F3EC;border-radius:8px;border-left:2px solid #C9A84C;}
+.sc-watch{margin:0 20px 18px;padding:11px 14px;background:#F7F3EC;border-radius:8px;border-left:2px solid #C9A84C;border:1px solid rgba(201,168,76,0.25);}
 .kw-lbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px;}
-.kw-txt{font-size:11px;color:#4A3820;line-height:1.6;}
+.kw-txt{font-size:12px;color:#4A3820;line-height:1.6;}
 
 .mapph{background:#F0EAE0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#A89870;margin-bottom:10px;}
 .mapleg{display:flex;align-items:center;gap:4px;margin-bottom:14px;}
 .hotspot{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #DDD3BC;}
 .hs-score{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;margin-top:1px;}
 .hs-title{font-size:12px;font-weight:500;color:#0D1B2A;margin-bottom:2px;}
-.hs-detail{font-size:11px;color:#6B7280;line-height:1.5;}
+.hs-detail{font-size:12px;color:#4A5568;line-height:1.5;}
 .hs-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
 .hstag{font-size:9px;font-weight:500;padding:2px 7px;border-radius:5px;}
 .outrow{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
@@ -107,8 +114,8 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .outdir{font-size:11px;font-weight:500;width:70px;text-align:right;flex-shrink:0;}
 .nitem{padding:11px 20px;border-top:1px solid #DDD3BC;display:flex;gap:10px;align-items:flex-start;}
 .ntone{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.ntxt{font-size:12px;color:#0D1B2A;line-height:1.5;flex:1;}
-.nmeta{font-size:10px;color:#8A96A4;margin-top:2px;}
+.ntxt{font-size:13px;color:#0D1B2A;line-height:1.5;flex:1;}
+.nmeta{font-size:10px;color:#6B7280;margin-top:2px;}
 .ntag{display:inline-block;font-size:9px;font-weight:500;padding:2px 6px;border-radius:5px;margin-left:5px;}
 @media (max-width: 900px){
   .shell{border-radius:0;max-width:none;}
@@ -121,6 +128,36 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .b-hl{font-size:22px;line-height:1.35;}
   .b-body{font-size:13px;line-height:1.6;}
   .cprice{font-size:34px;}
+}
+@media (max-width: 1200px){
+  .prow{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .card-row{grid-template-columns:1fr;}
+  .two-col{grid-template-columns:1fr;}
+}
+@media (max-width: 768px){
+  .prow { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .card-row { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .sc-split { grid-template-columns: 1fr; }
+  .sc-left { border-right: none; border-bottom: 1px solid rgba(201,168,76,0.2); }
+  .story-tabs { gap: 4px; overflow-x: auto; }
+  .stab { font-size: 11px; padding: 8px 13px; }
+  .b-headline, .b-hl { font-size: 22px !important; }
+  .cprice { font-size: 34px; }
+  .nav { padding: 0 16px; }
+  .page-outer { padding: 12px 14px 0; }
+  .tabs-wrap { padding: 0 14px; }
+  .page { padding: 16px 14px 28px; }
+  .gnsplit { grid-template-columns: 1fr; }
+  .sc-split { grid-template-columns: 1fr; }
+  .impgrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .prow { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+  .stab { padding: 7px 11px; font-size: 10px; }
+  .cprice { font-size: 30px; }
+  .b-headline, .b-hl { font-size: 20px !important; }
 }
 </style>
 </head>
@@ -159,7 +196,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
     <div class="panel active" id="p-overview">
       <div class="slbl">Market pulse</div>
       <div class="prow">
-        <div class="pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" style="color:#B8952A">9</div><div class="pdelt" style="color:#B8952A">Extreme fear</div></div>
+        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval">9</div><div class="pdelt">Extreme fear</div></div>
         <div class="pulse"><div class="plbl">10Y yield</div><div class="pval">4.42%</div><div class="pdelt" style="color:#0F6E56">+0.09%</div></div>
         <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval">2.66%</div><div class="pdelt" style="color:#0F6E56">Easing</div></div>
         <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval">3.64%</div><div class="pdelt" style="color:#8A96A4">Unchanged</div></div>
@@ -445,6 +482,20 @@ function show(id,btn){
   document.getElementById('p-'+id).classList.add('active');
   btn.classList.add('active');
 }
+
+function styleFearGreedPulse(){
+  const pulse=document.querySelector('.fg-pulse');
+  if(!pulse) return;
+  const txt=(pulse.querySelector('.pdelt')?.textContent||'').toLowerCase();
+  pulse.classList.remove('fg-extreme-fear','fg-fear','fg-neutral','fg-greed','fg-extreme-greed');
+  if(txt.includes('extreme fear')) pulse.classList.add('fg-extreme-fear');
+  else if(txt.includes('fear')) pulse.classList.add('fg-fear');
+  else if(txt.includes('extreme greed')) pulse.classList.add('fg-extreme-greed');
+  else if(txt.includes('greed')) pulse.classList.add('fg-greed');
+  else pulse.classList.add('fg-neutral');
+}
+
+styleFearGreedPulse();
 </script>
 </body>
 </html>
