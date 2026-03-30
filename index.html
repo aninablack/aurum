@@ -106,6 +106,20 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .kw-txt{font-size:12px;color:#4A3820;line-height:1.6;}
 
 .mapph{background:#F0EAE0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#A89870;margin-bottom:10px;}
+#worldMap{
+  width:100%;
+  overflow:hidden;
+  border-radius:8px;
+  background:#F5F1E8;
+  height:200px;
+  position:relative;
+  margin-bottom:10px;
+}
+#worldMap svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
 .mapleg{display:flex;align-items:center;gap:4px;margin-bottom:14px;}
 .hotspot{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #DDD3BC;}
 .hs-score{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;margin-top:1px;}
@@ -166,7 +180,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
 <div class="shell">
   <div class="nav">
-    <div class="wordmark" style="font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 500; color: #0D1B2A; letter-spacing: 0.06em; line-height: 1;">Aurum</div>
+    <div class="wordmark" style="font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 600; color: #0D1B2A; letter-spacing: 0.05em; line-height: 1;">Aurum</div>
   </div>
 
   <div class="page-outer">
@@ -267,7 +281,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">Global risk map · GDELT live</div><div class="ccrd-sub">Named conflicts and direct market signals</div></div>
           <div class="ccrd-body">
-            <div class="mapph">World risk map · D3 choropleth</div>
+            <div id="worldMap"></div>
             <div class="mapleg"><span style="font-size:9px;color:#8A96A4">Low</span><div style="display:flex;gap:2px;margin:0 6px"><div style="width:12px;height:5px;border-radius:2px;background:rgba(13,27,42,0.06)"></div><div style="width:12px;height:5px;border-radius:2px;background:rgba(201,168,76,0.35)"></div><div style="width:12px;height:5px;border-radius:2px;background:#A32D2D"></div></div><span style="font-size:9px;color:#8A96A4">High</span></div>
             <div class="hotspot"><div class="hs-score" style="background:rgba(163,45,45,0.1);color:#A32D2D">100</div><div><div class="hs-title">Iran · Strait of Hormuz</div><div class="hs-detail">Sanctions + naval posturing. 20% of global oil at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div></div></div>
             <div class="hotspot"><div class="hs-score" style="background:rgba(184,149,42,0.1);color:#B8952A">33</div><div><div class="hs-title">Russia · Ukraine</div><div class="hs-detail">Stable. Wheat and gas corridors disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EUR equities ↓</span></div></div></div>
@@ -419,6 +433,8 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 <script>
 Chart.defaults.font.family="'DM Sans',system-ui,sans-serif";
 Chart.defaults.font.size=11;Chart.defaults.color='#8A96A4';
@@ -482,6 +498,100 @@ function show(id,btn){
   document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-'+id).classList.add('active');
   btn.classList.add('active');
+  if(id==='geo'){ drawWorldMap(); }
+}
+
+let mapRendered = false;
+let mapTooltip;
+async function drawWorldMap(){
+  const container = document.getElementById('worldMap');
+  if(!container || mapRendered) return;
+  const width = container.clientWidth || 600;
+  const height = container.clientHeight || 200;
+
+  if(!mapTooltip){
+    mapTooltip = d3.select('body').append('div')
+      .style('position', 'absolute')
+      .style('background', '#0D1B2A')
+      .style('color', 'rgba(249,246,240,0.9)')
+      .style('padding', '8px 12px')
+      .style('border-radius', '6px')
+      .style('font-size', '12px')
+      .style('pointer-events', 'none')
+      .style('opacity', 0)
+      .style('border', '0.5px solid rgba(201,168,76,0.3)')
+      .style('z-index', 9999);
+  }
+
+  const svg = d3.select(container).append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const projection = d3.geoNaturalEarth1()
+    .scale(width / 6.5)
+    .translate([width / 2, height / 2]);
+  const path = d3.geoPath().projection(projection);
+
+  const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  const countries = topojson.feature(world, world.objects.countries).features;
+
+  // world-atlas uses numeric country ids, so map key states explicitly.
+  const idToIso = {
+    '364': 'IRN',
+    '643': 'RUS',
+    '376': 'ISR',
+    '804': 'UKR',
+    '156': 'CHN',
+    '408': 'PRK'
+  };
+
+  const riskData = { IRN: 100, RUS: 33, ISR: 17, UKR: 49, CHN: 22, PRK: 28 };
+  const countryNames = { IRN:'Iran', RUS:'Russia', ISR:'Israel', UKR:'Ukraine', CHN:'China', PRK:'North Korea' };
+  const countrySignals = {
+    IRN:'Oil ↑ · Gold ↑',
+    RUS:'Wheat ↑ · EUR equities ↓',
+    ISR:'Iran-linked watch',
+    UKR:'Gas ↑ · Wheat ↑',
+    CHN:'Supply chain watch',
+    PRK:'Risk premium watch'
+  };
+
+  const riskColor = (iso) => {
+    const score = riskData[iso] || 0;
+    if (score >= 80) return '#A32D2D';
+    if (score >= 60) return 'rgba(163,45,45,0.5)';
+    if (score >= 40) return 'rgba(184,149,42,0.45)';
+    if (score >= 20) return 'rgba(13,27,42,0.20)';
+    return 'rgba(13,27,42,0.06)';
+  };
+
+  svg.selectAll('path')
+    .data(countries)
+    .join('path')
+    .attr('d', path)
+    .attr('fill', d => riskColor(idToIso[String(d.id)]))
+    .attr('stroke', 'rgba(249,246,240,0.6)')
+    .attr('stroke-width', 0.4)
+    .on('mouseover', function(event, d) {
+      const iso = idToIso[String(d.id)];
+      const name = countryNames[iso];
+      if (!name) return;
+      const score = riskData[iso] || 0;
+      mapTooltip.style('opacity', 1)
+        .html(`<strong>${name}</strong><br>Risk: ${score}/100<br>${countrySignals[iso] || ''}`);
+      d3.select(this).attr('stroke', '#C9A84C').attr('stroke-width', 1.5);
+    })
+    .on('mousemove', function(event) {
+      mapTooltip.style('left', `${event.pageX + 12}px`).style('top', `${event.pageY - 28}px`);
+    })
+    .on('mouseout', function() {
+      mapTooltip.style('opacity', 0);
+      d3.select(this).attr('stroke', 'rgba(249,246,240,0.6)').attr('stroke-width', 0.4);
+    });
+
+  mapRendered = true;
 }
 
 function styleFearGreedPulse(){
