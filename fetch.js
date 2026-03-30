@@ -439,7 +439,7 @@ function classifyTone(headline) {
 
 async function fetchNews() {
   const query = encodeURIComponent(
-    '(gold OR "federal reserve" OR "interest rate" OR inflation OR "stock market" OR recession OR "treasury yield" OR "geopolitical" OR sanctions OR "oil price") AND NOT (basketball OR football OR soccer OR sports OR NCAA)'
+    '("federal reserve" OR "interest rate" OR inflation OR "stock market" OR "treasury yield" OR sanctions OR "oil price" OR "gold price" OR recession OR geopolitical) NOT (NCAA OR "march madness" OR basketball OR NFL OR Premier League)'
   );
   const url = `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${CONFIG.newsapi}`;
   const data = await fetchJSON(url);
@@ -851,16 +851,7 @@ async function main() {
         coingecko:   crypto ? new Date().toISOString() : (existing?.meta?.lastFetch?.coingecko ?? null),
         gdelt:       geo ? new Date().toISOString() : (existing?.meta?.lastFetch?.gdelt ?? null),
       },
-      sources: {
-        fearGreed:  fearGreed  !== null,
-        fx:         fx         !== null,
-        metals:     false,
-        indices:    avData     !== null,
-        macro:      macro      !== null,
-        news:       news       !== null,
-        crypto:     crypto     !== null,
-        geo:        geoResolved !== null,
-      },
+      sources: {},
     },
 
     fearGreed: fearGreed ?? existing?.fearGreed ?? null,
@@ -894,9 +885,11 @@ async function main() {
     crypto: crypto ?? existing?.crypto ?? null,
 
     sentiment: {
-      signal:    news?.signal ?? 'neutral',
+      signal:    news?.signal ?? existing?.sentiment?.signal ?? 'neutral',
       headline:  narrative,
-      newsItems: news?.items ?? [],
+      newsItems: (news?.items?.length > 0)
+        ? news.items
+        : (existing?.sentiment?.newsItems ?? []),
     },
 
     geopolitical: geoResolved,
@@ -904,7 +897,16 @@ async function main() {
     history,
   };
 
-  snapshot.meta.sources.metals = snapshot.metals?.gold?.price != null;
+  snapshot.meta.sources = {
+    fearGreed: snapshot.fearGreed?.value != null,
+    fx:        snapshot.fx?.EURUSD?.rate != null,
+    metals:    snapshot.metals?.gold?.price != null,
+    indices:   snapshot.indices?.sp500?.price != null,
+    macro:     snapshot.macro?.treasury10y?.value != null,
+    news:      (snapshot.sentiment?.newsItems?.length ?? 0) > 0,
+    crypto:    snapshot.crypto?.bitcoin?.price != null,
+    geo:       snapshot.geopolitical?.riskByCountry != null,
+  };
 
   // 9. Write output
   if (DRY_RUN) {
