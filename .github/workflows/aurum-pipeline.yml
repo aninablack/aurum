@@ -5,10 +5,7 @@ env:
 
 on:
   schedule:
-    # Every 15 minutes, Mon–Fri, 06:00–22:00 UTC (market hours + buffer)
-    - cron: '*/15 6-22 * * 1-5'
-    # Once on weekends to keep history alive
-    - cron: '0 8 * * 0,6'
+    - cron: '*/15 6-22 * * *'
   workflow_dispatch: # allow manual trigger from GitHub UI
 
 jobs:
