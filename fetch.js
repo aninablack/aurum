@@ -67,6 +67,7 @@ const SANITY = {
   silver:   { min: 10,   max: 150  },
   platinum: { min: 400,  max: 3000 },
 };
+const NEWS_MAX_AGE_HOURS = 72;
 
 // ── UTILITIES ────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,13 @@ function hoursSince(isoTs, nowMs = Date.now()) {
   const t = new Date(isoTs).getTime();
   if (!Number.isFinite(t)) return Infinity;
   return (nowMs - t) / (1000 * 60 * 60);
+}
+
+function isRecent(isoTs, maxHours = NEWS_MAX_AGE_HOURS) {
+  if (!isoTs) return false;
+  const t = new Date(isoTs).getTime();
+  if (!Number.isFinite(t)) return false;
+  return ((Date.now() - t) / (1000 * 60 * 60)) <= maxHours;
 }
 
 function daysInMonthUTC(date = new Date()) {
@@ -472,14 +480,14 @@ async function fetchNewsAPI() {
   }
   return articles.slice(0, 8).map(a => ({
     text: a.title, source: a.source?.name, tone: classifyTone(a.title), url: a.url, published: a.publishedAt,
-  }));
+  })).filter(i => i.text && isRecent(i.published));
 }
 
 async function fetchFinnhubNews() {
   const data = await fetchJSON(`https://finnhub.io/api/v1/news?category=general&token=${CONFIG.finnhub}`);
   return (data ?? []).slice(0, 8).map(a => ({
     text: a.headline, source: a.source, tone: classifyTone(a.headline || ''), url: a.url, published: a.datetime ? new Date(a.datetime * 1000).toISOString() : null,
-  })).filter(i => i.text);
+  })).filter(i => i.text && isRecent(i.published));
 }
 
 async function fetchMarketauxNews() {
@@ -487,7 +495,7 @@ async function fetchMarketauxNews() {
   const data = await fetchJSON(url);
   return (data?.data ?? []).slice(0, 8).map(a => ({
     text: a.title, source: a.source, tone: classifyTone(a.title || ''), url: a.url, published: a.published_at,
-  })).filter(i => i.text);
+  })).filter(i => i.text && isRecent(i.published));
 }
 
 async function fetchNewsDataNews() {
@@ -496,7 +504,7 @@ async function fetchNewsDataNews() {
   const data = await fetchJSON(url);
   return (data?.results ?? []).slice(0, 8).map(a => ({
     text: a.title, source: a.source_id || a.source_name, tone: classifyTone(a.title || ''), url: a.link, published: a.pubDate,
-  })).filter(i => i.text);
+  })).filter(i => i.text && isRecent(i.published));
 }
 
 async function fetchGNewsFeed() {
@@ -505,7 +513,7 @@ async function fetchGNewsFeed() {
   const data = await fetchJSON(url);
   return (data?.articles ?? []).slice(0, 8).map(a => ({
     text: a.title, source: a.source?.name, tone: classifyTone(a.title || ''), url: a.url, published: a.publishedAt,
-  })).filter(i => i.text);
+  })).filter(i => i.text && isRecent(i.published));
 }
 
 function buildNewsSignal(items) {
