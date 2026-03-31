@@ -86,6 +86,9 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .analysis-item .name{font-weight:500;color:#0D1B2A;}
 .analysis-item .val.up{color:#0F6E56;font-weight:600;}
 .analysis-item .val.down{color:#A32D2D;font-weight:600;}
+.perf-legend{display:flex;flex-wrap:wrap;gap:8px 10px;margin-bottom:10px;}
+.perf-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid rgba(201,168,76,0.22);border-radius:999px;background:#F7F3EC;font-size:11px;color:#334155;}
+.perf-dot{width:8px;height:8px;border-radius:50%;}
 
 .story-card{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;}
 .sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
@@ -244,6 +247,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div>
           <div class="ccrd-body">
+            <div id="perfLegend" class="perf-legend"></div>
             <div style="position:relative;height:176px"><canvas id="barC"></canvas></div>
             <div id="winnersLosersList" class="analysis-list"></div>
           </div>
@@ -531,16 +535,34 @@ function updateChartsFromData(data) {
     data?.metals?.silver?.change ?? 0,
     data?.metals?.gold?.change ?? 0,
   ];
+  const perfLabels = ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold'];
+  const assetColors = {
+    'Bitcoin': '#8B5CF6',
+    'S&P 500': '#A32D2D',
+    'DAX': '#2563EB',
+    'FTSE': '#0F6E56',
+    'Silver': '#64748B',
+    'Gold': '#C9A84C',
+  };
   if (charts.barC) charts.barC.destroy();
   charts.barC = new Chart(document.getElementById('barC'), {
     type: 'bar',
     indexAxis: 'y',
     data: {
-      labels: ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold'],
+      labels: perfLabels,
       datasets: [{
         data: barData,
-        backgroundColor: ctx => (ctx.raw >= 0 ? 'rgba(15,110,86,0.1)' : 'rgba(163,45,45,0.08)'),
-        borderColor: ctx => (ctx.raw >= 0 ? 'rgba(15,110,86,0.55)' : 'rgba(163,45,45,0.55)'),
+        backgroundColor: ctx => {
+          const label = perfLabels[ctx.dataIndex];
+          const base = assetColors[label] || '#64748B';
+          // Keep negative bars visibly bearish while retaining asset identity in border/legend.
+          return ctx.raw >= 0 ? `${base}22` : 'rgba(163,45,45,0.10)';
+        },
+        borderColor: ctx => {
+          const label = perfLabels[ctx.dataIndex];
+          const base = assetColors[label] || '#64748B';
+          return ctx.raw >= 0 ? base : '#A32D2D';
+        },
         borderWidth: 1.5,
         borderRadius: 3,
         borderSkipped: false,
@@ -556,6 +578,13 @@ function updateChartsFromData(data) {
       },
     },
   });
+
+  const legend = document.getElementById('perfLegend');
+  if (legend) {
+    legend.innerHTML = perfLabels.map((label) => (
+      `<span class="perf-chip"><span class="perf-dot" style="background:${assetColors[label]}"></span>${label}</span>`
+    )).join('');
+  }
 
   // Visible winners/losers summary (no hover required)
   const performanceRows = [
