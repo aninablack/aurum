@@ -188,10 +188,10 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
       <div class="b-eyebrow">
         <span class="b-label">Market briefing</span>
         <span class="b-sep">·</span>
-        <span class="b-ts">Sunday 29 March 2026 · 15:48 UTC · Live</span>
+        <span class="b-ts" id="briefingTs">Sunday 29 March 2026 · 15:48 UTC · Live</span>
       </div>
-      <h1 class="b-headline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
-      <div class="b-body">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
+      <h1 class="b-headline" id="briefingHeadline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
+      <div class="b-body" id="briefingBody">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
     </div>
   </div>
 
@@ -211,25 +211,25 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
     <div class="panel active" id="p-overview">
       <div class="slbl">Market pulse</div>
       <div class="prow">
-        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval">9</div><div class="pdelt">Extreme fear</div></div>
-        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval">4.42%</div><div class="pdelt" style="color:#0F6E56">+0.09%</div></div>
-        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval">2.66%</div><div class="pdelt" style="color:#0F6E56">Easing</div></div>
-        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval">3.64%</div><div class="pdelt" style="color:#8A96A4">Unchanged</div></div>
+        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div></div>
+        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div></div>
+        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div></div>
+        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div></div>
       </div>
       <div class="slbl">Key assets</div>
       <div class="card-row">
         <div class="card cht">
-          <div class="cp"><div class="ccat">Commodity · Gold</div><div class="cprice">$4,524</div><div class="crow"><span class="cpct" style="color:#0F6E56">+0.28%</span><span class="cabs">+$12.60</span></div></div>
+          <div class="cp"><div class="ccat">Commodity · Gold</div><div class="cprice" id="goldPrice">$4,524</div><div class="crow"><span class="cpct" id="goldPct" style="color:#0F6E56">+0.28%</span><span class="cabs" id="goldAbs">+$12.60</span></div></div>
           <div class="sarea"><canvas id="sk-g" style="width:100%;height:100%;display:block"></canvas></div>
           <div class="istrip"><div class="idot"></div><span class="itext">Safe-haven demand rising as equities sell off. Classic flight-to-safety in extreme fear.</span></div>
         </div>
         <div class="card cht">
-          <div class="cp"><div class="ccat">Index · S&amp;P 500</div><div class="cprice">5,249</div><div class="crow"><span class="cpct" style="color:#A32D2D">−1.71%</span><span class="cabs">−91 pts</span></div></div>
+          <div class="cp"><div class="ccat">Index · S&amp;P 500</div><div class="cprice" id="spxPrice">5,249</div><div class="crow"><span class="cpct" id="spxPct" style="color:#A32D2D">−1.71%</span><span class="cabs" id="spxAbs">−91 pts</span></div></div>
           <div class="sarea"><canvas id="sk-s" style="width:100%;height:100%;display:block"></canvas></div>
           <div class="istrip"><div class="idot"></div><span class="itext">Broad sell-off on tariff uncertainty. Watch 5,100 as next support level.</span></div>
         </div>
         <div class="card cht">
-          <div class="cp"><div class="ccat">Crypto · Bitcoin</div><div class="cprice">$66,401</div><div class="crow"><span class="cpct" style="color:#A32D2D">−0.87%</span><span class="cabs">Risk-off</span></div></div>
+          <div class="cp"><div class="ccat">Crypto · Bitcoin</div><div class="cprice" id="btcPrice">$66,401</div><div class="crow"><span class="cpct" id="btcPct" style="color:#A32D2D">−0.87%</span><span class="cabs" id="btcAbs">Risk-off</span></div></div>
           <div class="sarea"><canvas id="sk-b" style="width:100%;height:100%;display:block"></canvas></div>
           <div class="istrip"><div class="idot"></div><span class="itext">Tracking equities lower. BTC/Gold ratio falling — hard asset preference confirmed.</span></div>
         </div>
@@ -607,6 +607,91 @@ function styleFearGreedPulse(){
 }
 
 styleFearGreedPulse();
+
+async function loadLiveBriefing() {
+  // Uses secret/unlisted gist raw URL as runtime content source.
+  const url = 'https://gist.githubusercontent.com/aninablack/d1685d358f752cad1b30f28f5412c918/raw/aurum-data.json';
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const fmtPct = (n, d = 2) => (n == null ? '—' : `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(d)}%`);
+    const fmtUsd = (n, d = 0) => (n == null ? '—' : `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d })}`);
+    const fmtNum = (n, d = 2) => (n == null ? '—' : `${Number(n).toFixed(d)}%`);
+    const setText = (id, value) => { const el = document.getElementById(id); if (el && value != null) el.textContent = value; };
+    const setPctColor = (id, n) => {
+      const el = document.getElementById(id);
+      if (!el || n == null) return;
+      el.style.color = n > 0 ? '#0F6E56' : n < 0 ? '#A32D2D' : '#6B7280';
+    };
+
+    const headlineEl = document.getElementById('briefingHeadline');
+    const bodyEl = document.getElementById('briefingBody');
+    if (!headlineEl || !bodyEl) return;
+
+    const liveHeadline = data?.sentiment?.headline;
+    if (liveHeadline) headlineEl.textContent = liveHeadline;
+
+    // Timestamp
+    const tsEl = document.getElementById('briefingTs');
+    const updated = data?.meta?.updated ? new Date(data.meta.updated) : null;
+    if (tsEl && updated && !Number.isNaN(updated.getTime())) {
+      const date = updated.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+      const time = `${String(updated.getUTCHours()).padStart(2, '0')}:${String(updated.getUTCMinutes()).padStart(2, '0')} UTC`;
+      tsEl.textContent = `${date} · ${time} · Live`;
+    }
+
+    const fg = data?.fearGreed;
+    const gold = data?.metals?.gold;
+    const spx = data?.indices?.sp500;
+    const btc = data?.crypto?.bitcoin;
+    const geo = data?.geopolitical?.riskByCountry?.IRN;
+    const spread = data?.macro?.yieldSpread?.value;
+    const body = [
+      spx?.change != null ? `S&P 500 ${spx.change >= 0 ? 'rose' : 'fell'} ${Math.abs(spx.change).toFixed(2)}%` : null,
+      btc?.change != null ? `Bitcoin ${btc.change >= 0 ? 'rose' : 'fell'} ${Math.abs(btc.change).toFixed(2)}%` : null,
+      gold?.price != null ? `gold is ${gold.change >= 0 ? 'holding firm' : 'under pressure'} near $${Math.round(gold.price).toLocaleString()}` : null,
+      geo != null ? `Iran risk score is ${geo}/100` : null,
+      spread != null ? `yield spread is ${spread >= 0 ? '+' : ''}${spread.toFixed(2)}` : null
+    ].filter(Boolean).join(', ') + '.';
+    if (body.length > 1) bodyEl.textContent = body;
+
+    // Pulse cards
+    setText('fgValue', data?.fearGreed?.value != null ? String(data.fearGreed.value) : null);
+    setText('fgLabel', data?.fearGreed?.classification || null);
+    setText('y10Value', fmtNum(data?.macro?.treasury10y?.value, 2));
+    setText('y10Delta', fmtPct(data?.macro?.treasury10y?.change, 2));
+    setPctColor('y10Delta', data?.macro?.treasury10y?.change);
+    const cpiYoy = data?.macro?.cpi?.yoyPct;
+    setText('cpiValue', cpiYoy != null ? `${cpiYoy.toFixed(2)}%` : null);
+    setText('cpiDelta', cpiYoy != null ? (cpiYoy <= 3 ? 'Easing' : 'Sticky') : null);
+    setText('fedValue', fmtNum(data?.macro?.fedFunds?.value, 2));
+    setText('fedDelta', fmtPct(data?.macro?.fedFunds?.change, 2));
+    setPctColor('fedDelta', data?.macro?.fedFunds?.change);
+
+    // Key assets
+    setText('goldPrice', fmtUsd(data?.metals?.gold?.price, 0));
+    setText('goldPct', fmtPct(data?.metals?.gold?.change, 2));
+    setText('goldAbs', data?.metals?.gold?.changeAbs != null ? `${data.metals.gold.changeAbs >= 0 ? '+' : '−'}$${Math.abs(data.metals.gold.changeAbs).toFixed(2)}` : null);
+    setPctColor('goldPct', data?.metals?.gold?.change);
+
+    setText('spxPrice', data?.indices?.sp500?.price != null ? Number(data.indices.sp500.price).toLocaleString() : null);
+    setText('spxPct', fmtPct(data?.indices?.sp500?.change, 2));
+    const spPrev = data?.indices?.sp500?.prev;
+    const spCur = data?.indices?.sp500?.price;
+    setText('spxAbs', (spCur != null && spPrev != null) ? `${spCur - spPrev >= 0 ? '+' : '−'}${Math.abs(Math.round(spCur - spPrev))} pts` : null);
+    setPctColor('spxPct', data?.indices?.sp500?.change);
+
+    setText('btcPrice', fmtUsd(data?.crypto?.bitcoin?.price, 0));
+    setText('btcPct', fmtPct(data?.crypto?.bitcoin?.change, 2));
+    setText('btcAbs', data?.crypto?.bitcoin?.change != null ? (data.crypto.bitcoin.change < 0 ? 'Risk-off' : 'Risk-on') : null);
+    setPctColor('btcPct', data?.crypto?.bitcoin?.change);
+  } catch {
+    // Keep curated fallback copy if live briefing fails.
+  }
+}
+
+loadLiveBriefing();
 </script>
 </body>
 </html>
