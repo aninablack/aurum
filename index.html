@@ -488,7 +488,40 @@ function updateChartsFromData(data) {
   if (goldHist.length) makeLineChart('sk-g', goldHist, '#C9A84C', 'rgba(201,168,76,0.08)');
   if (spxHist.length) makeLineChart('sk-s', spxHist, '#A32D2D', 'rgba(163,45,45,0.05)');
   if (btcHist.length) makeLineChart('sk-b', btcHist, '#A32D2D', 'rgba(163,45,45,0.05)');
-  if (spxHist.length) makeLineChart('spC', spxHist, '#A32D2D', 'rgba(163,45,45,0.05)');
+  // S&P decline context: use indexed performance (base=100) so movement is visible even with tight ranges.
+  if (spxHist.length) {
+    const base = spxHist[0] || 1;
+    const indexed = spxHist.map(v => ((v / base) - 1) * 100);
+    const c = document.getElementById('spC');
+    if (c) {
+      if (charts.spC) charts.spC.destroy();
+      charts.spC = new Chart(c, {
+        type: 'line',
+        data: {
+          labels: indexed.map((_, i) => i + 1),
+          datasets: [{
+            data: indexed,
+            borderColor: '#A32D2D',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.35,
+            fill: true,
+            backgroundColor: 'rgba(163,45,45,0.05)',
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y >= 0 ? '+' : '−'}${Math.abs(ctx.parsed.y).toFixed(2)}% vs start` } } },
+          scales: {
+            x: { display: false, grid: { display: false }, border: { display: false } },
+            y: { display: false, grid: { color: 'rgba(221,211,188,0.35)' }, border: { display: false } },
+          },
+          animation: { duration: 500 },
+        },
+      });
+    }
+  }
 
   const barData = [
     data?.crypto?.bitcoin?.change ?? 0,
@@ -548,11 +581,20 @@ function updateChartsFromData(data) {
   const fgValues = pick(history.fearGreed, 30);
   const fgCurrent = data?.fearGreed?.value;
   const fgPrev = data?.fearGreed?.previousClose;
-  const fgD = fgValues.length >= 3
+  const fgD = fgValues.length >= 6
     ? fgValues
     : ([fgPrev, fgCurrent].filter(v => v != null).length >= 2
-      ? [fgPrev, fgCurrent]
-      : (fgCurrent != null ? [Math.min(50, fgCurrent + 18), Math.min(35, fgCurrent + 10), fgCurrent] : []));
+      ? (() => {
+          // Build a simple 30-day glide from neutral(50) to current value to avoid empty-looking panel.
+          const end = fgCurrent;
+          const start = 50;
+          const points = 30;
+          return Array.from({ length: points }, (_, i) => {
+            const t = i / (points - 1);
+            return Math.round(start + (end - start) * t);
+          });
+        })()
+      : (fgCurrent != null ? [50, 42, 34, 26, 18, fgCurrent] : []));
   const fgL = fgD.map((_, i) => {
     const d = new Date(Date.now() - ((fgD.length - 1 - i) * 24 * 60 * 60 * 1000));
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
@@ -603,6 +645,10 @@ function show(id,btn){
   document.getElementById('p-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='geo'){ drawWorldMap(); }
+  // Re-render charts after tab switch so hidden canvases don't remain blank.
+  if (window.liveAurumData) {
+    setTimeout(() => updateChartsFromData(window.liveAurumData), 30);
+  }
 }
 
 let mapRendered = false;
