@@ -792,6 +792,7 @@ async function main() {
 
   // Initialise or continue rolling history arrays
   const history = existing?.history ?? {
+    fearGreed:   [],
     gold:        [],
     silver:      [],
     platinum:    [],
@@ -888,6 +889,7 @@ async function main() {
 
   // 6. Update rolling history arrays with today's values
   pushHistory(history.gold,        goldPrice);
+  pushHistory(history.fearGreed,   fearGreed?.value);
   pushHistory(history.silver,      silverPrice);
   pushHistory(history.platinum,    platinumPrice);
   pushHistory(history.sp500,       avData?.indices?.sp500?.price);
