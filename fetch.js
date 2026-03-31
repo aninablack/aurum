@@ -809,6 +809,9 @@ async function main() {
     ethereum:    [],
   };
 
+  // Backfill newly added history keys for older snapshots.
+  if (!Array.isArray(history.fearGreed)) history.fearGreed = [];
+
   // Clean legacy mixed-scale proxy values before appending fresh index points.
   history.sp500 = sanitizeHistory(history.sp500 ?? []);
   history.dax = sanitizeHistory(history.dax ?? []);
