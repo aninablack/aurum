@@ -524,6 +524,25 @@ function buildNewsSignal(items) {
     : 'neutral';
 }
 
+const financeKeywords = ['gold','oil','fed','rate','inflation','yield','market',
+  'stock','equity','recession','gdp','sanctions','iran','bank','crypto',
+  'bitcoin','dollar','trade','tariff','geopolit','energy','supply'];
+
+function relevanceScore(text) {
+  const t = (text || '').toLowerCase();
+  return financeKeywords.filter(k => t.includes(k)).length;
+}
+
+function selectRelevantNews(items) {
+  const scored = (items || [])
+    .map(i => ({ ...i, score: relevanceScore(i.text) }))
+    .filter(i => i.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+  const filtered = scored.length >= 3 ? scored : (items || []).slice(0, 5);
+  return filtered.map(({ score, ...rest }) => rest);
+}
+
 const NEWS_PROVIDER_POLICIES = {
   finnhub:   { minHours: 6 },                 // free tier is RPM-based; cadence keeps usage low
   marketaux: { minHours: 6, maxPerDay: 100 }, // free: 100/day
@@ -549,7 +568,8 @@ async function fetchNewsWithFallback(existing, now = new Date()) {
       continue;
     }
     const items = await safe(label, fn);
-    if (items?.length) return { signal: buildNewsSignal(items), items, provider: quotaKey };
+    const filteredItems = selectRelevantNews(items);
+    if (filteredItems?.length) return { signal: buildNewsSignal(filteredItems), items: filteredItems, provider: quotaKey };
   }
   return null;
 }
@@ -885,7 +905,7 @@ async function main() {
   const geoResolved = geo ?? existing?.geopolitical ?? null;
   const geoCached = (geo === null && existing?.geopolitical != null);
 
-  // 7. Generate a one-line market narrative for the intelligence strip
+  // 7. Generate editorial briefing (headline + body)
   const narrative = generateNarrative({
     fearGreed,
     macro,
@@ -1011,7 +1031,8 @@ async function main() {
 
     sentiment: {
       signal:    news?.signal ?? existing?.sentiment?.signal ?? 'neutral',
-      headline:  narrative,
+      headline:  narrative.headline ?? existing?.sentiment?.headline ?? 'Markets stable — monitoring macro and geopolitical signals.',
+      briefingBody: narrative.body ?? existing?.sentiment?.briefingBody ?? null,
       newsItems: resolvedNewsItems,
     },
 
@@ -1056,24 +1077,34 @@ async function main() {
 }
 
 // ── NARRATIVE GENERATOR (rule-based v1) ──────────────────────────────────────
-function generateNarrative(data) {
+function generateHeadline(data) {
   const { fearGreed, macro, metals, indices, sentiment, geopolitical } = data || {};
-  const sentences = [];
-
   const fg = fearGreed?.value;
   const gold = metals?.gold?.price;
+  const goldChg = metals?.gold?.change;
   const sp = indices?.sp500?.price;
   const spChg = indices?.sp500?.change;
+  const topRisk = Object.entries(geopolitical?.riskByCountry || {})
+    .filter(([,v]) => v >= 80).sort(([,a],[,b]) => b - a)[0];
+  const names = { IRN:'Iran', RUS:'Russia', UKR:'Ukraine', ISR:'Israel', CHN:'China' };
 
   if (fg <= 20 && gold != null) {
-    sentences.push(`Gold advanced to $${Number(gold).toLocaleString()} as extreme fear gripped markets (Fear & Greed: ${fg}), confirming a classic flight-to-safety rotation away from risk assets.`);
-  } else if (fg >= 75) {
-    sentences.push(`Bullish sentiment pushed markets higher (Fear & Greed: ${fg}) with gold at $${gold != null ? Number(gold).toLocaleString() : '—'} and equities extending gains.`);
-  } else if (sp != null && spChg != null) {
-    const dir = spChg >= 0 ? 'gained' : 'fell';
-    sentences.push(`The S&P 500 ${dir} ${Math.abs(spChg).toFixed(2)}% to ${Number(sp).toLocaleString()} as ${fg <= 40 ? 'cautious' : 'mixed'} sentiment persisted across global markets.`);
+    if (goldChg > 0) return `Extreme fear grips markets as gold advances to $${Math.round(gold).toLocaleString()}`;
+    if (spChg < 0) return `Markets in extreme fear — S&P 500 falls ${Math.abs(spChg).toFixed(2)}% amid risk-off flight`;
   }
+  if (topRisk && topRisk[1] >= 90) return `${names[topRisk[0]] || topRisk[0]} crisis escalates — oil and gold on alert`;
+  if (fg >= 70 && spChg > 0) return `Risk appetite returns as S&P 500 gains ${spChg.toFixed(2)}% and sentiment improves`;
+  if (Math.abs(goldChg || 0) > Math.abs(spChg || 0)) {
+    const dir = (goldChg || 0) > 0 ? 'advances' : 'retreats';
+    return `Gold ${dir} to $${Math.round(gold || 0).toLocaleString()} as macro pressure builds`;
+  }
+  const dir = (spChg || 0) >= 0 ? 'gains' : 'falls';
+  return `S&P 500 ${dir} ${Math.abs(spChg || 0).toFixed(2)}% as markets digest macro signals`;
+}
 
+function generateBody(data) {
+  const { macro, sentiment, geopolitical } = data || {};
+  const sentences = [];
   const t10 = macro?.treasury10y?.value;
   const spread = macro?.yieldSpread?.value;
   const cpi = macro?.cpi?.yoyPct;
@@ -1099,6 +1130,13 @@ function generateNarrative(data) {
   }
 
   return sentences.join(' ') || 'Markets stable — monitoring macro and geopolitical signals.';
+}
+
+function generateNarrative(data) {
+  return {
+    headline: generateHeadline(data),
+    body: generateBody(data),
+  };
 }
 
 // ── RUN ────────────────────────────────────────────────────────────────────────

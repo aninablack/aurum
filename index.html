@@ -654,7 +654,9 @@ async function loadLiveBriefing() {
       geo != null ? `Iran risk score is ${geo}/100` : null,
       spread != null ? `yield spread is ${spread >= 0 ? '+' : ''}${spread.toFixed(2)}` : null
     ].filter(Boolean).join(', ') + '.';
-    if (body.length > 1) bodyEl.textContent = body;
+    const liveBody = data?.sentiment?.briefingBody;
+    if (liveBody) bodyEl.textContent = liveBody;
+    else if (body.length > 1) bodyEl.textContent = body;
 
     // Pulse cards
     setText('fgValue', data?.fearGreed?.value != null ? String(data.fearGreed.value) : null);
