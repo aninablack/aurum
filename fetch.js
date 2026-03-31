@@ -505,19 +505,32 @@ function buildNewsSignal(items) {
     : 'neutral';
 }
 
-async function fetchNewsWithFallback(existing, canFetchNews) {
-  if (!canFetchNews) return null;
+const NEWS_PROVIDER_POLICIES = {
+  finnhub:   { minHours: 6 },                 // free tier is RPM-based; cadence keeps usage low
+  marketaux: { minHours: 6, maxPerDay: 100 }, // free: 100/day
+  newsdata:  { minHours: 6, maxPerDay: 200 }, // free: 200 credits/day
+  newsapi:   { minHours: 6, maxPerDay: 100 }, // free: 100/day
+  gnews:     { minHours: 6, maxPerDay: 100 }, // free: 100/day
+};
+
+async function fetchNewsWithFallback(existing, now = new Date()) {
   const chain = [
-    ['Finnhub', CONFIG.finnhub, fetchFinnhubNews],
-    ['Marketaux', CONFIG.marketaux, fetchMarketauxNews],
-    ['NewsData', CONFIG.newsdata, fetchNewsDataNews],
-    ['NewsAPI', CONFIG.newsapi, fetchNewsAPI],
-    ['GNews', CONFIG.gnews, fetchGNewsFeed],
+    ['Finnhub', 'finnhub', CONFIG.finnhub, fetchFinnhubNews],
+    ['Marketaux', 'marketaux', CONFIG.marketaux, fetchMarketauxNews],
+    ['NewsData', 'newsdata', CONFIG.newsdata, fetchNewsDataNews],
+    ['NewsAPI', 'newsapi', CONFIG.newsapi, fetchNewsAPI],
+    ['GNews', 'gnews', CONFIG.gnews, fetchGNewsFeed],
   ];
-  for (const [label, key, fn] of chain) {
-    if (!key) continue;
+  for (const [label, quotaKey, apiKey, fn] of chain) {
+    if (!apiKey) continue;
+    const policyCfg = NEWS_PROVIDER_POLICIES[quotaKey] ?? { minHours: 6 };
+    const policy = withQuotaPolicy(existing, quotaKey, policyCfg, now);
+    if (!policy.allowed) {
+      console.log(`~ ${label} skipped (quota/cadence; day count=${policy.state.day}${policyCfg.maxPerDay ? `/${policyCfg.maxPerDay}` : ''})`);
+      continue;
+    }
     const items = await safe(label, fn);
-    if (items?.length) return { signal: buildNewsSignal(items), items, provider: label.toLowerCase() };
+    if (items?.length) return { signal: buildNewsSignal(items), items, provider: quotaKey };
   }
   return null;
 }
@@ -768,19 +781,17 @@ async function main() {
   // Quota/cadence guardrails (UTC) with hard caps:
   // - Alpha Vantage: 25/day (hard cap) + 3h cadence
   // - metals.dev: 100/month (hard cap) + 6h cadence
-  // - NewsAPI: 100/day (hard cap) + 30m cadence
+  // - News providers: capped in fetchNewsWithFallback (6h cadence + provider caps)
   // - GDELT: 2h cadence to reduce throttling pressure
   const now = new Date();
   const metalsMinHours = Math.max(6, Math.ceil((24 * daysInMonthUTC(now)) / 100)); // usually ~8h, floor at 6h
 
   const avPolicy = withQuotaPolicy(existing, 'alphavantage', { minHours: 3, maxPerDay: 25 }, now);
   const metalsPolicy = withQuotaPolicy(existing, 'metalsdev', { minHours: metalsMinHours, maxPerMonth: 100 }, now);
-  const newsPolicy = withQuotaPolicy(existing, 'newsapi', { minHours: 6, maxPerDay: 100 }, now);
   const gdeltPolicy = withQuotaPolicy(existing, 'gdelt', { minHours: 2 }, now);
 
   const canFetchAV = avPolicy.allowed;
   const canFetchMetals = metalsPolicy.allowed;
-  const canFetchNews = newsPolicy.allowed;
   const canFetchGeo = gdeltPolicy.allowed;
 
   const [fearGreed, fx, avData, metalsYahoo, metals, macro, news, crypto, geo] =
@@ -795,7 +806,7 @@ async function main() {
         ? safe('Metals.dev', fetchMetals)
         : Promise.resolve(null),
       safe('FRED macro',      fetchMacro),
-      fetchNewsWithFallback(existing, canFetchNews),
+      fetchNewsWithFallback(existing, now),
       safe('CoinGecko',       fetchCrypto),
       canFetchGeo
         ? safe('GDELT', fetchGeopolitical)
@@ -804,7 +815,6 @@ async function main() {
 
   if (!canFetchAV) console.log(`~ Alpha Vantage skipped (quota/cadence; day count=${avPolicy.state.day}/25)`);
   if (!canFetchMetals) console.log(`~ Metals.dev skipped (quota/cadence; month count=${metalsPolicy.state.month}/100)`);
-  if (!canFetchNews) console.log(`~ News sources skipped by cadence/quota; day count=${newsPolicy.state.day}/100`);
   if (!canFetchGeo) console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
 
   // 3. Metals source priority with sanity guards
@@ -864,6 +874,7 @@ async function main() {
 
   const geoResolved = geo ?? existing?.geopolitical ?? null;
   const geoCached = (geo === null && existing?.geopolitical != null);
+  const newsProvider = news?.provider ?? null;
   const sentinelItems = [
     { text: 'Markets on edge as global uncertainty weighs on investor sentiment', source: 'Aurum Intelligence', tone: 'bearish', url: '#', published: new Date().toISOString() },
     { text: 'Gold holds firm as safe-haven demand persists amid macro headwinds', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
@@ -894,11 +905,30 @@ async function main() {
           month: metalsPolicy.state.monthKey,
           monthCount: metalsPolicy.state.month + (metals ? 1 : 0),
         },
-        newsapi: {
-          day: newsPolicy.state.dayKey,
-          dayCount: newsPolicy.state.day + (news?.provider ? 1 : 0),
-          month: newsPolicy.state.monthKey,
-          monthCount: newsPolicy.state.month, // no explicit monthly cap tracked for NewsAPI
+        newsapi: existing?.meta?.quota?.newsapi ?? { day: getUtcDayKey(now), dayCount: 0, month: getUtcMonthKey(now), monthCount: 0 },
+        finnhub: {
+          day: getQuotaState(existing, 'finnhub', now).dayKey,
+          dayCount: getQuotaState(existing, 'finnhub', now).day + (newsProvider === 'finnhub' ? 1 : 0),
+          month: getQuotaState(existing, 'finnhub', now).monthKey,
+          monthCount: getQuotaState(existing, 'finnhub', now).month + (newsProvider === 'finnhub' ? 1 : 0),
+        },
+        marketaux: {
+          day: getQuotaState(existing, 'marketaux', now).dayKey,
+          dayCount: getQuotaState(existing, 'marketaux', now).day + (newsProvider === 'marketaux' ? 1 : 0),
+          month: getQuotaState(existing, 'marketaux', now).monthKey,
+          monthCount: getQuotaState(existing, 'marketaux', now).month + (newsProvider === 'marketaux' ? 1 : 0),
+        },
+        newsdata: {
+          day: getQuotaState(existing, 'newsdata', now).dayKey,
+          dayCount: getQuotaState(existing, 'newsdata', now).day + (newsProvider === 'newsdata' ? 1 : 0),
+          month: getQuotaState(existing, 'newsdata', now).monthKey,
+          monthCount: getQuotaState(existing, 'newsdata', now).month + (newsProvider === 'newsdata' ? 1 : 0),
+        },
+        gnews: {
+          day: getQuotaState(existing, 'gnews', now).dayKey,
+          dayCount: getQuotaState(existing, 'gnews', now).day + (newsProvider === 'gnews' ? 1 : 0),
+          month: getQuotaState(existing, 'gnews', now).monthKey,
+          monthCount: getQuotaState(existing, 'gnews', now).month + (newsProvider === 'gnews' ? 1 : 0),
         },
         gdelt: {
           day: gdeltPolicy.state.dayKey,
@@ -914,7 +944,11 @@ async function main() {
         alphavantage:avData ? new Date().toISOString() : (existing?.meta?.lastFetch?.alphavantage ?? null),
         metalsdev:   metals ? new Date().toISOString() : (existing?.meta?.lastFetch?.metalsdev ?? null),
         fred:        macro ? new Date().toISOString() : (existing?.meta?.lastFetch?.fred ?? null),
-        newsapi:     news?.provider ? new Date().toISOString() : (existing?.meta?.lastFetch?.newsapi ?? null),
+        newsapi:     (newsProvider === 'newsapi') ? new Date().toISOString() : (existing?.meta?.lastFetch?.newsapi ?? null),
+        finnhub:     (newsProvider === 'finnhub') ? new Date().toISOString() : (existing?.meta?.lastFetch?.finnhub ?? null),
+        marketaux:   (newsProvider === 'marketaux') ? new Date().toISOString() : (existing?.meta?.lastFetch?.marketaux ?? null),
+        newsdata:    (newsProvider === 'newsdata') ? new Date().toISOString() : (existing?.meta?.lastFetch?.newsdata ?? null),
+        gnews:       (newsProvider === 'gnews') ? new Date().toISOString() : (existing?.meta?.lastFetch?.gnews ?? null),
         coingecko:   crypto ? new Date().toISOString() : (existing?.meta?.lastFetch?.coingecko ?? null),
         gdelt:       geo ? new Date().toISOString() : (existing?.meta?.lastFetch?.gdelt ?? null),
       },
