@@ -9,6 +9,11 @@
  *   ALPHA_VANTAGE_KEY   — alphavantage.co free key (25 req/day)
  *   FRED_KEY            — fred.stlouisfed.org free key (120 req/min)
  *   NEWS_API_KEY        — newsapi.org free key (100 req/day)
+ *   FINNHUB_KEY         — finnhub.io free key
+ *   MARKETAUX_KEY       — marketaux.com free key
+ *   NEWSDATA_KEY        — newsdata.io free key
+ *   GNEWS_KEY           — gnews.io free key
+ *   MEDIASTACK_KEY      — mediastack.com free key (optional)
  *   METALS_DEV_KEY      — metals.dev free key (100 req/month)
  *   COINGECKO_KEY       — coingecko.com demo key (30 calls/min)
  *   GIST_ID             — GitHub Gist ID where aurum-data.json lives
@@ -38,6 +43,11 @@ const CONFIG = {
   alphavantage: process.env.ALPHA_VANTAGE_KEY,
   fred:         process.env.FRED_KEY,
   newsapi:      process.env.NEWS_API_KEY,
+  finnhub:      process.env.FINNHUB_KEY,
+  marketaux:    process.env.MARKETAUX_KEY,
+  newsdata:     process.env.NEWSDATA_KEY,
+  gnews:        process.env.GNEWS_KEY,
+  mediastack:   process.env.MEDIASTACK_KEY,
   metalsdev:    process.env.METALS_DEV_KEY,
   coingecko:    process.env.COINGECKO_KEY,
   gistId:       process.env.GIST_ID,
@@ -437,37 +447,79 @@ function classifyTone(headline) {
   return 'neutral';
 }
 
-async function fetchNews() {
-  async function tryNewsQuery(urlOrQuery, isFullUrl = false) {
-    const url = isFullUrl
-      ? urlOrQuery
-      : `https://newsapi.org/v2/everything?q=${urlOrQuery}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${CONFIG.newsapi}`;
-    const data = await fetchJSON(url);
-    const articles = data?.articles ?? [];
-    return articles.slice(0, 8).map(a => ({
-      text:      a.title,
-      source:    a.source?.name,
-      tone:      classifyTone(a.title),
-      url:       a.url,
-      published: a.publishedAt,
-    }));
-  }
-
+async function fetchNewsAPI() {
   const q1 = encodeURIComponent(
     '("federal reserve" OR "interest rate" OR inflation OR "stock market" OR "treasury yield" OR sanctions OR "oil price" OR "gold price" OR recession OR geopolitical) NOT (NCAA OR "march madness" OR basketball OR NFL OR "Premier League")'
   );
   const q2 = `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=8&apiKey=${CONFIG.newsapi}`;
+  const url1 = `https://newsapi.org/v2/everything?q=${q1}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${CONFIG.newsapi}`;
+  const d1 = await fetchJSON(url1);
+  let articles = d1?.articles ?? [];
+  if (!articles.length) {
+    const d2 = await fetchJSON(q2);
+    articles = d2?.articles ?? [];
+  }
+  return articles.slice(0, 8).map(a => ({
+    text: a.title, source: a.source?.name, tone: classifyTone(a.title), url: a.url, published: a.publishedAt,
+  }));
+}
 
-  let items = await tryNewsQuery(q1);
-  if (!items.length) items = await tryNewsQuery(q2, true);
+async function fetchFinnhubNews() {
+  const data = await fetchJSON(`https://finnhub.io/api/v1/news?category=general&token=${CONFIG.finnhub}`);
+  return (data ?? []).slice(0, 8).map(a => ({
+    text: a.headline, source: a.source, tone: classifyTone(a.headline || ''), url: a.url, published: a.datetime ? new Date(a.datetime * 1000).toISOString() : null,
+  })).filter(i => i.text);
+}
 
+async function fetchMarketauxNews() {
+  const url = `https://api.marketaux.com/v1/news/all?api_token=${CONFIG.marketaux}&language=en&limit=8&search=gold,federal%20reserve,inflation,stock%20market,treasury%20yield`;
+  const data = await fetchJSON(url);
+  return (data?.data ?? []).slice(0, 8).map(a => ({
+    text: a.title, source: a.source, tone: classifyTone(a.title || ''), url: a.url, published: a.published_at,
+  })).filter(i => i.text);
+}
+
+async function fetchNewsDataNews() {
+  const q = encodeURIComponent('gold OR federal reserve OR inflation OR stock market OR treasury yield');
+  const url = `https://newsdata.io/api/1/news?apikey=${CONFIG.newsdata}&language=en&category=business&q=${q}`;
+  const data = await fetchJSON(url);
+  return (data?.results ?? []).slice(0, 8).map(a => ({
+    text: a.title, source: a.source_id || a.source_name, tone: classifyTone(a.title || ''), url: a.link, published: a.pubDate,
+  })).filter(i => i.text);
+}
+
+async function fetchGNewsFeed() {
+  const q = encodeURIComponent('gold OR inflation OR "federal reserve" OR "stock market"');
+  const url = `https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=10&apikey=${CONFIG.gnews}`;
+  const data = await fetchJSON(url);
+  return (data?.articles ?? []).slice(0, 8).map(a => ({
+    text: a.title, source: a.source?.name, tone: classifyTone(a.title || ''), url: a.url, published: a.publishedAt,
+  })).filter(i => i.text);
+}
+
+function buildNewsSignal(items) {
   const bearCount = items.filter(i => i.tone === 'bearish').length;
   const bullCount = items.filter(i => i.tone === 'bullish').length;
-  const signal = bearCount > bullCount * 1.5 ? 'bearish'
-               : bullCount > bearCount * 1.5 ? 'bullish'
-               : 'neutral';
+  return bearCount > bullCount * 1.5 ? 'bearish'
+    : bullCount > bearCount * 1.5 ? 'bullish'
+    : 'neutral';
+}
 
-  return { signal, items };
+async function fetchNewsWithFallback(existing, canFetchNews) {
+  if (!canFetchNews) return null;
+  const chain = [
+    ['Finnhub', CONFIG.finnhub, fetchFinnhubNews],
+    ['Marketaux', CONFIG.marketaux, fetchMarketauxNews],
+    ['NewsData', CONFIG.newsdata, fetchNewsDataNews],
+    ['NewsAPI', CONFIG.newsapi, fetchNewsAPI],
+    ['GNews', CONFIG.gnews, fetchGNewsFeed],
+  ];
+  for (const [label, key, fn] of chain) {
+    if (!key) continue;
+    const items = await safe(label, fn);
+    if (items?.length) return { signal: buildNewsSignal(items), items, provider: label.toLowerCase() };
+  }
+  return null;
 }
 
 // ── COINGECKO — BTC, ETH as macro risk signals (keyless demo) ────────────────
@@ -723,7 +775,7 @@ async function main() {
 
   const avPolicy = withQuotaPolicy(existing, 'alphavantage', { minHours: 3, maxPerDay: 25 }, now);
   const metalsPolicy = withQuotaPolicy(existing, 'metalsdev', { minHours: metalsMinHours, maxPerMonth: 100 }, now);
-  const newsPolicy = withQuotaPolicy(existing, 'newsapi', { minHours: 0.5, maxPerDay: 100 }, now);
+  const newsPolicy = withQuotaPolicy(existing, 'newsapi', { minHours: 6, maxPerDay: 100 }, now);
   const gdeltPolicy = withQuotaPolicy(existing, 'gdelt', { minHours: 2 }, now);
 
   const canFetchAV = avPolicy.allowed;
@@ -743,9 +795,7 @@ async function main() {
         ? safe('Metals.dev', fetchMetals)
         : Promise.resolve(null),
       safe('FRED macro',      fetchMacro),
-      canFetchNews
-        ? safe('NewsAPI', fetchNews)
-        : Promise.resolve(null),
+      fetchNewsWithFallback(existing, canFetchNews),
       safe('CoinGecko',       fetchCrypto),
       canFetchGeo
         ? safe('GDELT', fetchGeopolitical)
@@ -754,7 +804,7 @@ async function main() {
 
   if (!canFetchAV) console.log(`~ Alpha Vantage skipped (quota/cadence; day count=${avPolicy.state.day}/25)`);
   if (!canFetchMetals) console.log(`~ Metals.dev skipped (quota/cadence; month count=${metalsPolicy.state.month}/100)`);
-  if (!canFetchNews) console.log(`~ NewsAPI skipped (quota/cadence; day count=${newsPolicy.state.day}/100)`);
+  if (!canFetchNews) console.log(`~ News sources skipped by cadence/quota; day count=${newsPolicy.state.day}/100`);
   if (!canFetchGeo) console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
 
   // 3. Metals source priority with sanity guards
@@ -846,7 +896,7 @@ async function main() {
         },
         newsapi: {
           day: newsPolicy.state.dayKey,
-          dayCount: newsPolicy.state.day + (news ? 1 : 0),
+          dayCount: newsPolicy.state.day + (news?.provider ? 1 : 0),
           month: newsPolicy.state.monthKey,
           monthCount: newsPolicy.state.month, // no explicit monthly cap tracked for NewsAPI
         },
@@ -864,7 +914,7 @@ async function main() {
         alphavantage:avData ? new Date().toISOString() : (existing?.meta?.lastFetch?.alphavantage ?? null),
         metalsdev:   metals ? new Date().toISOString() : (existing?.meta?.lastFetch?.metalsdev ?? null),
         fred:        macro ? new Date().toISOString() : (existing?.meta?.lastFetch?.fred ?? null),
-        newsapi:     news ? new Date().toISOString() : (existing?.meta?.lastFetch?.newsapi ?? null),
+        newsapi:     news?.provider ? new Date().toISOString() : (existing?.meta?.lastFetch?.newsapi ?? null),
         coingecko:   crypto ? new Date().toISOString() : (existing?.meta?.lastFetch?.coingecko ?? null),
         gdelt:       geo ? new Date().toISOString() : (existing?.meta?.lastFetch?.gdelt ?? null),
       },
