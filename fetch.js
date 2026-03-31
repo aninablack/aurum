@@ -310,12 +310,22 @@ async function fetchIndicesAndMetals() {
     if (i < symbols.length - 1) await sleep(13000);
   }
 
+  const scaleQuote = (q, scale) => {
+    if (!q) return null;
+    const scaledPrice = round(q.price * scale, 0);
+    const prevScaled = q.prev != null ? round(q.prev * scale, 0) : null;
+    const changeAbs = (scaledPrice != null && q.change != null)
+      ? round((scaledPrice * q.change) / 100, 0)
+      : null;
+    return { ...q, price: scaledPrice, prevScaled, changeAbs };
+  };
+
   return {
     indices: {
-      sp500:  out.sp500 ? { ...out.sp500, price: round(out.sp500.price * INDEX_SCALE.sp500, 0) } : null,
-      dax:    out.dax ? { ...out.dax, price: round(out.dax.price * INDEX_SCALE.dax, 0) } : null,
-      ftse:   out.ftse ? { ...out.ftse, price: round(out.ftse.price * INDEX_SCALE.ftse, 0) } : null,
-      nikkei: out.nikkei ? { ...out.nikkei, price: round(out.nikkei.price * INDEX_SCALE.nikkei, 0) } : null,
+      sp500:  scaleQuote(out.sp500, INDEX_SCALE.sp500),
+      dax:    scaleQuote(out.dax, INDEX_SCALE.dax),
+      ftse:   scaleQuote(out.ftse, INDEX_SCALE.ftse),
+      nikkei: scaleQuote(out.nikkei, INDEX_SCALE.nikkei),
       isProxy: true,
     },
     silver: out.silver ?? null,
@@ -436,10 +446,11 @@ const SENTIMENT_KEYWORDS = [
 // Simple rule-based bullish/bearish classifier
 function classifyTone(headline) {
   const h = headline.toLowerCase();
-  const bearish = ['fall', 'drop', 'plunge', 'slump', 'fear', 'risk', 'warn',
-    'concern', 'tension', 'conflict', 'recession', 'crash', 'decline', 'weak'];
-  const bullish = ['rise', 'gain', 'surge', 'rally', 'jump', 'strong', 'grow',
-    'recover', 'optimism', 'confidence', 'beat', 'exceed'];
+  const bearish = ['cut','fall','drop','plunge','slump','fear','risk','warn',
+    'concern','tension','conflict','recession','crash','decline','weak',
+    'inflation raised','growth cut','forecast cut','lower','downgrade','loss'];
+  const bullish = ['rise','gain','surge','rally','jump','strong','grow',
+    'recover','optimism','confidence','beat','exceed','upgrade','higher'];
   const bearScore = bearish.filter(w => h.includes(w)).length;
   const bullScore = bullish.filter(w => h.includes(w)).length;
   if (bearScore > bullScore) return 'bearish';
@@ -863,17 +874,22 @@ async function main() {
   pushHistory(history.bitcoin,     crypto?.bitcoin?.price);
   pushHistory(history.ethereum,    crypto?.ethereum?.price);
 
+  const geoResolved = geo ?? existing?.geopolitical ?? null;
+  const geoCached = (geo === null && existing?.geopolitical != null);
+
   // 7. Generate a one-line market narrative for the intelligence strip
-  // Simple rule-based — will be replaced by AI briefing in v2
   const narrative = generateNarrative({
     fearGreed,
     macro,
     metals: { gold: metalWithChange(goldPrice, 'gold') },
-    news
+    indices: avData?.indices ?? existing?.indices ?? null,
+    crypto: crypto ?? existing?.crypto ?? null,
+    sentiment: {
+      signal: news?.signal ?? existing?.sentiment?.signal ?? 'neutral',
+      newsItems: news?.items ?? existing?.sentiment?.newsItems ?? [],
+    },
+    geopolitical: geoResolved,
   });
-
-  const geoResolved = geo ?? existing?.geopolitical ?? null;
-  const geoCached = (geo === null && existing?.geopolitical != null);
   const newsProvider = news?.provider ?? null;
   const sentinelItems = [
     { text: 'Markets on edge as global uncertainty weighs on investor sentiment', source: 'Aurum Intelligence', tone: 'bearish', url: '#', published: new Date().toISOString() },
@@ -1032,39 +1048,49 @@ async function main() {
 }
 
 // ── NARRATIVE GENERATOR (rule-based v1) ──────────────────────────────────────
-function generateNarrative({ fearGreed, macro, metals, news }) {
-  const parts = [];
+function generateNarrative(data) {
+  const { fearGreed, macro, metals, indices, sentiment, geopolitical } = data || {};
+  const sentences = [];
 
-  if (fearGreed) {
-    const v = fearGreed.value;
-    if (v < 25)      parts.push('Extreme fear in markets');
-    else if (v < 45) parts.push('Markets in fear territory');
-    else if (v > 75) parts.push('Extreme greed — potential correction risk');
-    else if (v > 55) parts.push('Greedy market conditions');
+  const fg = fearGreed?.value;
+  const gold = metals?.gold?.price;
+  const sp = indices?.sp500?.price;
+  const spChg = indices?.sp500?.change;
+
+  if (fg <= 20 && gold != null) {
+    sentences.push(`Gold advanced to $${Number(gold).toLocaleString()} as extreme fear gripped markets (Fear & Greed: ${fg}), confirming a classic flight-to-safety rotation away from risk assets.`);
+  } else if (fg >= 75) {
+    sentences.push(`Bullish sentiment pushed markets higher (Fear & Greed: ${fg}) with gold at $${gold != null ? Number(gold).toLocaleString() : '—'} and equities extending gains.`);
+  } else if (sp != null && spChg != null) {
+    const dir = spChg >= 0 ? 'gained' : 'fell';
+    sentences.push(`The S&P 500 ${dir} ${Math.abs(spChg).toFixed(2)}% to ${Number(sp).toLocaleString()} as ${fg <= 40 ? 'cautious' : 'mixed'} sentiment persisted across global markets.`);
   }
 
-  if (macro?.yieldSpread?.value != null) {
-    const spread = macro.yieldSpread.value;
-    if (spread < 0) parts.push('yield curve inverted — recession watch active');
-    else if (spread < 0.2) parts.push('yield curve near flat — caution warranted');
+  const t10 = macro?.treasury10y?.value;
+  const spread = macro?.yieldSpread?.value;
+  const cpi = macro?.cpi?.yoyPct;
+  if (t10 != null && spread != null && macro?.treasury10y?.change != null) {
+    const curveSignal = spread < 0
+      ? 'an inverted yield curve signals recession risk'
+      : spread < 0.2
+        ? 'the yield curve is near flat — watch for inversion'
+        : `the yield curve remains positive at +${spread.toFixed(2)}, containing near-term recession risk`;
+    sentences.push(`10Y Treasury yields ${macro.treasury10y.change >= 0 ? 'rose' : 'fell'} to ${t10.toFixed(2)}% and ${curveSignal}${cpi != null ? `, with inflation running at ${cpi.toFixed(2)}% YoY` : ''}.`);
   }
 
-  if (metals?.gold && macro?.treasury10y?.value) {
-    const goldChange = metals.gold.change;
-    const yieldChange = macro.treasury10y.change;
-    if (goldChange > 0 && yieldChange < 0) parts.push('gold advancing as yields ease');
-    if (goldChange > 0 && yieldChange > 0) parts.push('gold rising despite yield pressure — flight to safety signal');
+  const topRisk = Object.entries(geopolitical?.riskByCountry || {})
+    .filter(([, v]) => v >= 80)
+    .sort(([, a], [, b]) => b - a)[0];
+  const countryNames = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China' };
+  if (topRisk) {
+    const [iso, score] = topRisk;
+    const name = countryNames[iso] || iso;
+    sentences.push(`${name} geopolitical risk remains at ${score}/100 — monitor oil and gold for breakout signals.`);
+  } else if (sentiment?.newsItems?.[0]?.text) {
+    sentences.push(`Key development: ${sentiment.newsItems[0].text}.`);
   }
 
-  if (news?.signal === 'bearish') parts.push('headline sentiment broadly bearish');
-  if (news?.signal === 'bullish') parts.push('headline sentiment supportive');
-
-  if (parts.length === 0) return 'Markets stable — no dominant signals today.';
-
-  return parts.map((p, i) => i === 0
-    ? p.charAt(0).toUpperCase() + p.slice(1)
-    : p
-  ).join(' · ') + '.';
+  return sentences.join(' ') || 'Markets stable — monitoring macro and geopolitical signals.';
 }
 
 // ── RUN ────────────────────────────────────────────────────────────────────────
