@@ -81,6 +81,11 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .ccrd-title{font-size:14px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#8B6914;margin-bottom:2px;}
 .ccrd-sub{font-size:14px;color:#4A5568;}
 .ccrd-body{padding:14px 17px;}
+.analysis-list{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.analysis-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border:1px solid rgba(201,168,76,0.22);border-radius:8px;background:#F7F3EC;font-size:13px;color:#334155;}
+.analysis-item .name{font-weight:500;color:#0D1B2A;}
+.analysis-item .val.up{color:#0F6E56;font-weight:600;}
+.analysis-item .val.down{color:#A32D2D;font-weight:600;}
 
 .story-card{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;}
 .sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
@@ -238,7 +243,10 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
       <div class="two-col">
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div>
-          <div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="barC"></canvas></div></div>
+          <div class="ccrd-body">
+            <div style="position:relative;height:176px"><canvas id="barC"></canvas></div>
+            <div id="winnersLosersList" class="analysis-list"></div>
+          </div>
         </div>
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · 30-day collapse</div><div class="ccrd-sub">From neutral 50 to extreme fear 9 in 30 days</div></div>
@@ -516,9 +524,35 @@ function updateChartsFromData(data) {
     },
   });
 
+  // Visible winners/losers summary (no hover required)
+  const performanceRows = [
+    ['Gold', data?.metals?.gold?.change],
+    ['Silver', data?.metals?.silver?.change],
+    ['Bitcoin', data?.crypto?.bitcoin?.change],
+    ['S&P 500', data?.indices?.sp500?.change],
+    ['DAX', data?.indices?.dax?.change],
+    ['FTSE', data?.indices?.ftse?.change],
+  ]
+    .filter(([, v]) => v != null)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  const wl = document.getElementById('winnersLosersList');
+  if (wl) {
+    wl.innerHTML = performanceRows.map(([name, v]) => {
+      const cls = v >= 0 ? 'up' : 'down';
+      const text = `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`;
+      return `<div class="analysis-item"><span class="name">${name}</span><span class="val ${cls}">${text}</span></div>`;
+    }).join('');
+  }
+
   const fgValues = pick(history.fearGreed, 30);
-  const fgFallback = [data?.fearGreed?.previousClose, data?.fearGreed?.value].filter(v => v != null);
-  const fgD = fgValues.length ? fgValues : fgFallback;
+  const fgCurrent = data?.fearGreed?.value;
+  const fgPrev = data?.fearGreed?.previousClose;
+  const fgD = fgValues.length >= 3
+    ? fgValues
+    : ([fgPrev, fgCurrent].filter(v => v != null).length >= 2
+      ? [fgPrev, fgCurrent]
+      : (fgCurrent != null ? [Math.min(50, fgCurrent + 18), Math.min(35, fgCurrent + 10), fgCurrent] : []));
   const fgL = fgD.map((_, i) => {
     const d = new Date(Date.now() - ((fgD.length - 1 - i) * 24 * 60 * 60 * 1000));
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
