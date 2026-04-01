@@ -223,6 +223,25 @@ function sanitizeHistory(arr) {
   return arr.filter(v => v > median / 4 && v < median * 4);
 }
 
+function trimTrailingDuplicate(arr) {
+  if (!Array.isArray(arr)) return [];
+  const out = [...arr];
+  while (out.length >= 2 && out[out.length - 1] === out[out.length - 2]) {
+    out.pop();
+  }
+  return out;
+}
+
+function appendDailyValue(existingArr, value, isSameDay) {
+  const base = trimTrailingDuplicate(Array.isArray(existingArr) ? existingArr : []);
+  if (value == null || Number.isNaN(value)) return base.slice(-30);
+  if (isSameDay && base.length > 0) {
+    base[base.length - 1] = round(value, 4);
+    return base.slice(-30);
+  }
+  return [...base, round(value, 4)].slice(-30);
+}
+
 // ── FEAR & GREED — alternative.me (keyless) ──────────────────────────────────
 async function fetchFearGreed() {
   const data = await fetchJSON('https://api.alternative.me/fng/?limit=2&format=json');
@@ -908,13 +927,7 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const lastFgDate = existing?.meta?.lastFgDate;
   const lastMacroDate = existing?.meta?.lastMacroDate;
-  if (fearGreed?.value != null) {
-    if (lastFgDate !== today) {
-      history.fearGreed = [...(existing?.history?.fearGreed || []), round(fearGreed.value, 4)].slice(-30);
-    } else {
-      history.fearGreed = existing?.history?.fearGreed || [round(fearGreed.value, 4)];
-    }
-  }
+  history.fearGreed = appendDailyValue(existing?.history?.fearGreed, fearGreed?.value, lastFgDate === today);
   history.silver = [...history.silver, silverPrice].filter(v => v != null && !Number.isNaN(v)).slice(-30);
   pushHistory(history.platinum,    platinumPrice);
   pushHistory(history.sp500,       avData?.indices?.sp500?.price);
@@ -926,17 +939,8 @@ async function main() {
   pushHistory(history.usdjpy,      fx?.USDJPY?.rate);
   pushHistory(history.treasury10y, macro?.treasury10y?.value);
   pushHistory(history.treasury2y,  macro?.treasury2y?.value);
-  if (lastMacroDate !== today) {
-    if (macro?.fedFunds?.value != null) {
-      history.fedFunds = [...(existing?.history?.fedFunds || []), round(macro.fedFunds.value, 4)].slice(-30);
-    }
-    if (macro?.cpi?.yoyPct != null) {
-      history.cpiYoy = [...(existing?.history?.cpiYoy || []), round(macro.cpi.yoyPct, 4)].slice(-30);
-    }
-  } else {
-    history.fedFunds = existing?.history?.fedFunds || history.fedFunds;
-    history.cpiYoy = existing?.history?.cpiYoy || history.cpiYoy;
-  }
+  history.fedFunds = appendDailyValue(existing?.history?.fedFunds, macro?.fedFunds?.value, lastMacroDate === today);
+  history.cpiYoy = appendDailyValue(existing?.history?.cpiYoy, macro?.cpi?.yoyPct, lastMacroDate === today);
   pushHistory(history.bitcoin,     crypto?.bitcoin?.price);
   pushHistory(history.ethereum,    crypto?.ethereum?.price);
 
