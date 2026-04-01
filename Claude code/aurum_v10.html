@@ -516,12 +516,12 @@ const fgZonePlugin = {
     const yScale = scales.y;
     const greedTop = yScale.getPixelForValue(100);
     const greedBot = yScale.getPixelForValue(75);
-    ctx.fillStyle = 'rgba(15,110,86,0.05)';
+    ctx.fillStyle = 'rgba(15,110,86,0.03)';
     ctx.fillRect(left, greedTop, right - left, greedBot - greedTop);
 
     const fearTop = yScale.getPixelForValue(25);
     const fearBot = yScale.getPixelForValue(0);
-    ctx.fillStyle = 'rgba(163,45,45,0.05)';
+    ctx.fillStyle = 'rgba(163,45,45,0.07)';
     ctx.fillRect(left, fearTop, right - left, fearBot - fearTop);
   }
 };
@@ -614,10 +614,11 @@ function updateChartsFromData(data) {
   const perfLabels = perfRaw.map(([label]) => label);
   const barData = perfRaw.map(([, value]) => Number(value.toFixed(2)));
   const barColors = perfRaw.map(([, , color]) => color);
+  console.log('barLabels', perfLabels);
+  console.log('barData', barData);
   if (charts.barC) charts.barC.destroy();
   charts.barC = new Chart(document.getElementById('barC'), {
     type: 'bar',
-    indexAxis: 'y',
     data: {
       labels: perfLabels,
       datasets: [{
@@ -630,6 +631,7 @@ function updateChartsFromData(data) {
       }],
     },
     options: {
+      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
@@ -875,7 +877,7 @@ function updateChartsFromData(data) {
         scales: {
           x: { grid: { display: false }, border: { display: false } },
           yPrice: { position: 'left', grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => Number(v).toLocaleString(), font: { size: 10 } } },
-          yVol: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { display: false }, max: Math.max(...spChanges, 0) * 6 }
+          yVol: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { display: false }, min: 0, max: Math.max(...spChanges, 0) * 8 }
         }
       }
     });
