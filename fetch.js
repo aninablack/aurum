@@ -805,12 +805,25 @@ async function main() {
     usdjpy:      [],
     treasury10y: [],
     treasury2y:  [],
+    fedFunds:    [],
+    cpiYoy:      [],
     bitcoin:     [],
     ethereum:    [],
   };
 
   // Backfill newly added history keys for older snapshots.
   if (!Array.isArray(history.fearGreed)) history.fearGreed = [];
+  if (!Array.isArray(history.fedFunds)) history.fedFunds = [];
+  if (!Array.isArray(history.cpiYoy)) history.cpiYoy = [];
+
+  // One-time hard cleanup for legacy metals history noise from early pipeline runs.
+  // Keep only realistic modern ranges before appending latest value.
+  const cleanGoldHistory = (existing?.history?.gold || [])
+    .filter(v => v >= 4400 && v <= 5000);
+  const cleanSilverHistory = (existing?.history?.silver || [])
+    .filter(v => v >= 65 && v <= 120);
+  history.gold = cleanGoldHistory.slice(-30);
+  history.silver = cleanSilverHistory.slice(-30);
 
   // Clean legacy mixed-scale proxy values before appending fresh index points.
   history.sp500 = sanitizeHistory(history.sp500 ?? []);
@@ -891,9 +904,18 @@ async function main() {
   };
 
   // 6. Update rolling history arrays with today's values
-  pushHistory(history.gold,        goldPrice);
-  pushHistory(history.fearGreed,   fearGreed?.value);
-  pushHistory(history.silver,      silverPrice);
+  history.gold = [...history.gold, goldPrice].filter(v => v != null && !Number.isNaN(v)).slice(-30);
+  const today = new Date().toISOString().slice(0, 10);
+  const lastFgDate = existing?.meta?.lastFgDate;
+  const lastMacroDate = existing?.meta?.lastMacroDate;
+  if (fearGreed?.value != null) {
+    if (lastFgDate !== today) {
+      history.fearGreed = [...(existing?.history?.fearGreed || []), round(fearGreed.value, 4)].slice(-30);
+    } else {
+      history.fearGreed = existing?.history?.fearGreed || [round(fearGreed.value, 4)];
+    }
+  }
+  history.silver = [...history.silver, silverPrice].filter(v => v != null && !Number.isNaN(v)).slice(-30);
   pushHistory(history.platinum,    platinumPrice);
   pushHistory(history.sp500,       avData?.indices?.sp500?.price);
   pushHistory(history.dax,         avData?.indices?.dax?.price);
@@ -904,6 +926,17 @@ async function main() {
   pushHistory(history.usdjpy,      fx?.USDJPY?.rate);
   pushHistory(history.treasury10y, macro?.treasury10y?.value);
   pushHistory(history.treasury2y,  macro?.treasury2y?.value);
+  if (lastMacroDate !== today) {
+    if (macro?.fedFunds?.value != null) {
+      history.fedFunds = [...(existing?.history?.fedFunds || []), round(macro.fedFunds.value, 4)].slice(-30);
+    }
+    if (macro?.cpi?.yoyPct != null) {
+      history.cpiYoy = [...(existing?.history?.cpiYoy || []), round(macro.cpi.yoyPct, 4)].slice(-30);
+    }
+  } else {
+    history.fedFunds = existing?.history?.fedFunds || history.fedFunds;
+    history.cpiYoy = existing?.history?.cpiYoy || history.cpiYoy;
+  }
   pushHistory(history.bitcoin,     crypto?.bitcoin?.price);
   pushHistory(history.ethereum,    crypto?.ethereum?.price);
 
@@ -940,6 +973,8 @@ async function main() {
       updated:  new Date().toISOString(),
       stale:    false,
       version:  '1.0',
+      lastFgDate: fearGreed?.value != null ? today : (existing?.meta?.lastFgDate ?? null),
+      lastMacroDate: (macro?.fedFunds?.value != null || macro?.cpi?.yoyPct != null) ? today : (existing?.meta?.lastMacroDate ?? null),
       geoCached,
       quota: {
         alphavantage: {
