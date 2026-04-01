@@ -79,6 +79,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .cpct{font-size:15px;font-weight:500;}
 .cabs{font-size:14px;color:#6B7280;}
 .sarea{height:60px;padding:4px 17px 8px;}
+.pulse .sarea{height:44px;padding:4px 14px 10px;}
 #barC { max-height: 200px; }
 .istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
@@ -253,10 +254,10 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
     <div class="panel active" id="p-overview">
       <div class="slbl">Market pulse</div>
       <div class="prow">
-        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div><div style="height:30px;margin-top:6px"><canvas id="psk-fg" style="width:100%;height:100%;display:block"></canvas></div></div>
-        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div><div style="height:30px;margin-top:6px"><canvas id="psk-y10" style="width:100%;height:100%;display:block"></canvas></div></div>
-        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div></div>
-        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div style="height:30px;margin-top:6px"><canvas id="psk-fed" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div><div class="sarea"><canvas id="psk-fg" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div><div class="sarea"><canvas id="psk-y10" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div><div class="sarea"><canvas id="spk-cpi" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div class="sarea"><canvas id="spk-fed" style="width:100%;height:100%;display:block"></canvas></div></div>
       </div>
       <div class="slbl">Key assets</div>
       <div class="card-row">
@@ -389,7 +390,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
           <div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="dualLineC"></canvas></div></div>
         </div>
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub">Green = normal · Amber = flattening · Red = inverted (recession signal)</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub">Green = healthy · Amber = watch · Red = inverted recession signal</div></div>
           <div class="ccrd-body">
             <div class="macro-stat-row">
               <div class="mstat"><div class="mstat-label">10Y</div><div class="mstat-val" id="m10y">4.44%</div></div>
@@ -468,7 +469,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
       <div class="two-col">
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title" id="spTrendTitle">S&P 500 · 30-day trend</div><div class="ccrd-sub" id="spTrendSub">The correction in context</div></div>
-          <div class="ccrd-body"><div style="position:relative;height:160px"><canvas id="spC"></canvas></div></div>
+          <div class="ccrd-body"><div style="position:relative;height:160px"><canvas id="spC"></canvas></div><p id="spNote" style="display:none;font-size:12px;color:#8A96A4;text-align:center;padding-top:8px;"></p></div>
         </div>
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · sentiment collapse</div><div class="ccrd-sub" id="fgSubCrash">How we got to extreme fear in 30 days</div></div>
@@ -600,9 +601,16 @@ function updateChartsFromData(data) {
   const fgPulseHist = pick(history.fearGreed);
   const y10PulseHist = pick(history.treasury10y);
   const fedPulseHist = pick(history.fedFunds);
+  const cpiPulseHist = (Array.isArray(history.cpiYoy) && history.cpiYoy.length)
+    ? pick(history.cpiYoy)
+    : ((data?.macro?.cpi?.observations || []).slice().reverse().map(Number).filter(v => Number.isFinite(v)));
   if (fgPulseHist.length) makeLineChart('psk-fg', fgPulseHist, '#B8952A', 'rgba(184,149,42,0.10)');
   if (y10PulseHist.length) makeLineChart('psk-y10', y10PulseHist, ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
-  if (fedPulseHist.length) makeLineChart('psk-fed', fedPulseHist, ASSET_COLORS.dax.border, ASSET_COLORS.dax.bg);
+  if (cpiPulseHist.length) makeLineChart('spk-cpi', cpiPulseHist, '#B8952A', 'rgba(184,149,42,0.08)');
+  if (fedPulseHist.length) makeLineChart('spk-fed', fedPulseHist, '#6433B4', 'rgba(100,51,180,0.06)');
+  else if (data?.macro?.fedFunds?.value != null) {
+    makeLineChart('spk-fed', Array(8).fill(Number(data.macro.fedFunds.value)), '#6433B4', 'rgba(100,51,180,0.06)');
+  }
   const perfRaw = [
     ['Gold', calcChange(history.gold), ASSET_COLORS.gold],
     ['Silver', calcChange(history.silver), ASSET_COLORS.silver],
@@ -791,8 +799,17 @@ function updateChartsFromData(data) {
         datasets: [{
           label: '10Y−2Y spread',
           data: spreadHistory,
-          backgroundColor: spreadHistory.map(v => v < 0 ? 'rgba(163,45,45,0.2)' : v < 0.2 ? 'rgba(184,149,42,0.2)' : 'rgba(15,110,86,0.15)'),
-          borderColor: spreadHistory.map(v => v < 0 ? '#A32D2D' : v < 0.2 ? '#B8952A' : '#0F6E56'),
+          backgroundColor: spreadHistory.map(v =>
+            v < 0 ? 'rgba(163,45,45,0.2)' :
+            v < 0.3 ? 'rgba(184,149,42,0.2)' :
+            v < 0.6 ? 'rgba(15,110,86,0.15)' :
+            'rgba(15,110,86,0.25)'
+          ),
+          borderColor: spreadHistory.map(v =>
+            v < 0 ? '#A32D2D' :
+            v < 0.3 ? '#B8952A' :
+            '#0F6E56'
+          ),
           borderWidth: 1.5,
           borderRadius: 3,
         }]
@@ -804,7 +821,7 @@ function updateChartsFromData(data) {
           legend: { display: false },
           tooltip: { callbacks: { label: ctx => {
             const v = ctx.parsed.y;
-            const status = v < 0 ? 'Inverted — recession risk' : v < 0.2 ? 'Flattening — watch' : 'Normal — contained';
+            const status = v < 0 ? 'Inverted — recession risk' : v < 0.3 ? 'Watch zone' : 'Healthy';
             return `Spread: ${v >= 0 ? '+' : ''}${v.toFixed(3)}% · ${status}`;
           }}}
         },
@@ -826,9 +843,12 @@ function updateChartsFromData(data) {
   // S&P line + volatility bars
   if (spxHist.length > 1) {
     const spHistory = spxHist;
+    const hasEnoughHistory = spHistory.length >= 10;
     const spIsUp = spHistory[spHistory.length - 1] >= spHistory[0];
     const spLineColor = spIsUp ? '#2D82DC' : '#A32D2D';
     const spFillColor = spIsUp ? 'rgba(45,130,220,0.05)' : 'rgba(163,45,45,0.05)';
+    const spMin = Math.min(...spHistory) * 0.998;
+    const spMax = Math.max(...spHistory) * 1.002;
     const spChanges = spHistory.map((v, i) => i === 0 ? 0 : Math.abs(((v - spHistory[i - 1]) / spHistory[i - 1]) * 100));
     const spLabels = spHistory.map((_, i) => {
       const d = new Date();
@@ -854,7 +874,7 @@ function updateChartsFromData(data) {
             yAxisID: 'yPrice',
             order: 1,
           },
-          {
+          ...(hasEnoughHistory ? [{
             type: 'bar',
             label: 'Daily move %',
             data: spChanges,
@@ -863,7 +883,7 @@ function updateChartsFromData(data) {
             borderRadius: 2,
             yAxisID: 'yVol',
             order: 2,
-          }
+          }] : [])
         ]
       },
       options: {
@@ -876,8 +896,8 @@ function updateChartsFromData(data) {
         },
         scales: {
           x: { grid: { display: false }, border: { display: false } },
-          yPrice: { position: 'left', grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => Number(v).toLocaleString(), font: { size: 10 } } },
-          yVol: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { display: false }, min: 0, max: Math.max(...spChanges, 0) * 8 }
+          yPrice: { position: 'left', min: spMin, max: spMax, grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => Number(v).toLocaleString(), font: { size: 10 } } },
+          yVol: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { display: false }, min: 0, max: Math.max(...spChanges, 0) * 8, display: hasEnoughHistory }
         }
       }
     });
@@ -885,6 +905,15 @@ function updateChartsFromData(data) {
     const spSub = `${spPct >= 0 ? '+' : ''}${spPct}% over period · ${spIsUp ? 'recovering' : 'declining'}`;
     const spSubEl = document.getElementById('spTrendSub');
     if (spSubEl) spSubEl.textContent = spSub;
+    const spNoteEl = document.getElementById('spNote');
+    if (spNoteEl) {
+      if (!hasEnoughHistory) {
+        spNoteEl.textContent = 'Building 30-day history — volatility bars appear after 10 data points.';
+        spNoteEl.style.display = 'block';
+      } else {
+        spNoteEl.style.display = 'none';
+      }
+    }
   }
 }
 
@@ -906,7 +935,7 @@ async function drawWorldMap(){
   const container = document.getElementById('worldMap');
   if(!container || mapRendered) return;
   const width = container.clientWidth || 600;
-  const height = container.clientHeight || 240;
+  const height = 260;
 
   if(!mapTooltip){
     mapTooltip = d3.select('body').append('div')
@@ -931,8 +960,8 @@ async function drawWorldMap(){
     .attr('preserveAspectRatio', 'xMidYMid meet');
 
   const projection = d3.geoNaturalEarth1()
-    .scale(width / 6.8)
-    .translate([width / 2, height / 2.1]);
+    .scale(width / 7.2)
+    .translate([width / 2, height / 1.9]);
   const path = d3.geoPath().projection(projection);
 
   const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
