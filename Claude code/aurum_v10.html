@@ -1,107 +1,228 @@
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aurum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display&display=swap');
+@font-face {
+  font-family: 'DM Serif Display';
+  src: url('fonts/DMSerifDisplay-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:14px;overflow:hidden;max-width:860px;}
+html,body{width:100%;max-width:100%;overflow-x:hidden;}
+body{font-size:15px;}
+.shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:0;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
 
 .nav{background:#EDE5D6;padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid #DDD3BC;}
-.wordmark{font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:0.03em;line-height:1;}
+.wordmark{font-size:32px;color:#0D1B2A;letter-spacing:0.03em;line-height:1;}
 .wm-dark{color:#0D1B2A;}
-.wm-gold{color:#C9A84C;}
+.wm-gold{color:#0D1B2A;}
 
 .page-outer{padding:16px 20px 0;}
-.briefing-card{background:#fff;border:1px solid #DDD3BC;border-radius:14px;padding:22px 26px 20px;margin-bottom:14px;}
+.briefing-card{background:#fff;border:1px solid rgba(201,168,76,0.4);border-top:3px solid #C9A84C;border-radius:14px;padding:24px 28px 22px;margin-bottom:14px;box-shadow:0 2px 12px rgba(13,27,42,0.06);}
 .b-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.b-label{font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;}
-.b-sep{font-size:9px;color:#C9B99A;}
-.b-ts{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#8A96A4;}
-.b-hl{font-family:'DM Serif Display',serif;font-size:21px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
-.b-body{font-size:13px;color:#4A5568;line-height:1.7;}
+.b-label{font-size:14px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#8B6914;}
+.b-sep{font-size:14px;color:#6B7280;}
+.b-ts{font-size:14px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7280;}
+h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:28px;color:#0D1B2A;line-height:1.3;margin-bottom:12px;}
+.b-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
+.b-body{font-size:15px;color:#4A5568;line-height:1.75;}
 
 /* TABS — pill style, active = white card */
 .tabs-wrap{padding:0 20px;background:#EDE5D6;border-bottom:1px solid #DDD3BC;}
-.story-tabs{display:flex;gap:6px;padding:10px 0;overflow-x:auto;}
-.stab{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 18px;border:none;border-radius:20px;background:transparent;color:#8A96A4;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
-.stab:hover:not(.active){background:rgba(255,255,255,0.45);color:#4A5568;}
-.stab.active{background:#fff;color:#0D1B2A;box-shadow:0 1px 4px rgba(13,27,42,0.08);}
+.story-tabs{display:flex;gap:6px;padding:10px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.stab{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:10px 20px;border:none;border-radius:20px;background:transparent;color:#6B7280;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.stab:hover:not(.active){background:rgba(255,255,255,0.45);color:#374151;}
+.stab.active{
+  background:#ffffff !important;
+  color:#0D1B2A !important;
+  font-weight:600;
+  border:none !important;
+  outline:none !important;
+  box-shadow:0 1px 4px rgba(13,27,42,0.1);
+  border-radius:20px;
+}
 
 .page{padding:20px 20px 32px;display:flex;flex-direction:column;gap:0;}
 .panel{display:none;}
 .panel.active{display:flex;flex-direction:column;gap:0;}
 
-.slbl{font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:#C9A84C;margin-bottom:10px;margin-top:18px;}
+.slbl{font-size:14px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B6914;margin-bottom:10px;margin-top:18px;}
 .slbl:first-child{margin-top:0;}
 
 .prow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-.pulse{background:#fff;border:1px solid #DDD3BC;border-radius:10px;padding:15px 17px;}
-.plbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:7px;}
-.pval{font-family:'DM Serif Display',serif;font-size:26px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px;}
-.pdelt{font-size:11px;font-weight:500;}
+.pulse{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:10px;padding:15px 17px;}
+.plbl{font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6B7280;margin-bottom:8px;}
+.pval{font-family:'DM Serif Display',serif;font-size:32px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:3px;}
+.pdelt{font-size:14px;font-weight:500;}
+.fg-extreme-fear .pval,.fg-extreme-fear .pdelt{color:#A32D2D !important;}
+.fg-fear .pval,.fg-fear .pdelt{color:#B8952A !important;}
+.fg-neutral .pval,.fg-neutral .pdelt{color:#8A96A4 !important;}
+.fg-greed .pval,.fg-greed .pdelt{color:#0F6E56 !important;}
+.fg-extreme-greed .pval,.fg-extreme-greed .pdelt{color:#085041 !important;}
 
 .card-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
-.card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.35s;}
+.card{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.35s;}
 .card:hover{border-color:#C9A84C;}
 .cht{border-top:2px solid #C9A84C;}
 .cp{padding:16px 17px 9px;}
-.ccat{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:8px;}
-.cprice{font-family:'DM Serif Display',serif;font-size:36px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;}
+.ccat{font-size:11px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:8px;}
+.cprice{font-family:'DM Serif Display',serif;font-size:42px;color:#0D1B2A;line-height:1;font-variant-numeric:tabular-nums;}
 .crow{display:flex;align-items:baseline;gap:8px;margin-top:5px;}
-.cpct{font-size:13px;font-weight:500;}
-.cabs{font-size:11px;color:#8A96A4;}
+.cpct{font-size:15px;font-weight:500;}
+.cabs{font-size:14px;color:#6B7280;}
 .sarea{height:60px;padding:4px 17px 8px;}
+#barC { max-height: 200px; }
 .istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
-.itext{font-size:11px;color:#6B7280;line-height:1.55;}
+.itext{font-size:14px;color:#4A5568;line-height:1.6;}
 
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.ccrd{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
+.ccrd{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;}
 .ccrd-head{padding:13px 17px 9px;border-bottom:1px solid #DDD3BC;}
-.ccrd-title{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:2px;}
-.ccrd-sub{font-size:11px;color:#6B7280;}
+.ccrd-title{font-size:14px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#8B6914;margin-bottom:2px;}
+.ccrd-sub{font-size:14px;color:#4A5568;}
 .ccrd-body{padding:14px 17px;}
+.ccrd-body.perf-body{max-height:240px;overflow-y:auto;}
+.macro-stat-row {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #DDD3BC;
+  margin-bottom: 12px;
+}
+.mstat {
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px solid #DDD3BC;
+  text-align: center;
+}
+.mstat:last-child { border-right: none; }
+.mstat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #C9A84C;
+  margin-bottom: 4px;
+}
+.mstat-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: #0D1B2A;
+  font-variant-numeric: tabular-nums;
+}
+.analysis-list{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.analysis-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border:1px solid rgba(201,168,76,0.22);border-radius:8px;background:#F7F3EC;font-size:13px;color:#334155;}
+.analysis-item .name{font-weight:600;}
+.analysis-item .val.up{color:#0F6E56;font-weight:600;}
+.analysis-item .val.down{color:#A32D2D;font-weight:600;}
 
-.story-card{background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;}
-.sc-hl{font-family:'DM Serif Display',serif;font-size:19px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
-.sc-body{font-size:13px;color:#4A5568;line-height:1.7;padding:0 20px 14px;}
+.story-card{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;}
+.sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
+.sc-body{font-size:15px;color:#4A5568;line-height:1.75;padding:0 20px 14px;}
+.b-hl, .sc-hl, .b-headline{
+  font-family:'DM Serif Display', Georgia, serif !important;
+  font-weight:400 !important;
+}
 .sc-split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #DDD3BC;}
 .sc-left{padding:16px 20px;border-right:1px solid #DDD3BC;}
 .sc-right{padding:16px 20px;}
 .sc-factors{display:flex;flex-direction:column;gap:6px;}
-.sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#F7F3EC;border-radius:7px;}
+.sc-factor{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#F7F3EC;border-radius:7px;border:1px solid rgba(201, 168, 76, 0.3);}
 .sf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.sf-text{font-size:11px;color:#4A5568;line-height:1.5;}
+.sf-text{font-size:14px;color:#4A5568;line-height:1.6;}
 .impgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
-.impcell{padding:11px 12px;border-radius:8px;background:#F7F3EC;border:1px solid #DDD3BC;}
-.impname{font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#8A96A4;margin-bottom:4px;}
-.impdir{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:2px;}
-.impwhy{font-size:10px;color:#8A96A4;line-height:1.4;}
-.sc-watch{margin:0 20px 18px;padding:11px 14px;background:#F7F3EC;border-radius:8px;border-left:2px solid #C9A84C;}
-.kw-lbl{font-size:9px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px;}
-.kw-txt{font-size:11px;color:#4A3820;line-height:1.6;}
+.impcell{padding:11px 12px;border-radius:8px;background:#F7F3EC;border:1px solid rgba(201, 168, 76, 0.3);}
+.impname{font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;margin-bottom:4px;}
+.impdir{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:2px;}
+.impwhy{font-size:14px;color:#4A5568;line-height:1.5;}
+.sc-watch{margin:0 20px 20px;padding:16px 18px;background:#0D1B2A;border-radius:10px;border-left:none;}
+.kw-lbl{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#C9A84C;margin-bottom:6px;}
+.kw-txt{font-size:15px;color:rgba(249,246,240,0.88);line-height:1.65;}
 
-.mapph{background:#F0EAE0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#A89870;margin-bottom:10px;}
+.mapph{background:#F0EAE0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#A89870;margin-bottom:10px;}
+#worldMap{
+  width:100%;
+  overflow:hidden;
+  border-radius:8px;
+  background:#F5F1E8;
+  height:260px;
+  position:relative;
+  margin-bottom:10px;
+}
+#worldMap svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
 .mapleg{display:flex;align-items:center;gap:4px;margin-bottom:14px;}
 .hotspot{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #DDD3BC;}
-.hs-score{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;margin-top:1px;}
-.hs-title{font-size:12px;font-weight:500;color:#0D1B2A;margin-bottom:2px;}
-.hs-detail{font-size:11px;color:#6B7280;line-height:1.5;}
+.hs-score{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;margin-top:1px;}
+.hs-title{font-size:14px;font-weight:500;color:#0D1B2A;margin-bottom:2px;}
+.hs-detail{font-size:14px;color:#4A5568;line-height:1.5;}
 .hs-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
-.hstag{font-size:9px;font-weight:500;padding:2px 7px;border-radius:5px;}
+.hstag{font-size:14px;font-weight:500;padding:2px 7px;border-radius:5px;}
 .outrow{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
-.outname{font-size:11px;font-weight:500;color:#0D1B2A;width:54px;flex-shrink:0;}
+.outname{font-size:14px;font-weight:500;color:#0D1B2A;width:54px;flex-shrink:0;}
 .outtrack{flex:1;height:4px;background:#DDD3BC;border-radius:2px;overflow:hidden;}
 .outfill{height:100%;border-radius:2px;}
-.outdir{font-size:11px;font-weight:500;width:70px;text-align:right;flex-shrink:0;}
+.outdir{font-size:14px;font-weight:500;width:70px;text-align:right;flex-shrink:0;}
 .nitem{padding:11px 20px;border-top:1px solid #DDD3BC;display:flex;gap:10px;align-items:flex-start;}
 .ntone{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.ntxt{font-size:12px;color:#0D1B2A;line-height:1.5;flex:1;}
-.nmeta{font-size:10px;color:#8A96A4;margin-top:2px;}
-.ntag{display:inline-block;font-size:9px;font-weight:500;padding:2px 6px;border-radius:5px;margin-left:5px;}
+.ntxt{font-size:14px;color:#0D1B2A;line-height:1.5;flex:1;}
+.nmeta{font-size:13px;color:#6B7280;margin-top:2px;}
+.ntag{display:inline-block;font-size:14px;font-weight:500;padding:2px 6px;border-radius:5px;margin-left:5px;}
+@media (max-width: 900px){
+  .shell{border-radius:0;max-width:none;}
+  .nav{padding:0 16px;height:52px;}
+  .wordmark{font-size:24px;}
+  .page-outer{padding:12px 12px 0;}
+  .briefing-card{padding:16px 16px 14px;}
+  .tabs-wrap{padding:0 12px;}
+  .page{padding:14px 12px 24px;}
+  .b-hl{font-size:22px;line-height:1.35;}
+  .b-body{font-size:15px;line-height:1.75;}
+  .cprice{font-size:34px;}
+}
+@media (max-width: 768px){
+  .prow { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .card-row { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .sc-split { grid-template-columns: 1fr; }
+  .sc-left { border-right: none; border-bottom: 1px solid rgba(201,168,76,0.2); }
+  .story-tabs { gap: 4px; overflow-x: auto; }
+  .stab { font-size: 14px; padding: 8px 13px; }
+  .b-headline, .b-hl { font-size: 22px !important; }
+  .cprice { font-size: 34px; }
+  .nav { padding: 0 16px; }
+  .page-outer { padding: 12px 14px 0; }
+  .tabs-wrap { padding: 0 14px; }
+  .page { padding: 16px 14px 28px; }
+  .gnsplit { grid-template-columns: 1fr; }
+  .sc-split { grid-template-columns: 1fr; }
+  .impgrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .prow { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+  .stab { padding: 7px 11px; font-size: 14px; }
+  .cprice { font-size: 30px; }
+  .b-headline, .b-hl { font-size: 20px !important; }
+}
 </style>
+</head>
+<body>
 
 <div class="shell">
   <div class="nav">
-    <div class="wordmark"><span class="wm-dark">Au</span><span class="wm-gold">rum</span></div>
+    <div class="wordmark" style="font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 600; color: #0D1B2A; letter-spacing: 0.05em; line-height: 1;">Aurum</div>
   </div>
 
   <div class="page-outer">
@@ -109,10 +230,10 @@
       <div class="b-eyebrow">
         <span class="b-label">Market briefing</span>
         <span class="b-sep">·</span>
-        <span class="b-ts">Sunday 29 March 2026 · 15:48 UTC · Live</span>
+        <span class="b-ts" id="briefingTs">Sunday 29 March 2026 · 15:48 UTC · Live</span>
       </div>
-      <div class="b-hl">Extreme fear grips global markets as equities fall and gold advances to $4,524</div>
-      <div class="b-body">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
+      <h1 class="b-headline" id="briefingHeadline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
+      <div class="b-body" id="briefingBody">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
     </div>
   </div>
 
@@ -132,37 +253,40 @@
     <div class="panel active" id="p-overview">
       <div class="slbl">Market pulse</div>
       <div class="prow">
-        <div class="pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" style="color:#B8952A">9</div><div class="pdelt" style="color:#B8952A">Extreme fear</div></div>
-        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval">4.42%</div><div class="pdelt" style="color:#0F6E56">+0.09%</div></div>
-        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval">2.66%</div><div class="pdelt" style="color:#0F6E56">Easing</div></div>
-        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval">3.64%</div><div class="pdelt" style="color:#8A96A4">Unchanged</div></div>
+        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div><div style="height:30px;margin-top:6px"><canvas id="psk-fg" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div><div style="height:30px;margin-top:6px"><canvas id="psk-y10" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div></div>
+        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div style="height:30px;margin-top:6px"><canvas id="psk-fed" style="width:100%;height:100%;display:block"></canvas></div></div>
       </div>
       <div class="slbl">Key assets</div>
       <div class="card-row">
         <div class="card cht">
-          <div class="cp"><div class="ccat">Commodity · Gold</div><div class="cprice">$4,524</div><div class="crow"><span class="cpct" style="color:#0F6E56">+0.28%</span><span class="cabs">+$12.60</span></div></div>
+          <div class="cp"><div class="ccat" id="goldCat">Commodity · Gold</div><div class="cprice" id="goldPrice">$4,524</div><div class="crow"><span class="cpct" id="goldPct" style="color:#0F6E56">+0.28%</span><span class="cabs" id="goldAbs">+$12.60</span></div></div>
           <div class="sarea"><canvas id="sk-g" style="width:100%;height:100%;display:block"></canvas></div>
-          <div class="istrip"><div class="idot"></div><span class="itext">Safe-haven demand rising as equities sell off. Classic flight-to-safety in extreme fear.</span></div>
+          <div class="istrip"><div class="idot"></div><span class="itext" id="goldIntel">Safe-haven demand rising as equities sell off. Classic flight-to-safety in extreme fear.</span></div>
         </div>
         <div class="card cht">
-          <div class="cp"><div class="ccat">Index · S&amp;P 500</div><div class="cprice">5,249</div><div class="crow"><span class="cpct" style="color:#A32D2D">−1.71%</span><span class="cabs">−91 pts</span></div></div>
+          <div class="cp"><div class="ccat" id="spxCat">Index · S&amp;P 500</div><div class="cprice" id="spxPrice">5,249</div><div class="crow"><span class="cpct" id="spxPct" style="color:#A32D2D">−1.71%</span><span class="cabs" id="spxAbs">−91 pts</span></div></div>
           <div class="sarea"><canvas id="sk-s" style="width:100%;height:100%;display:block"></canvas></div>
-          <div class="istrip"><div class="idot"></div><span class="itext">Broad sell-off on tariff uncertainty. Watch 5,100 as next support level.</span></div>
+          <div class="istrip"><div class="idot"></div><span class="itext" id="spxIntel">Broad sell-off on tariff uncertainty. Watch 5,100 as next support level.</span></div>
         </div>
         <div class="card cht">
-          <div class="cp"><div class="ccat">Crypto · Bitcoin</div><div class="cprice">$66,401</div><div class="crow"><span class="cpct" style="color:#A32D2D">−0.87%</span><span class="cabs">Risk-off</span></div></div>
+          <div class="cp"><div class="ccat" id="btcCat">Crypto · Bitcoin</div><div class="cprice" id="btcPrice">$66,401</div><div class="crow"><span class="cpct" id="btcPct" style="color:#A32D2D">−0.87%</span><span class="cabs" id="btcAbs">Risk-off</span></div></div>
           <div class="sarea"><canvas id="sk-b" style="width:100%;height:100%;display:block"></canvas></div>
-          <div class="istrip"><div class="idot"></div><span class="itext">Tracking equities lower. BTC/Gold ratio falling — hard asset preference confirmed.</span></div>
+          <div class="istrip"><div class="idot"></div><span class="itext" id="btcIntel">Tracking equities lower. BTC/Gold ratio falling — hard asset preference confirmed.</span></div>
         </div>
       </div>
       <div class="slbl">Analysis</div>
       <div class="two-col">
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div>
-          <div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="barC"></canvas></div></div>
+          <div class="ccrd-body perf-body">
+            <div style="position:relative;height:176px"><canvas id="barC"></canvas></div>
+            <div id="winnersLosersList" class="analysis-list"></div>
+          </div>
         </div>
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · 30-day collapse</div><div class="ccrd-sub">From neutral 50 to extreme fear 9 in 30 days</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · 30-day collapse</div><div class="ccrd-sub" id="fgSubOverview">From neutral 50 to extreme fear 9 in 30 days</div></div>
           <div class="ccrd-body"><div style="position:relative;height:176px"><canvas id="fgC"></canvas></div></div>
         </div>
       </div>
@@ -202,11 +326,11 @@
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">Global risk map · GDELT live</div><div class="ccrd-sub">Named conflicts and direct market signals</div></div>
           <div class="ccrd-body">
-            <div class="mapph">World risk map · D3 choropleth</div>
-            <div class="mapleg"><span style="font-size:9px;color:#8A96A4">Low</span><div style="display:flex;gap:2px;margin:0 6px"><div style="width:12px;height:5px;border-radius:2px;background:rgba(13,27,42,0.06)"></div><div style="width:12px;height:5px;border-radius:2px;background:rgba(201,168,76,0.35)"></div><div style="width:12px;height:5px;border-radius:2px;background:#A32D2D"></div></div><span style="font-size:9px;color:#8A96A4">High</span></div>
-            <div class="hotspot"><div class="hs-score" style="background:rgba(163,45,45,0.1);color:#A32D2D">100</div><div><div class="hs-title">Iran · Strait of Hormuz</div><div class="hs-detail">Sanctions + naval posturing. 20% of global oil at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div></div></div>
-            <div class="hotspot"><div class="hs-score" style="background:rgba(184,149,42,0.1);color:#B8952A">33</div><div><div class="hs-title">Russia · Ukraine</div><div class="hs-detail">Stable. Wheat and gas corridors disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EUR equities ↓</span></div></div></div>
-            <div class="hotspot"><div class="hs-score" style="background:rgba(201,168,76,0.1);color:#C9A84C">17</div><div><div class="hs-title">Israel · Gaza</div><div class="hs-detail">Contained. Watch Iran escalation correlation.</div><div class="hs-tags"><span class="hstag" style="background:#F5F1E8;color:#8B6914">Iran-linked watch</span></div></div></div>
+            <div id="worldMap"></div>
+            <div class="mapleg"><span style="font-size:14px;color:#8A96A4">Low</span><div style="display:flex;gap:2px;margin:0 6px"><div style="width:12px;height:5px;border-radius:2px;background:rgba(13,27,42,0.06)"></div><div style="width:12px;height:5px;border-radius:2px;background:rgba(201,168,76,0.35)"></div><div style="width:12px;height:5px;border-radius:2px;background:#A32D2D"></div></div><span style="font-size:14px;color:#8A96A4">High</span></div>
+            <div class="hotspot"><div class="hs-score" data-iso="IRN" style="background:rgba(163,45,45,0.1);color:#A32D2D">100</div><div><div class="hs-title">Iran · Strait of Hormuz</div><div class="hs-detail">Sanctions + naval posturing. 20% of global oil at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="RUS" style="background:rgba(184,149,42,0.1);color:#B8952A">33</div><div><div class="hs-title">Russia · Ukraine</div><div class="hs-detail">Stable. Wheat and gas corridors disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EUR equities ↓</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="ISR" style="background:rgba(201,168,76,0.1);color:#C9A84C">17</div><div><div class="hs-title">Israel · Gaza</div><div class="hs-detail">Contained. Watch Iran escalation correlation.</div><div class="hs-tags"><span class="hstag" style="background:#F5F1E8;color:#8B6914">Iran-linked watch</span></div></div></div>
           </div>
         </div>
         <div class="ccrd">
@@ -261,17 +385,20 @@
       <div class="slbl">Rate environment</div>
       <div class="two-col">
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Gold vs 10Y yield · inverse correlation</div><div class="ccrd-sub">Why gold falls when yields rise</div></div>
-          <div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="scatC"></canvas></div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Gold vs 10Y yield · inverse relationship</div><div class="ccrd-sub">When yields rise, gold typically falls — watch for divergence</div></div>
+          <div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="dualLineC"></canvas></div></div>
         </div>
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Current macro signals</div><div class="ccrd-sub">Rate environment at a glance</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub">Green = normal · Amber = flattening · Red = inverted (recession signal)</div></div>
           <div class="ccrd-body">
-            <div class="outrow"><div class="outname">10Y yield</div><div class="outtrack"><div class="outfill" style="width:44%;background:#B8952A"></div></div><div class="outdir" style="color:#0D1B2A">4.42%</div></div>
-            <div class="outrow"><div class="outname">2Y yield</div><div class="outtrack"><div class="outfill" style="width:40%;background:#B8952A"></div></div><div class="outdir" style="color:#0D1B2A">3.96%</div></div>
-            <div class="outrow"><div class="outname">Spread</div><div class="outtrack"><div class="outfill" style="width:18%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">+0.46</div></div>
-            <div class="outrow"><div class="outname">CPI</div><div class="outtrack"><div class="outfill" style="width:26%;background:#B8952A"></div></div><div class="outdir" style="color:#0D1B2A">2.66%</div></div>
-            <div class="outrow"><div class="outname">Fed Funds</div><div class="outtrack"><div class="outfill" style="width:36%;background:#C9A84C"></div></div><div class="outdir" style="color:#0D1B2A">3.64%</div></div>
+            <div class="macro-stat-row">
+              <div class="mstat"><div class="mstat-label">10Y</div><div class="mstat-val" id="m10y">4.44%</div></div>
+              <div class="mstat"><div class="mstat-label">2Y</div><div class="mstat-val" id="m2y">3.88%</div></div>
+              <div class="mstat"><div class="mstat-label">Spread</div><div class="mstat-val" id="mSpread" style="color:#0F6E56">+0.56</div></div>
+              <div class="mstat"><div class="mstat-label">CPI</div><div class="mstat-val" id="mCpi">2.66%</div></div>
+              <div class="mstat"><div class="mstat-label">Fed Funds</div><div class="mstat-val" id="mFed">3.64%</div></div>
+            </div>
+            <div style="position:relative;height:180px"><canvas id="spreadC"></canvas></div>
           </div>
         </div>
       </div>
@@ -340,11 +467,11 @@
       <div class="slbl">Market context</div>
       <div class="two-col">
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">S&P 500 · 30-day decline</div><div class="ccrd-sub">The correction in context</div></div>
+          <div class="ccrd-head"><div class="ccrd-title" id="spTrendTitle">S&P 500 · 30-day trend</div><div class="ccrd-sub" id="spTrendSub">The correction in context</div></div>
           <div class="ccrd-body"><div style="position:relative;height:160px"><canvas id="spC"></canvas></div></div>
         </div>
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · sentiment collapse</div><div class="ccrd-sub">How we got to extreme fear in 30 days</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Fear &amp; Greed · sentiment collapse</div><div class="ccrd-sub" id="fgSubCrash">How we got to extreme fear in 30 days</div></div>
           <div class="ccrd-body"><div style="position:relative;height:160px"><canvas id="fgC2"></canvas></div></div>
         </div>
       </div>
@@ -354,6 +481,8 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 <script>
 Chart.defaults.font.family="'DM Sans',system-ui,sans-serif";
 Chart.defaults.font.size=11;Chart.defaults.color='#8A96A4';
@@ -365,57 +494,675 @@ Chart.defaults.plugins.tooltip.borderWidth=1;
 Chart.defaults.plugins.tooltip.padding=10;
 Chart.defaults.plugins.tooltip.cornerRadius=6;
 
-function gen(b,n,v,t){const d=[b];for(let i=1;i<n;i++)d.push(Math.max(d[i-1]*(1+(Math.random()-0.48+t)*v),b*0.75));return d;}
-function spark(id,data,col,fill){
-  const c=document.getElementById(id);if(!c)return;
-  new Chart(c,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data,borderColor:col,borderWidth:2,pointRadius:0,tension:0.45,fill:true,backgroundColor:fill}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:800}}});
+const charts = {};
+window.liveAurumData = null;
+const ASSET_COLORS = {
+  gold:     { border: '#C9A84C', bg: 'rgba(201,168,76,0.18)', text: '#C9A84C' },
+  silver:   { border: '#9090A8', bg: 'rgba(144,144,168,0.18)', text: '#9090A8' },
+  sp500:    { border: '#2D82DC', bg: 'rgba(45,130,220,0.18)', text: '#2D82DC' },
+  dax:      { border: '#6433B4', bg: 'rgba(100,60,180,0.18)', text: '#6433B4' },
+  ftse:     { border: '#00A08C', bg: 'rgba(0,160,140,0.18)', text: '#00A08C' },
+  nikkei:   { border: '#E07810', bg: 'rgba(220,120,20,0.18)', text: '#E07810' },
+  bitcoin:  { border: '#F7931A', bg: 'rgba(247,147,26,0.18)', text: '#E07810' },
+  ethereum: { border: '#627EEA', bg: 'rgba(98,126,234,0.18)', text: '#627EEA' },
+};
+
+const fgZonePlugin = {
+  id: 'fgZones',
+  afterDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    if (!chartArea || !scales?.y) return;
+    const { left, right } = chartArea;
+    const yScale = scales.y;
+    const greedTop = yScale.getPixelForValue(100);
+    const greedBot = yScale.getPixelForValue(75);
+    ctx.fillStyle = 'rgba(15,110,86,0.05)';
+    ctx.fillRect(left, greedTop, right - left, greedBot - greedTop);
+
+    const fearTop = yScale.getPixelForValue(25);
+    const fearBot = yScale.getPixelForValue(0);
+    ctx.fillStyle = 'rgba(163,45,45,0.05)';
+    ctx.fillRect(left, fearTop, right - left, fearBot - fearTop);
+  }
+};
+
+function dedupeConsecutive(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.filter((v, i) => i === 0 || v !== arr[i - 1]);
 }
-spark('sk-g',gen(4300,30,0.007,0.009),'#C9A84C','rgba(201,168,76,0.08)');
-spark('sk-s',gen(5400,30,0.009,-0.007),'#A32D2D','rgba(163,45,45,0.05)');
-spark('sk-b',gen(69000,30,0.013,-0.004),'#A32D2D','rgba(163,45,45,0.05)');
-spark('spC',gen(5400,30,0.009,-0.007),'#A32D2D','rgba(163,45,45,0.05)');
 
-new Chart(document.getElementById('barC'),{type:'bar',indexAxis:'y',
-  data:{labels:['Bitcoin','S&P 500','DAX','FTSE','Silver','Gold'],
-  datasets:[{data:[-4.2,-1.71,-1.8,-0.01,2.1,3.4],
-  backgroundColor:ctx=>ctx.raw>=0?'rgba(15,110,86,0.1)':'rgba(163,45,45,0.08)',
-  borderColor:ctx=>ctx.raw>=0?'rgba(15,110,86,0.55)':'rgba(163,45,45,0.55)',
-  borderWidth:1.5,borderRadius:3,borderSkipped:false}]},
-  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-  scales:{x:{grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},ticks:{callback:v=>(v>=0?'+':'')+v+'%'}},
-  y:{grid:{display:false},border:{display:false},ticks:{color:'#0D1B2A',font:{size:11,weight:'500'}}}}}
-});
-
-const fgD=[52,49,46,50,44,38,33,28,22,17,13,11,9];
-const fgL=fgD.map((_,i)=>{const d=new Date(2026,2,17+i);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});});
-function fgChart(id){
-  new Chart(document.getElementById(id),{type:'line',
-  data:{labels:fgL,datasets:[{data:fgD,borderColor:'#C9A84C',borderWidth:2,pointRadius:0,tension:0.4,fill:true,backgroundColor:'rgba(201,168,76,0.07)'}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-  scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:4}},
-  y:{min:0,max:100,grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},
-  ticks:{callback:v=>v===25?'Fear':v===75?'Greed':v===50?'Neutral':v,stepSize:25}}}}});
+function pctFromHistory(series) {
+  if (!Array.isArray(series) || series.length < 2) return 0;
+  const first = Number(series[0]);
+  const last = Number(series[series.length - 1]);
+  if (!Number.isFinite(first) || !Number.isFinite(last) || first === 0) return 0;
+  return ((last - first) / first) * 100;
 }
-fgChart('fgC');fgChart('fgC2');
 
-const yD=[4.05,4.08,4.12,4.18,4.22,4.20,4.28,4.24,4.31,4.28,4.35,4.42];
-const gD=[4180,4210,4250,4310,4290,4320,4380,4350,4410,4440,4490,4524];
-new Chart(document.getElementById('scatC'),{type:'scatter',
-  data:{datasets:[{data:yD.map((y,i)=>({x:y,y:gD[i]})),
-  backgroundColor:'rgba(201,168,76,0.5)',borderColor:'rgba(201,168,76,0.85)',borderWidth:1.5,pointRadius:6,pointHoverRadius:9}]},
-  options:{responsive:true,maintainAspectRatio:false,
-  plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Yield ${ctx.parsed.x.toFixed(2)}%  ·  Gold $${ctx.parsed.y.toLocaleString()}`}}},
-  scales:{
-    x:{title:{display:true,text:'10Y yield (%)',color:'#8A96A4',font:{size:10}},grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},ticks:{callback:v=>v.toFixed(2)+'%'}},
-    y:{position:'right',title:{display:true,text:'Gold $/oz',color:'#8A96A4',font:{size:10}},grid:{color:'rgba(221,211,188,0.7)'},border:{display:false},ticks:{callback:v=>'$'+v.toLocaleString()}}
-  }}
-});
+function goldIntel(change) {
+  if (change > 1) return 'Strong safe-haven demand — gold breaking higher on risk-off flows.';
+  if (change > 0) return 'Safe-haven bid intact. Gold holding firm amid macro uncertainty.';
+  if (change < -1) return 'Gold retreating — risk appetite returning, watch support levels.';
+  return 'Gold consolidating — monitoring geopolitical and yield signals.';
+}
+function sp500Intel(change) {
+  if (change > 1.5) return 'Strong risk-on session. Watch for follow-through above resistance.';
+  if (change > 0) return 'Modest recovery. Sentiment fragile — breadth and volume matter.';
+  if (change < -1.5) return 'Broad sell-off. Watch key support levels for signs of stabilisation.';
+  return 'Cautious trade. Markets awaiting macro catalyst.';
+}
+function btcIntel(change, spChange) {
+  if (change > 2 && spChange > 0) return 'Risk-on: BTC tracking equities higher. Liquidity improving.';
+  if (change < -1 && spChange < 0) return 'Risk-off: BTC selling alongside equities. High correlation persists.';
+  if (change > 1 && spChange < 0) return 'BTC decoupling from equities — watch for sustained divergence.';
+  return 'BTC consolidating. Monitor equity correlation for directional signal.';
+}
+
+function makeLineChart(id, data, borderColor, fillColor, opts = {}) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(c, {
+    type: 'line',
+    data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor, borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: fillColor }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: opts.tooltip ?? false } },
+      scales: {
+        x: { display: false, grid: { display: false }, border: { display: false } },
+        y: { display: false, grid: { display: false }, border: { display: false } },
+      },
+      animation: { duration: 500 },
+    },
+  });
+  return charts[id];
+}
+
+function updateChartsFromData(data) {
+  const history = data?.history || {};
+  const pick = (arr, n = 30) => Array.isArray(arr) && arr.length ? arr.slice(-n) : [];
+  const calcChange = (arr) => {
+    if (!arr || arr.length < 2) return 0;
+    const clean = dedupeConsecutive(arr);
+    const first = clean[0];
+    const last = clean[clean.length - 1];
+    return first > 0 ? parseFloat((((last - first) / first) * 100).toFixed(2)) : 0;
+  };
+
+  const goldHist = pick(history.gold);
+  const spxHist = dedupeConsecutive(pick(history.sp500));
+  const btcHist = pick(history.bitcoin);
+  if (goldHist.length) makeLineChart('sk-g', goldHist, ASSET_COLORS.gold.border, ASSET_COLORS.gold.bg);
+  if (spxHist.length) makeLineChart('sk-s', spxHist, ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
+  if (btcHist.length) makeLineChart('sk-b', btcHist, ASSET_COLORS.bitcoin.border, ASSET_COLORS.bitcoin.bg);
+
+  const fgPulseHist = pick(history.fearGreed);
+  const y10PulseHist = pick(history.treasury10y);
+  const fedPulseHist = pick(history.fedFunds);
+  if (fgPulseHist.length) makeLineChart('psk-fg', fgPulseHist, '#B8952A', 'rgba(184,149,42,0.10)');
+  if (y10PulseHist.length) makeLineChart('psk-y10', y10PulseHist, ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
+  if (fedPulseHist.length) makeLineChart('psk-fed', fedPulseHist, ASSET_COLORS.dax.border, ASSET_COLORS.dax.bg);
+  const perfRaw = [
+    ['Gold', calcChange(history.gold), ASSET_COLORS.gold],
+    ['Silver', calcChange(history.silver), ASSET_COLORS.silver],
+    ['S&P 500', calcChange(history.sp500), ASSET_COLORS.sp500],
+    ['DAX', calcChange(history.dax), ASSET_COLORS.dax],
+    ['FTSE', calcChange(history.ftse), ASSET_COLORS.ftse],
+    ['Bitcoin', calcChange(history.bitcoin), ASSET_COLORS.bitcoin],
+  ].sort((a, b) => b[1] - a[1]);
+  const perfLabels = perfRaw.map(([label]) => label);
+  const barData = perfRaw.map(([, value]) => Number(value.toFixed(2)));
+  const barColors = perfRaw.map(([, , color]) => color);
+  if (charts.barC) charts.barC.destroy();
+  charts.barC = new Chart(document.getElementById('barC'), {
+    type: 'bar',
+    indexAxis: 'y',
+    data: {
+      labels: perfLabels,
+      datasets: [{
+        data: barData,
+        backgroundColor: barColors.map(c => c.bg),
+        borderColor: barColors.map(c => c.border),
+        borderWidth: 1.5,
+        borderRadius: 3,
+        borderSkipped: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(221,211,188,0.7)' }, border: { display: false }, ticks: { callback: v => `${v >= 0 ? '+' : ''}${v}%` } },
+        y: { grid: { display: false }, border: { display: false }, ticks: { color: (ctx) => barColors[ctx.index]?.text || '#0D1B2A', font: { size: 11, weight: '600' } } },
+      },
+    },
+  });
+
+  // Visible winners/losers summary (no hover required)
+  const performanceMap = Object.fromEntries(perfRaw.map(([name, v]) => [name, v]));
+  const performanceRows = ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold']
+    .map((name) => [name, performanceMap[name]])
+    .filter(([, v]) => v != null);
+  // Reorder for 2-column grid so reading is top-to-bottom in col 1, then col 2.
+  const displayRows = performanceRows.length === 6
+    ? [performanceRows[0], performanceRows[3], performanceRows[1], performanceRows[4], performanceRows[2], performanceRows[5]]
+    : performanceRows;
+  const wl = document.getElementById('winnersLosersList');
+  if (wl) {
+    wl.innerHTML = displayRows.map(([name, v]) => {
+      const cls = v >= 0 ? 'up' : 'down';
+      const text = `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`;
+      const color = ({
+        'Bitcoin': ASSET_COLORS.bitcoin.text,
+        'S&P 500': ASSET_COLORS.sp500.text,
+        'DAX': ASSET_COLORS.dax.text,
+        'FTSE': ASSET_COLORS.ftse.text,
+        'Silver': ASSET_COLORS.silver.text,
+        'Gold': ASSET_COLORS.gold.text,
+      })[name] || '#0D1B2A';
+      return `<div class="analysis-item"><span class="name" style="color:${color}">${name}</span><span class="val ${cls}">${text}</span></div>`;
+    }).join('');
+  }
+
+  const fgValues = pick(history.fearGreed, 30);
+  const fgCurrent = data?.fearGreed?.value;
+  const fgPrev = data?.fearGreed?.previousClose;
+  const fgD = fgValues.length >= 6
+    ? fgValues
+    : ([fgPrev, fgCurrent].filter(v => v != null).length >= 2
+      ? (() => {
+          // Build a simple 30-day glide from neutral(50) to current value to avoid empty-looking panel.
+          const end = fgCurrent;
+          const start = 50;
+          const points = 30;
+          return Array.from({ length: points }, (_, i) => {
+            const t = i / (points - 1);
+            return Math.round(start + (end - start) * t);
+          });
+        })()
+      : (fgCurrent != null ? [50, 42, 34, 26, 18, fgCurrent] : []));
+  const fgL = fgD.map((_, i) => {
+    const d = new Date(Date.now() - ((fgD.length - 1 - i) * 24 * 60 * 60 * 1000));
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  });
+  const fgStart = fgD.length ? fgD[0] : 50;
+  const fgNow = fgD.length ? fgD[fgD.length - 1] : (fgCurrent ?? 50);
+  const fgZoneText = fgNow <= 25 ? 'extreme fear territory' : fgNow <= 40 ? 'fear territory' : fgNow >= 75 ? 'greed territory' : 'neutral territory';
+  const fgSub = `From ${fgStart} to ${fgNow} — ${fgZoneText}`;
+  const fgSubOverview = document.getElementById('fgSubOverview');
+  const fgSubCrash = document.getElementById('fgSubCrash');
+  if (fgSubOverview) fgSubOverview.textContent = fgSub;
+  if (fgSubCrash) fgSubCrash.textContent = fgSub;
+  ['fgC', 'fgC2'].forEach((id) => {
+    const c = document.getElementById(id);
+    if (!c || !fgD.length) return;
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(c, {
+      type: 'line',
+      data: { labels: fgL, datasets: [{ data: fgD, borderColor: '#B8952A', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: 'rgba(184,149,42,0.10)' }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 4 } },
+          y: { min: 0, max: 100, grid: { color: 'rgba(221,211,188,0.7)' }, border: { display: false }, ticks: { callback: v => (v === 25 ? 'Fear' : v === 75 ? 'Greed' : v === 50 ? 'Neutral' : v), stepSize: 25 } },
+        },
+      },
+      plugins: [fgZonePlugin],
+    });
+  });
+
+  const yD = pick(history.treasury10y, 30);
+  const gD = pick(history.gold, 30);
+  const dualLen = Math.min(yD.length, gD.length);
+  const dualGold = gD.slice(-dualLen);
+  const dualYield = yD.slice(-dualLen);
+  const dualLabels = dualGold.map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (dualGold.length - 1 - i));
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  });
+  if (charts.dualLineC) charts.dualLineC.destroy();
+  if (dualLen > 1) {
+    charts.dualLineC = new Chart(document.getElementById('dualLineC'), {
+      type: 'line',
+      data: {
+        labels: dualLabels,
+        datasets: [
+          {
+            label: 'Gold $/oz',
+            data: dualGold,
+            borderColor: '#C9A84C',
+            backgroundColor: 'rgba(201,168,76,0.06)',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'yGold',
+          },
+          {
+            label: '10Y Yield %',
+            data: dualYield,
+            borderColor: '#2D82DC',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.4,
+            borderDash: [4, 3],
+            yAxisID: 'yYield',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 20, boxHeight: 2, padding: 14, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ctx.datasetIndex === 0 ? `Gold: $${ctx.parsed.y.toLocaleString()}` : `10Y Yield: ${ctx.parsed.y.toFixed(2)}%` } }
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false } },
+          yGold: { position: 'left', grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => '$' + Number(v).toLocaleString(), color: '#C9A84C', font: { size: 10 } } },
+          yYield: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { callback: v => Number(v).toFixed(2) + '%', color: '#2D82DC', font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  const spreadHistory = yD.map((v, i) => {
+    const twoY = pick(history.treasury2y, 30)[i];
+    return twoY != null ? parseFloat((v - twoY).toFixed(3)) : null;
+  }).filter(v => v !== null);
+  const spreadLabels = spreadHistory.map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (spreadHistory.length - 1 - i));
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  });
+  if (charts.spreadC) charts.spreadC.destroy();
+  if (spreadHistory.length) {
+    charts.spreadC = new Chart(document.getElementById('spreadC'), {
+      type: 'bar',
+      data: {
+        labels: spreadLabels,
+        datasets: [{
+          label: '10Y−2Y spread',
+          data: spreadHistory,
+          backgroundColor: spreadHistory.map(v => v < 0 ? 'rgba(163,45,45,0.2)' : v < 0.2 ? 'rgba(184,149,42,0.2)' : 'rgba(15,110,86,0.15)'),
+          borderColor: spreadHistory.map(v => v < 0 ? '#A32D2D' : v < 0.2 ? '#B8952A' : '#0F6E56'),
+          borderWidth: 1.5,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => {
+            const v = ctx.parsed.y;
+            const status = v < 0 ? 'Inverted — recession risk' : v < 0.2 ? 'Flattening — watch' : 'Normal — contained';
+            return `Spread: ${v >= 0 ? '+' : ''}${v.toFixed(3)}% · ${status}`;
+          }}}
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false } },
+          y: { grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => `${Number(v) >= 0 ? '+' : ''}${Number(v).toFixed(2)}%` } }
+        }
+      }
+    });
+  }
+
+  const mset = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = val; };
+  mset('m10y', data?.macro?.treasury10y?.value != null ? `${data.macro.treasury10y.value.toFixed(2)}%` : null);
+  mset('m2y', data?.macro?.treasury2y?.value != null ? `${data.macro.treasury2y.value.toFixed(2)}%` : null);
+  mset('mSpread', data?.macro?.yieldSpread?.value != null ? `${data.macro.yieldSpread.value >= 0 ? '+' : ''}${data.macro.yieldSpread.value.toFixed(2)}` : null);
+  mset('mCpi', data?.macro?.cpi?.yoyPct != null ? `${data.macro.cpi.yoyPct.toFixed(2)}%` : null);
+  mset('mFed', data?.macro?.fedFunds?.value != null ? `${data.macro.fedFunds.value.toFixed(2)}%` : null);
+
+  // S&P line + volatility bars
+  if (spxHist.length > 1) {
+    const spHistory = spxHist;
+    const spIsUp = spHistory[spHistory.length - 1] >= spHistory[0];
+    const spLineColor = spIsUp ? '#2D82DC' : '#A32D2D';
+    const spFillColor = spIsUp ? 'rgba(45,130,220,0.05)' : 'rgba(163,45,45,0.05)';
+    const spChanges = spHistory.map((v, i) => i === 0 ? 0 : Math.abs(((v - spHistory[i - 1]) / spHistory[i - 1]) * 100));
+    const spLabels = spHistory.map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (spHistory.length - 1 - i));
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    });
+    if (charts.spC) charts.spC.destroy();
+    charts.spC = new Chart(document.getElementById('spC'), {
+      type: 'bar',
+      data: {
+        labels: spLabels,
+        datasets: [
+          {
+            type: 'line',
+            label: 'S&P 500',
+            data: spHistory,
+            borderColor: spLineColor,
+            backgroundColor: spFillColor,
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'yPrice',
+            order: 1,
+          },
+          {
+            type: 'bar',
+            label: 'Daily move %',
+            data: spChanges,
+            backgroundColor: spHistory.map((v, i) => i === 0 ? 'transparent' : (v < spHistory[i - 1] ? 'rgba(163,45,45,0.18)' : 'rgba(45,130,220,0.12)')),
+            borderWidth: 0,
+            borderRadius: 2,
+            yAxisID: 'yVol',
+            order: 2,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.datasetIndex === 0 ? `S&P 500: ${ctx.parsed.y.toLocaleString()}` : `Daily move: ${ctx.parsed.y.toFixed(2)}%` } }
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false } },
+          yPrice: { position: 'left', grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => Number(v).toLocaleString(), font: { size: 10 } } },
+          yVol: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { display: false }, max: Math.max(...spChanges, 0) * 6 }
+        }
+      }
+    });
+    const spPct = ((spHistory[spHistory.length - 1] - spHistory[0]) / spHistory[0] * 100).toFixed(2);
+    const spSub = `${spPct >= 0 ? '+' : ''}${spPct}% over period · ${spIsUp ? 'recovering' : 'declining'}`;
+    const spSubEl = document.getElementById('spTrendSub');
+    if (spSubEl) spSubEl.textContent = spSub;
+  }
+}
 
 function show(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-'+id).classList.add('active');
   btn.classList.add('active');
+  if(id==='geo'){ drawWorldMap(); }
+  // Re-render charts after tab switch so hidden canvases don't remain blank.
+  if (window.liveAurumData) {
+    setTimeout(() => updateChartsFromData(window.liveAurumData), 30);
+  }
 }
+
+let mapRendered = false;
+let mapTooltip;
+async function drawWorldMap(){
+  const container = document.getElementById('worldMap');
+  if(!container || mapRendered) return;
+  const width = container.clientWidth || 600;
+  const height = container.clientHeight || 240;
+
+  if(!mapTooltip){
+    mapTooltip = d3.select('body').append('div')
+      .style('position', 'absolute')
+      .style('background', '#0D1B2A')
+      .style('color', 'rgba(249,246,240,0.9)')
+      .style('padding', '8px 12px')
+      .style('border-radius', '6px')
+      .style('font-size', '12px')
+      .style('pointer-events', 'none')
+      .style('opacity', 0)
+      .style('border', '0.5px solid rgba(201,168,76,0.3)')
+      .style('line-height', '1.5')
+      .style('font-family', "'DM Sans', system-ui, sans-serif")
+      .style('z-index', 9999);
+  }
+
+  const svg = d3.select(container).append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const projection = d3.geoNaturalEarth1()
+    .scale(width / 6.8)
+    .translate([width / 2, height / 2.1]);
+  const path = d3.geoPath().projection(projection);
+
+  const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  const countries = topojson.feature(world, world.objects.countries).features;
+
+  // world-atlas uses numeric country ids, so map key states explicitly.
+  const idToIso = {
+    '364': 'IRN',
+    '643': 'RUS',
+    '376': 'ISR',
+    '804': 'UKR',
+    '156': 'CHN',
+    '840': 'USA',
+    '408': 'PRK'
+  };
+
+  const riskData = window.liveAurumData?.geopolitical?.riskByCountry || { IRN: 100, RUS: 33, ISR: 17, UKR: 49, CHN: 22, PRK: 28 };
+  const countryNames = { IRN:'Iran', RUS:'Russia', ISR:'Israel', UKR:'Ukraine', CHN:'China', USA:'United States', PRK:'North Korea' };
+  const countrySignals = {
+    IRN:'Oil ↑ · Gold ↑',
+    RUS:'Wheat ↑ · EUR equities ↓',
+    ISR:'Iran-linked · watch',
+    UKR:'Gas ↑ · Wheat ↑',
+    CHN:'Trade risk · USD ↑',
+    USA:'Tariff risk · policy watch',
+    PRK:'Risk premium watch'
+  };
+
+  const riskColor = (score) => {
+    if (score >= 90) return '#A32D2D';
+    if (score >= 60) return 'rgba(163,45,45,0.45)';
+    if (score >= 40) return 'rgba(184,149,42,0.22)';
+    if (score >= 20) return 'rgba(184,149,42,0.12)';
+    if (score >= 1) return 'rgba(13,27,42,0.07)';
+    return 'rgba(13,27,42,0.03)';
+  };
+  const hotspotBadgeStyle = (score) => {
+    if (score >= 90) return { bg: 'rgba(163,45,45,0.1)', color: '#A32D2D' };
+    if (score >= 40) return { bg: 'rgba(184,149,42,0.1)', color: '#B8952A' };
+    return { bg: 'rgba(201,168,76,0.1)', color: '#C9A84C' };
+  };
+
+  svg.selectAll('path')
+    .data(countries)
+    .join('path')
+    .attr('d', path)
+    .attr('fill', d => {
+      const iso = idToIso[String(d.id)];
+      const score = riskData[iso] || 0;
+      return riskColor(score);
+    })
+    .attr('stroke', 'rgba(249,246,240,0.6)')
+    .attr('stroke-width', 0.4)
+    .on('mouseover', function(event, d) {
+      const iso = idToIso[String(d.id)];
+      const score = riskData[iso] || 0;
+      if (score === 0) return;
+      const name = countryNames[iso];
+      if (!name) return;
+      mapTooltip.style('opacity', 1)
+        .html(`<strong>${name}</strong><br>Risk: ${score}/100<br>${countrySignals[iso] || ''}`);
+      d3.select(this).attr('stroke', '#C9A84C').attr('stroke-width', 1.5);
+    })
+    .on('mousemove', function(event) {
+      mapTooltip.style('left', `${event.pageX + 12}px`).style('top', `${event.pageY - 28}px`);
+    })
+    .on('mouseout', function() {
+      mapTooltip.style('opacity', 0);
+      d3.select(this).attr('stroke', 'rgba(249,246,240,0.6)').attr('stroke-width', 0.4);
+    });
+
+  const iranFeature = countries.find(f => idToIso[String(f.id)] === 'IRN');
+  if (iranFeature && (riskData['IRN'] || 0) >= 90) {
+    const centroid = path.centroid(iranFeature);
+    function pulse() {
+      svg.append('circle')
+        .attr('cx', centroid[0])
+        .attr('cy', centroid[1])
+        .attr('r', 4)
+        .attr('fill', 'none')
+        .attr('stroke', '#A32D2D')
+        .attr('stroke-width', 1.5)
+        .attr('opacity', 0.8)
+        .transition()
+        .duration(1800)
+        .ease(d3.easeCubicOut)
+        .attr('r', 16)
+        .attr('opacity', 0)
+        .remove()
+        .on('end', pulse);
+    }
+    pulse();
+  }
+
+  document.querySelectorAll('.hs-score[data-iso]').forEach((el) => {
+    const iso = el.getAttribute('data-iso');
+    const score = Number(riskData[iso] || 0);
+    el.textContent = String(score);
+    const badge = hotspotBadgeStyle(score);
+    el.style.color = badge.color;
+    el.style.background = badge.bg;
+  });
+
+  mapRendered = true;
+}
+
+function styleFearGreedPulse(){
+  const pulse=document.querySelector('.fg-pulse');
+  if(!pulse) return;
+  const txt=(pulse.querySelector('.pdelt')?.textContent||'').toLowerCase();
+  pulse.classList.remove('fg-extreme-fear','fg-fear','fg-neutral','fg-greed','fg-extreme-greed');
+  if(txt.includes('extreme fear')) pulse.classList.add('fg-extreme-fear');
+  else if(txt.includes('fear')) pulse.classList.add('fg-fear');
+  else if(txt.includes('extreme greed')) pulse.classList.add('fg-extreme-greed');
+  else if(txt.includes('greed')) pulse.classList.add('fg-greed');
+  else pulse.classList.add('fg-neutral');
+}
+
+styleFearGreedPulse();
+
+async function loadLiveBriefing() {
+  // Uses secret/unlisted gist raw URL as runtime content source.
+  const url = 'https://gist.githubusercontent.com/aninablack/d1685d358f752cad1b30f28f5412c918/raw/aurum-data.json';
+  try {
+    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    window.liveAurumData = data;
+    const fmtPct = (n, d = 2) => (n == null ? '—' : `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(d)}%`);
+    const fmtUsd = (n, d = 0) => (n == null ? '—' : `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d })}`);
+    const fmtNum = (n, d = 2) => (n == null ? '—' : `${Number(n).toFixed(d)}%`);
+    const setText = (id, value) => { const el = document.getElementById(id); if (el && value != null) el.textContent = value; };
+    const setPctColor = (id, n) => {
+      const el = document.getElementById(id);
+      if (!el || n == null) return;
+      el.style.color = n > 0 ? '#0F6E56' : n < 0 ? '#A32D2D' : '#6B7280';
+    };
+
+    const headlineEl = document.getElementById('briefingHeadline');
+    const bodyEl = document.getElementById('briefingBody');
+    if (!headlineEl || !bodyEl) return;
+
+    const liveHeadline = data?.sentiment?.headline;
+    if (liveHeadline) headlineEl.textContent = liveHeadline;
+
+    // Timestamp
+    const tsEl = document.getElementById('briefingTs');
+    const updated = data?.meta?.updated ? new Date(data.meta.updated) : null;
+    if (tsEl && updated && !Number.isNaN(updated.getTime())) {
+      const date = updated.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+      const time = `${String(updated.getUTCHours()).padStart(2, '0')}:${String(updated.getUTCMinutes()).padStart(2, '0')} UTC`;
+      tsEl.textContent = `${date} · ${time} · Live`;
+    }
+
+    const fg = data?.fearGreed;
+    const gold = data?.metals?.gold;
+    const spx = data?.indices?.sp500;
+    const btc = data?.crypto?.bitcoin;
+    const geo = data?.geopolitical?.riskByCountry?.IRN;
+    const spread = data?.macro?.yieldSpread?.value;
+    const body = [
+      spx?.change != null ? `S&P 500 ${spx.change >= 0 ? 'rose' : 'fell'} ${Math.abs(spx.change).toFixed(2)}%` : null,
+      btc?.change != null ? `Bitcoin ${btc.change >= 0 ? 'rose' : 'fell'} ${Math.abs(btc.change).toFixed(2)}%` : null,
+      gold?.price != null ? `gold is ${gold.change >= 0 ? 'holding firm' : 'under pressure'} near $${Math.round(gold.price).toLocaleString()}` : null,
+      geo != null ? `Iran risk score is ${geo}/100` : null,
+      spread != null ? `yield spread is ${spread >= 0 ? '+' : ''}${spread.toFixed(2)}` : null
+    ].filter(Boolean).join(', ') + '.';
+    const liveBody = data?.sentiment?.briefingBody;
+    if (liveBody) bodyEl.textContent = liveBody;
+    else if (body.length > 1) bodyEl.textContent = body;
+
+    // Pulse cards
+    setText('fgValue', data?.fearGreed?.value != null ? String(data.fearGreed.value) : null);
+    setText('fgLabel', data?.fearGreed?.classification || null);
+    setText('y10Value', fmtNum(data?.macro?.treasury10y?.value, 2));
+    setText('y10Delta', fmtPct(data?.macro?.treasury10y?.change, 2));
+    setPctColor('y10Delta', data?.macro?.treasury10y?.change);
+    const cpiYoy = data?.macro?.cpi?.yoyPct;
+    setText('cpiValue', cpiYoy != null ? `${cpiYoy.toFixed(2)}%` : null);
+    setText('cpiDelta', cpiYoy != null ? (cpiYoy <= 3 ? 'Easing' : 'Sticky') : null);
+    setText('fedValue', fmtNum(data?.macro?.fedFunds?.value, 2));
+    setText('fedDelta', fmtPct(data?.macro?.fedFunds?.change, 2));
+    setPctColor('fedDelta', data?.macro?.fedFunds?.change);
+
+    // Key assets
+    setText('goldPrice', fmtUsd(data?.metals?.gold?.price, 0));
+    setText('goldPct', fmtPct(data?.metals?.gold?.change, 2));
+    setText('goldAbs', data?.metals?.gold?.changeAbs != null ? `${data.metals.gold.changeAbs >= 0 ? '+' : '−'}$${Math.abs(data.metals.gold.changeAbs).toFixed(2)}` : null);
+    setPctColor('goldPct', data?.metals?.gold?.change);
+
+    setText('spxPrice', data?.indices?.sp500?.price != null ? Number(data.indices.sp500.price).toLocaleString() : null);
+    setText('spxPct', fmtPct(data?.indices?.sp500?.change, 2));
+    const spCur = data?.indices?.sp500?.price;
+    const spPct = data?.indices?.sp500?.change;
+    const spAbs = (data?.indices?.sp500?.changeAbs != null)
+      ? data.indices.sp500.changeAbs
+      : (spCur != null && spPct != null ? Math.round((spCur * spPct) / 100) : null);
+    setText('spxAbs', (spAbs != null)
+      ? `${spAbs >= 0 ? '+' : '−'}${Math.abs(Math.round(spAbs))} pts`
+      : null);
+    setPctColor('spxPct', data?.indices?.sp500?.change);
+
+    setText('btcPrice', fmtUsd(data?.crypto?.bitcoin?.price, 0));
+    setText('btcPct', fmtPct(data?.crypto?.bitcoin?.change, 2));
+    setText('btcAbs', data?.crypto?.bitcoin?.change != null ? (data.crypto.bitcoin.change < 0 ? 'Risk-off' : 'Risk-on') : null);
+    setPctColor('btcPct', data?.crypto?.bitcoin?.change);
+
+    // Asset identity colors across cards (border + category label)
+    const assetCards = document.querySelectorAll('.card.cht');
+    if (assetCards[0]) assetCards[0].style.borderTopColor = ASSET_COLORS.gold.border;
+    if (assetCards[1]) assetCards[1].style.borderTopColor = ASSET_COLORS.sp500.border;
+    if (assetCards[2]) assetCards[2].style.borderTopColor = ASSET_COLORS.bitcoin.border;
+    const goldCat = document.getElementById('goldCat');
+    const spxCat = document.getElementById('spxCat');
+    const btcCat = document.getElementById('btcCat');
+    if (goldCat) goldCat.style.color = ASSET_COLORS.gold.text;
+    if (spxCat) spxCat.style.color = ASSET_COLORS.sp500.text;
+    if (btcCat) btcCat.style.color = ASSET_COLORS.bitcoin.text;
+
+    // Dynamic intel strip copy
+    setText('goldIntel', goldIntel(data?.metals?.gold?.change ?? 0));
+    setText('spxIntel', sp500Intel(data?.indices?.sp500?.change ?? 0));
+    setText('btcIntel', btcIntel(data?.crypto?.bitcoin?.change ?? 0, data?.indices?.sp500?.change ?? 0));
+
+    // Keep all charts anchored to real snapshot/history data.
+    updateChartsFromData(data);
+  } catch {
+    // Keep curated fallback copy if live briefing fails.
+  }
+}
+
+loadLiveBriefing();
 </script>
+</body>
+</html>
