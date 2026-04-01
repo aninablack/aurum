@@ -80,7 +80,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .cabs{font-size:14px;color:#6B7280;}
 .sarea{height:60px;padding:4px 17px 8px;}
 .pulse .sarea{height:44px;padding:4px 14px 10px;}
-#barC { max-height: 200px; min-height: 220px; }
+#barC { width: 100%; height: 220px !important; }
 .istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
 .itext{font-size:14px;color:#4A5568;line-height:1.6;}
@@ -91,7 +91,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .ccrd-title{font-size:14px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#8B6914;margin-bottom:2px;}
 .ccrd-sub{font-size:14px;color:#4A5568;}
 .ccrd-body{padding:14px 17px;min-height:240px;}
-.ccrd-body.perf-body{max-height:240px;overflow-y:auto;}
+.ccrd-body.perf-body{min-height:360px;overflow:visible;}
 .macro-stat-row {
   display: flex;
   gap: 0;
@@ -119,7 +119,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   color: #0D1B2A;
   font-variant-numeric: tabular-nums;
 }
-.analysis-list{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.analysis-list{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .analysis-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border:1px solid rgba(201,168,76,0.22);border-radius:8px;background:#F7F3EC;font-size:13px;color:#334155;}
 .analysis-item .name{font-weight:600;}
 .analysis-item .val.up{color:#0F6E56;font-weight:600;}
@@ -282,7 +282,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div>
           <div class="ccrd-body perf-body">
-            <div style="position:relative;height:176px"><canvas id="barC"></canvas></div>
+            <div style="position:relative;height:220px;margin-bottom:8px"><canvas id="barC"></canvas></div>
             <div id="winnersLosersList" class="analysis-list"></div>
           </div>
         </div>
@@ -600,10 +600,22 @@ function updateChartsFromData(data) {
 
   const fgPulseHist = pick(history.fearGreed);
   const y10PulseHist = pick(history.treasury10y);
-  const fedPulseHist = pick(history.fedFunds);
-  const cpiPulseHist = (Array.isArray(history.cpiYoy) && history.cpiYoy.length)
+  const fedPulseHist = (Array.isArray(history.fedFunds) && history.fedFunds.length >= 2)
+    ? pick(history.fedFunds)
+    : ((data?.macro?.fedFunds?.observations || []).slice().reverse().map(Number).filter(v => Number.isFinite(v)));
+  const cpiPulseHist = (Array.isArray(history.cpiYoy) && history.cpiYoy.length >= 2)
     ? pick(history.cpiYoy)
-    : ((data?.macro?.cpi?.observations || []).slice().reverse().map(Number).filter(v => Number.isFinite(v)));
+    : (() => {
+        const obs = (data?.macro?.cpi?.observations || []).map(Number).filter(v => Number.isFinite(v));
+        // obs are newest->oldest monthly CPI index values; build YoY monthly series.
+        if (obs.length < 13) return [];
+        const yoyDesc = [];
+        for (let i = 0; i + 12 < obs.length; i++) {
+          const prev = obs[i + 12];
+          if (prev) yoyDesc.push(((obs[i] - prev) / prev) * 100);
+        }
+        return yoyDesc.reverse().map(v => Number(v.toFixed(2)));
+      })();
   if (fgPulseHist.length) makeLineChart('psk-fg', fgPulseHist, '#B8952A', 'rgba(184,149,42,0.10)');
   if (y10PulseHist.length) makeLineChart('psk-y10', y10PulseHist, ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
   if (cpiPulseHist.length) makeLineChart('spk-cpi', cpiPulseHist, '#B8952A', 'rgba(184,149,42,0.08)');

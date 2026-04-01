@@ -242,6 +242,19 @@ function appendDailyValue(existingArr, value, isSameDay) {
   return [...base, round(value, 4)].slice(-30);
 }
 
+function buildCpiYoYSeriesFromObsDesc(obsDesc) {
+  if (!Array.isArray(obsDesc) || obsDesc.length < 13) return [];
+  const yoyDesc = [];
+  for (let i = 0; i + 12 < obsDesc.length; i++) {
+    const curr = Number(obsDesc[i]);
+    const prev = Number(obsDesc[i + 12]);
+    if (Number.isFinite(curr) && Number.isFinite(prev) && prev !== 0) {
+      yoyDesc.push(round(((curr - prev) / prev) * 100, 4));
+    }
+  }
+  return yoyDesc.reverse().slice(-30);
+}
+
 // ── FEAR & GREED — alternative.me (keyless) ──────────────────────────────────
 async function fetchFearGreed() {
   const data = await fetchJSON('https://api.alternative.me/fng/?limit=2&format=json');
@@ -420,7 +433,7 @@ async function fetchMacro() {
     safe('FRED: 10Y yield',   () => fredSeries('DGS10')),
     safe('FRED: 2Y yield',    () => fredSeries('DGS2')),
     safe('FRED: CPI',         () => fredSeries('CPIAUCSL', 14)),
-    safe('FRED: Fed Funds',   () => fredSeries('FEDFUNDS')),
+    safe('FRED: Fed Funds',   () => fredSeries('FEDFUNDS', 24)),
     safe('FRED: Unemployment',() => fredSeries('UNRATE')),
     safe('FRED: GDP',         () => fredSeries('GDPC1')),
     safe('FRED: 10Y-2Y spread',() => fredSeries('T10Y2Y')),
@@ -939,8 +952,20 @@ async function main() {
   pushHistory(history.usdjpy,      fx?.USDJPY?.rate);
   pushHistory(history.treasury10y, macro?.treasury10y?.value);
   pushHistory(history.treasury2y,  macro?.treasury2y?.value);
-  history.fedFunds = appendDailyValue(existing?.history?.fedFunds, macro?.fedFunds?.value, lastMacroDate === today);
-  history.cpiYoy = appendDailyValue(existing?.history?.cpiYoy, macro?.cpi?.yoyPct, lastMacroDate === today);
+  const fedBackfill = Array.isArray(macro?.fedFunds?.observations)
+    ? macro.fedFunds.observations.slice().reverse().filter(v => v != null && !Number.isNaN(v))
+    : [];
+  const cpiYoyBackfill = Array.isArray(macro?.cpi?.observations)
+    ? buildCpiYoYSeriesFromObsDesc(macro.cpi.observations)
+    : [];
+  const fedBase = (existing?.history?.fedFunds?.length ?? 0) >= 2
+    ? existing?.history?.fedFunds
+    : fedBackfill;
+  const cpiBase = (existing?.history?.cpiYoy?.length ?? 0) >= 2
+    ? existing?.history?.cpiYoy
+    : cpiYoyBackfill;
+  history.fedFunds = appendDailyValue(fedBase, macro?.fedFunds?.value, lastMacroDate === today);
+  history.cpiYoy = appendDailyValue(cpiBase, macro?.cpi?.yoyPct, lastMacroDate === today);
   pushHistory(history.bitcoin,     crypto?.bitcoin?.price);
   pushHistory(history.ethereum,    crypto?.ethereum?.price);
 
