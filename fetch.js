@@ -6,7 +6,6 @@
  * ============================================================
  *
  * Environment variables required (set as GitHub Secrets + Netlify env vars):
- *   ALPHA_VANTAGE_KEY   — alphavantage.co free key (25 req/day)
  *   FRED_KEY            — fred.stlouisfed.org free key (120 req/min)
  *   NEWS_API_KEY        — newsapi.org free key (100 req/day)
  *   FINNHUB_KEY         — finnhub.io free key
@@ -36,11 +35,10 @@ const https = require('https');
 const fs = require('fs/promises');
 const path = require('path');
 const YahooFinance = require('yahoo-finance2').default;
-const yahooFinance = new YahooFinance();
+const yahooFinance = new YahooFinance({ suppressNotices: ['ripHistorical', 'yahooSurvey'] });
 
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 const CONFIG = {
-  alphavantage: process.env.ALPHA_VANTAGE_KEY,
   fred:         process.env.FRED_KEY,
   newsapi:      process.env.NEWS_API_KEY,
   finnhub:      process.env.FINNHUB_KEY,
@@ -213,14 +211,14 @@ function pushHistory(arr, value) {
 }
 
 /**
- * One-time cleanup for mixed-scale history values.
- * Keeps values within a broad median band to drop legacy proxy-scale outliers.
+ * Light cleanup: removes extreme outliers that are clearly corrupt data points.
+ * Uses a wide 10x band — only drops values that are completely implausible.
  */
 function sanitizeHistory(arr) {
   if (!Array.isArray(arr) || arr.length < 2) return Array.isArray(arr) ? arr : [];
   const sorted = [...arr].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
-  return arr.filter(v => v > median / 4 && v < median * 4);
+  return arr.filter(v => v > median * 0.1 && v < median * 10);
 }
 
 function trimTrailingDuplicate(arr) {
@@ -294,82 +292,52 @@ async function fetchGoldCSV() {
   };
 }
 
-// ── ALPHA VANTAGE — indices + metals (25 req/day free) ───────────────────────
-// Strategy: batch symbols carefully. 6 calls = S&P, DAX, FTSE, Nikkei, silver, oil.
-// Gold comes from metals.dev + freegoldapi. Wheat comes from AV commodity endpoint.
-
-const AV_BASE = 'https://www.alphavantage.co/query';
-
-async function avGlobalQuote(symbol) {
-  const url = `${AV_BASE}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${CONFIG.alphavantage}`;
-  const data = await fetchJSON(url);
-  if (data?.Note || data?.Information) {
-    throw new Error(`Alpha Vantage rate-limited for ${symbol}`);
-  }
-  const q = data['Global Quote'];
-  if (!q || !q['05. price']) throw new Error(`No quote data for ${symbol}`);
-  return {
-    price:  round(parseFloat(q['05. price']), 2),
-    change: round(parseFloat(q['10. change percent']?.replace('%', '')), 2),
-    prev:   round(parseFloat(q['08. previous close']), 2),
-  };
-}
-
-async function avCommodity(symbol) {
-  // AV commodity endpoint (monthly for free tier)
-  const url = `${AV_BASE}?function=WTI&interval=monthly&apikey=${CONFIG.alphavantage}`;
-  const data = await fetchJSON(url);
-  const entries = data?.data;
-  if (!entries?.length) throw new Error(`No commodity data for ${symbol}`);
-  const latest = entries[0];
-  const prev   = entries[1];
-  const price  = round(parseFloat(latest.value), 2);
-  const pPrice = round(parseFloat(prev?.value), 2);
-  return {
-    price,
-    change: pPrice ? round(((price - pPrice) / pPrice) * 100, 2) : null,
-  };
-}
-
-async function fetchIndicesAndMetals() {
-  const INDEX_SCALE = { sp500: 8.28, dax: 478, ftse: 8.05, nikkei: 476 };
-  // Alpha Vantage free tier is very strict on per-minute rate limits.
-  // Run sequentially with spacing to avoid intermittent empty quote payloads.
-  const symbols = [
-    ['sp500',  'AV: S&P 500', 'SPY'],     // ETF proxy for S&P 500
-    ['dax',    'AV: DAX',     'EWG'],     // ETF proxy for DAX
-    ['ftse',   'AV: FTSE',    'ISF.LON'],
-    ['nikkei', 'AV: Nikkei',  'EWJ'],     // ETF proxy for Nikkei
-    ['silver', 'AV: Silver SLV', 'SLV'],  // ETF proxy for silver
+// ── YAHOO FINANCE — indices (direct tickers, no quota, no ETF scaling) ──────
+// Uses actual index tickers — no ETF proxies, no quota limits, no scaling drift.
+async function fetchIndicesYahoo() {
+  const SYMBOLS = [
+    ['sp500',  '^GSPC'],
+    ['dax',    '^GDAXI'],
+    ['ftse',   '^FTSE'],
+    ['nikkei', '^N225'],
   ];
-
+  const results = await Promise.allSettled(
+    SYMBOLS.map(([, sym]) => yahooFinance.quote(sym))
+  );
   const out = {};
-  for (let i = 0; i < symbols.length; i++) {
-    const [key, label, symbol] = symbols[i];
-    out[key] = await safe(label, () => avGlobalQuote(symbol));
-    if (i < symbols.length - 1) await sleep(13000);
+  for (let i = 0; i < SYMBOLS.length; i++) {
+    const [key] = SYMBOLS[i];
+    const r = results[i];
+    if (r.status === 'fulfilled' && r.value?.regularMarketPrice != null) {
+      const q = r.value;
+      out[key] = {
+        price:     round(q.regularMarketPrice, 0),
+        change:    round(q.regularMarketChangePercent, 2),
+        changeAbs: round(q.regularMarketChange, 0),
+        prev:      round(q.regularMarketPreviousClose, 0),
+      };
+    } else {
+      out[key] = null;
+    }
   }
+  return out;
+}
 
-  const scaleQuote = (q, scale) => {
-    if (!q) return null;
-    const scaledPrice = round(q.price * scale, 0);
-    const prevScaled = q.prev != null ? round(q.prev * scale, 0) : null;
-    const changeAbs = (scaledPrice != null && q.change != null)
-      ? round((scaledPrice * q.change) / 100, 0)
-      : null;
-    return { ...q, price: scaledPrice, prevScaled, changeAbs };
-  };
-
-  return {
-    indices: {
-      sp500:  scaleQuote(out.sp500, INDEX_SCALE.sp500),
-      dax:    scaleQuote(out.dax, INDEX_SCALE.dax),
-      ftse:   scaleQuote(out.ftse, INDEX_SCALE.ftse),
-      nikkei: scaleQuote(out.nikkei, INDEX_SCALE.nikkei),
-      isProxy: true,
-    },
-    silver: out.silver ?? null,
-  };
+/**
+ * Backfill N days of daily closes for an index using yahoo-finance2 chart().
+ * Called when history arrays are empty or too short (e.g. on first deploy).
+ * No quota limits — safe to call on every run as a guard.
+ */
+async function fetchIndexHistoryBackfill(symbol, days = 30) {
+  const period1 = new Date(Date.now() - (days + 7) * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10); // YYYY-MM-DD
+  const period2 = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const result = await yahooFinance.chart(symbol, { period1, period2, interval: '1d' });
+  const quotes = result?.quotes ?? [];
+  return quotes
+    .filter(r => r.close != null && !isNaN(r.close))
+    .map(r => round(r.close, 0))
+    .slice(-days);
 }
 
 // ── METALS.DEV — gold, silver, platinum live spot (100 req/month) ─────────────
@@ -641,7 +609,7 @@ async function fetchGeopolitical() {
     } catch (err) {
       lastErr = err;
       if (attempt < 2) {
-        const backoffMs = 2000 + Math.floor(Math.random() * 2001); // 2-4s jitter
+        const backoffMs = 5500 + Math.floor(Math.random() * 2001); // 5.5-7.5s — respects GDELT's 5s rate limit
         await sleep(backoffMs);
       }
     }
@@ -848,20 +816,39 @@ async function main() {
   if (!Array.isArray(history.fedFunds)) history.fedFunds = [];
   if (!Array.isArray(history.cpiYoy)) history.cpiYoy = [];
 
-  // One-time hard cleanup for legacy metals history noise from early pipeline runs.
-  // Keep only realistic modern ranges before appending latest value.
-  const cleanGoldHistory = (existing?.history?.gold || [])
-    .filter(v => v >= 4400 && v <= 5000);
-  const cleanSilverHistory = (existing?.history?.silver || [])
-    .filter(v => v >= 65 && v <= 120);
-  history.gold = cleanGoldHistory.slice(-30);
-  history.silver = cleanSilverHistory.slice(-30);
+  // Clean metals history using SANITY bounds — drop values outside realistic ranges.
+  history.gold = (existing?.history?.gold || [])
+    .filter(v => v >= SANITY.gold.min && v <= SANITY.gold.max)
+    .slice(-30);
+  history.silver = (existing?.history?.silver || [])
+    .filter(v => v >= SANITY.silver.min && v <= SANITY.silver.max)
+    .slice(-30);
 
-  // Clean legacy mixed-scale proxy values before appending fresh index points.
-  history.sp500 = sanitizeHistory(history.sp500 ?? []);
-  history.dax = sanitizeHistory(history.dax ?? []);
-  history.ftse = sanitizeHistory(history.ftse ?? []);
+  // Sanitise existing index history (light pass — drops truly corrupt values only).
+  history.sp500  = sanitizeHistory(history.sp500  ?? []);
+  history.dax    = sanitizeHistory(history.dax    ?? []);
+  history.ftse   = sanitizeHistory(history.ftse   ?? []);
   history.nikkei = sanitizeHistory(history.nikkei ?? []);
+
+  // Backfill index history from Yahoo Finance when arrays are empty or too short.
+  // This seeds 30 days of real closing prices on first deploy — no more "rebuilding".
+  console.log('\n── Checking index history backfill...');
+  if (history.sp500.length < 5) {
+    const h = await safe('Yahoo S&P 500 backfill', () => fetchIndexHistoryBackfill('^GSPC', 30));
+    if (h?.length) { history.sp500 = h; console.log(`  sp500: seeded ${h.length} days`); }
+  }
+  if (history.dax.length < 5) {
+    const h = await safe('Yahoo DAX backfill', () => fetchIndexHistoryBackfill('^GDAXI', 30));
+    if (h?.length) { history.dax = h; console.log(`  dax: seeded ${h.length} days`); }
+  }
+  if (history.ftse.length < 5) {
+    const h = await safe('Yahoo FTSE backfill', () => fetchIndexHistoryBackfill('^FTSE', 30));
+    if (h?.length) { history.ftse = h; console.log(`  ftse: seeded ${h.length} days`); }
+  }
+  if (history.nikkei.length < 5) {
+    const h = await safe('Yahoo Nikkei backfill', () => fetchIndexHistoryBackfill('^N225', 30));
+    if (h?.length) { history.nikkei = h; console.log(`  nikkei: seeded ${h.length} days`); }
+  }
 
   // 2. Fetch all sources in parallel where possible
   console.log('\n── Fetching data sources...');
@@ -874,36 +861,32 @@ async function main() {
   const now = new Date();
   const metalsMinHours = Math.max(6, Math.ceil((24 * daysInMonthUTC(now)) / 100)); // usually ~8h, floor at 6h
 
-  const avPolicy = withQuotaPolicy(existing, 'alphavantage', { minHours: 3, maxPerDay: 25 }, now);
   const metalsPolicy = withQuotaPolicy(existing, 'metalsdev', { minHours: metalsMinHours, maxPerMonth: 100 }, now);
-  const gdeltPolicy = withQuotaPolicy(existing, 'gdelt', { minHours: 2 }, now);
+  const gdeltPolicy  = withQuotaPolicy(existing, 'gdelt', { minHours: 2 }, now);
 
-  const canFetchAV = avPolicy.allowed;
   const canFetchMetals = metalsPolicy.allowed;
-  const canFetchGeo = gdeltPolicy.allowed;
+  const canFetchGeo    = gdeltPolicy.allowed;
 
-  const [fearGreed, fx, avData, metalsYahoo, metals, macro, news, crypto, geo] =
+  // Yahoo Finance indices: no quota, fetched on every run
+  const [fearGreed, fx, yahooIndices, metalsYahoo, metals, macro, news, crypto, geo] =
     await Promise.all([
-      safe('Fear & Greed',    fetchFearGreed),
-      safe('FX rates',        fetchFX),
-      canFetchAV
-        ? safe('Alpha Vantage', fetchIndicesAndMetals)
-        : Promise.resolve(null),
+      safe('Fear & Greed',         fetchFearGreed),
+      safe('FX rates',             fetchFX),
+      safe('Yahoo indices',        fetchIndicesYahoo),
       safe('Yahoo metals futures', fetchMetalsYahoo),
       canFetchMetals
         ? safe('Metals.dev', fetchMetals)
         : Promise.resolve(null),
-      safe('FRED macro',      fetchMacro),
+      safe('FRED macro',           fetchMacro),
       fetchNewsWithFallback(existing, now),
-      safe('CoinGecko',       fetchCrypto),
+      safe('CoinGecko',            fetchCrypto),
       canFetchGeo
         ? safe('GDELT', fetchGeopolitical)
         : Promise.resolve(null),
     ]);
 
-  if (!canFetchAV) console.log(`~ Alpha Vantage skipped (quota/cadence; day count=${avPolicy.state.day}/25)`);
   if (!canFetchMetals) console.log(`~ Metals.dev skipped (quota/cadence; month count=${metalsPolicy.state.month}/100)`);
-  if (!canFetchGeo) console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
+  if (!canFetchGeo)    console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
 
   // 3. Metals source priority with sanity guards
   // Yahoo futures primary; metals.dev fallback.
@@ -943,10 +926,10 @@ async function main() {
   history.fearGreed = appendDailyValue(existing?.history?.fearGreed, fearGreed?.value, lastFgDate === today);
   history.silver = [...history.silver, silverPrice].filter(v => v != null && !Number.isNaN(v)).slice(-30);
   pushHistory(history.platinum,    platinumPrice);
-  pushHistory(history.sp500,       avData?.indices?.sp500?.price);
-  pushHistory(history.dax,         avData?.indices?.dax?.price);
-  pushHistory(history.ftse,        avData?.indices?.ftse?.price);
-  pushHistory(history.nikkei,      avData?.indices?.nikkei?.price);
+  pushHistory(history.sp500,       yahooIndices?.sp500?.price);
+  pushHistory(history.dax,         yahooIndices?.dax?.price);
+  pushHistory(history.ftse,        yahooIndices?.ftse?.price);
+  pushHistory(history.nikkei,      yahooIndices?.nikkei?.price);
   pushHistory(history.eurusd,      fx?.EURUSD?.rate);
   pushHistory(history.gbpusd,      fx?.GBPUSD?.rate);
   pushHistory(history.usdjpy,      fx?.USDJPY?.rate);
@@ -961,9 +944,11 @@ async function main() {
   const fedBase = (existing?.history?.fedFunds?.length ?? 0) >= 2
     ? existing?.history?.fedFunds
     : fedBackfill;
-  const cpiBase = (existing?.history?.cpiYoy?.length ?? 0) >= 2
+  // Require at least 12 CPI points before trusting existing history — otherwise rebuild
+  // from FRED observations so the sparkline always has a meaningful multi-month trend.
+  const cpiBase = (existing?.history?.cpiYoy?.length ?? 0) >= 12
     ? existing?.history?.cpiYoy
-    : cpiYoyBackfill;
+    : (cpiYoyBackfill.length >= 6 ? cpiYoyBackfill : existing?.history?.cpiYoy ?? []);
   history.fedFunds = appendDailyValue(fedBase, macro?.fedFunds?.value, lastMacroDate === today);
   history.cpiYoy = appendDailyValue(cpiBase, macro?.cpi?.yoyPct, lastMacroDate === today);
   pushHistory(history.bitcoin,     crypto?.bitcoin?.price);
@@ -977,7 +962,7 @@ async function main() {
     fearGreed,
     macro,
     metals: { gold: metalWithChange(goldPrice, 'gold') },
-    indices: avData?.indices ?? existing?.indices ?? null,
+    indices: yahooIndices ?? existing?.indices ?? null,
     crypto: crypto ?? existing?.crypto ?? null,
     sentiment: {
       signal: news?.signal ?? existing?.sentiment?.signal ?? 'neutral',
@@ -1006,12 +991,6 @@ async function main() {
       lastMacroDate: (macro?.fedFunds?.value != null || macro?.cpi?.yoyPct != null) ? today : (existing?.meta?.lastMacroDate ?? null),
       geoCached,
       quota: {
-        alphavantage: {
-          day: avPolicy.state.dayKey,
-          dayCount: avPolicy.state.day + (avData ? 1 : 0),
-          month: avPolicy.state.monthKey,
-          monthCount: avPolicy.state.month, // no explicit monthly cap tracked for AV
-        },
         metalsdev: {
           day: metalsPolicy.state.dayKey,
           dayCount: metalsPolicy.state.day + (metals ? 1 : 0),
@@ -1053,9 +1032,9 @@ async function main() {
       lastFetch: {
         fearGreed:   fearGreed ? new Date().toISOString() : (existing?.meta?.lastFetch?.fearGreed ?? null),
         fx:          fx ? new Date().toISOString() : (existing?.meta?.lastFetch?.fx ?? null),
-        goldCSV:     existing?.meta?.lastFetch?.goldCSV ?? null,
-        alphavantage:avData ? new Date().toISOString() : (existing?.meta?.lastFetch?.alphavantage ?? null),
-        metalsdev:   metals ? new Date().toISOString() : (existing?.meta?.lastFetch?.metalsdev ?? null),
+        goldCSV:      existing?.meta?.lastFetch?.goldCSV ?? null,
+        yahooIndices: yahooIndices ? new Date().toISOString() : (existing?.meta?.lastFetch?.yahooIndices ?? null),
+        metalsdev:    metals ? new Date().toISOString() : (existing?.meta?.lastFetch?.metalsdev ?? null),
         fred:        macro ? new Date().toISOString() : (existing?.meta?.lastFetch?.fred ?? null),
         newsapi:     (newsProvider === 'newsapi') ? new Date().toISOString() : (existing?.meta?.lastFetch?.newsapi ?? null),
         finnhub:     (newsProvider === 'finnhub') ? new Date().toISOString() : (existing?.meta?.lastFetch?.finnhub ?? null),
@@ -1077,11 +1056,11 @@ async function main() {
     },
 
     indices: {
-      sp500:  avData?.indices?.sp500  ?? existing?.indices?.sp500  ?? null,
-      dax:    avData?.indices?.dax    ?? existing?.indices?.dax    ?? null,
-      ftse:   avData?.indices?.ftse   ?? existing?.indices?.ftse   ?? null,
-      nikkei: avData?.indices?.nikkei ?? existing?.indices?.nikkei ?? null,
-      isProxy: true,
+      sp500:  yahooIndices?.sp500  ?? existing?.indices?.sp500  ?? null,
+      dax:    yahooIndices?.dax    ?? existing?.indices?.dax    ?? null,
+      ftse:   yahooIndices?.ftse   ?? existing?.indices?.ftse   ?? null,
+      nikkei: yahooIndices?.nikkei ?? existing?.indices?.nikkei ?? null,
+      isProxy: false,
     },
 
     fx: fx ?? existing?.fx ?? null,
@@ -1114,7 +1093,7 @@ async function main() {
     fearGreed: snapshot.fearGreed?.value != null,
     fx:        snapshot.fx?.EURUSD?.rate != null,
     metals:    snapshot.metals?.gold?.price != null,
-    indices:   snapshot.indices?.sp500?.price != null,
+    indices:   (snapshot.indices?.sp500?.price ?? snapshot.indices?.dax?.price) != null,
     macro:     snapshot.macro?.treasury10y?.value != null,
     news:      (snapshot.sentiment?.newsItems?.length ?? 0) > 0,
     crypto:    snapshot.crypto?.bitcoin?.price != null,
@@ -1172,20 +1151,37 @@ function generateHeadline(data) {
 }
 
 function generateBody(data) {
-  const { macro, sentiment, geopolitical } = data || {};
+  const { fearGreed, macro, sentiment, geopolitical } = data || {};
   const sentences = [];
+
+  // Fear & Greed — lead with sentiment context
+  const fg = fearGreed?.value;
+  if (fg != null) {
+    const fgZone = fg <= 20 ? 'extreme fear' : fg <= 40 ? 'fear' : fg >= 80 ? 'extreme greed' : fg >= 60 ? 'greed' : 'neutral';
+    const fgContext = fg <= 20
+      ? `Readings this low have historically marked capitulation lows — watch for a recovery above 25 as the first sign selling pressure is exhausting itself.`
+      : fg <= 40
+        ? `Fear-driven positioning is creating selective value opportunities in quality assets.`
+        : fg >= 60
+          ? `Elevated sentiment suggests stretched positioning — monitor for a reversal trigger.`
+          : ``;
+    sentences.push(`Fear & Greed sits at ${fg} — ${fgZone} territory. ${fgContext}`.trim());
+  }
+
+  // Yield curve + CPI
   const t10 = macro?.treasury10y?.value;
   const spread = macro?.yieldSpread?.value;
   const cpi = macro?.cpi?.yoyPct;
   if (t10 != null && spread != null && macro?.treasury10y?.change != null) {
     const curveSignal = spread < 0
-      ? 'an inverted yield curve signals recession risk'
+      ? `the yield curve has inverted to ${spread.toFixed(2)} — a historically reliable recession leading indicator`
       : spread < 0.2
-        ? 'the yield curve is near flat — watch for inversion'
-        : `the yield curve remains positive at +${spread.toFixed(2)}, containing near-term recession risk`;
-    sentences.push(`10Y Treasury yields ${macro.treasury10y.change >= 0 ? 'rose' : 'fell'} to ${t10.toFixed(2)}% and ${curveSignal}${cpi != null ? `, with inflation running at ${cpi.toFixed(2)}% YoY` : ''}.`);
+        ? `the yield curve is near-flat at +${spread.toFixed(2)}, approaching inversion — watch closely`
+        : `the yield curve is positively sloped at +${spread.toFixed(2)}, which is not yet a recession signal from rates`;
+    sentences.push(`10Y Treasury yields ${macro.treasury10y.change >= 0 ? 'rose' : 'fell'} to ${t10.toFixed(2)}% and ${curveSignal}${cpi != null ? `, with inflation at ${cpi.toFixed(2)}% YoY` : ''}.`);
   }
 
+  // Geopolitical
   const topRisk = Object.entries(geopolitical?.riskByCountry || {})
     .filter(([, v]) => v >= 80)
     .sort(([, a], [, b]) => b - a)[0];
@@ -1193,7 +1189,7 @@ function generateBody(data) {
   if (topRisk) {
     const [iso, score] = topRisk;
     const name = countryNames[iso] || iso;
-    sentences.push(`${name} geopolitical risk remains at ${score}/100 — monitor oil and gold for breakout signals.`);
+    sentences.push(`${name} geopolitical risk at ${score}/100 — monitor oil and gold for breakout signals.`);
   } else if (sentiment?.newsItems?.[0]?.text) {
     sentences.push(`Key development: ${sentiment.newsItems[0].text}.`);
   }

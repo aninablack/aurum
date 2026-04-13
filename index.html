@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Aurum</title>
+<title>Aurum v13Apr-c</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;max-width:100%;overflow-x:hidden;}
-body{font-size:15px;}
+body{font-size:15px;background:#EDE5D6;}
 .shell{font-family:'DM Sans',system-ui,sans-serif;background:#EDE5D6;border-radius:0;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
 
 .nav{background:#EDE5D6;padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid #DDD3BC;}
@@ -31,7 +31,7 @@ body{font-size:15px;}
 .b-label{font-size:14px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#8B6914;}
 .b-sep{font-size:14px;color:#6B7280;}
 .b-ts{font-size:14px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7280;}
-h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:28px;color:#0D1B2A;line-height:1.3;margin-bottom:12px;}
+h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:12px;}
 .b-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:26px;color:#0D1B2A;line-height:1.35;margin-bottom:10px;}
 .b-body{font-size:15px;color:#4A5568;line-height:1.75;}
 
@@ -50,7 +50,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   border-radius:20px;
 }
 
-.page{padding:20px 20px 32px;display:flex;flex-direction:column;gap:0;}
+.page{padding:20px 20px 66px;display:flex;flex-direction:column;gap:0;}
 .panel{display:none;}
 .panel.active{display:flex;flex-direction:column;gap:0;}
 
@@ -67,6 +67,90 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .fg-neutral .pval,.fg-neutral .pdelt{color:#8A96A4 !important;}
 .fg-greed .pval,.fg-greed .pdelt{color:#0F6E56 !important;}
 .fg-extreme-greed .pval,.fg-extreme-greed .pdelt{color:#085041 !important;}
+
+/* Pulse card historical context line */
+.pctx{font-size:12px;color:#8A96A4;line-height:1.4;padding:3px 0 1px;min-height:15px;font-style:italic;}
+
+/* Briefing geo context paragraph */
+.b-geo{font-size:15px;color:#4A5568;line-height:1.75;margin-top:10px;padding-top:10px;border-top:1px solid rgba(201,168,76,0.15);}
+.b-geo-hl{font-weight:600;color:#0D1B2A;}
+.b-geo-assets{display:inline;margin-left:4px;}
+.b-geo-tag{font-size:14px;font-weight:500;}
+.b-geo-tag::after{content:' · ';color:#9CA3AF;font-weight:400;}
+.b-geo-tag:last-child::after{content:'';}
+.b-geo-tag-up{color:#0F6E56;}
+.b-geo-tag-down{color:#A32D2D;}
+.b-geo-tag-watch{color:#8B6914;}
+.b-geo-link{font-size:13px;color:#8B6914;text-decoration:none;font-weight:500;margin-left:6px;white-space:nowrap;}
+.b-geo-link:hover{text-decoration:underline;}
+
+/* Briefing Key Watch strip */
+.b-watch{margin-top:14px;padding-top:13px;border-top:1px solid rgba(201,168,76,0.2);}
+.bw-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B6914;margin-bottom:7px;}
+.bw-levels{display:flex;flex-direction:column;gap:5px;}
+.bw-item{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:#4A5568;line-height:1.55;}
+.bw-dot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:6px;}
+
+/* ── News ticker strip ─────────────────────────────────────────────────────── */
+.ticker-wrap{background:#EDE5D6;display:flex;align-items:center;height:36px;overflow:hidden;padding-left:20px;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
+.ticker-label{font-family:'DM Sans',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8B6914;white-space:nowrap;flex-shrink:0;padding-right:14px;border-right:1px solid rgba(201,168,76,0.4);}
+.ticker-overflow{overflow:hidden;flex:1;mask-image:linear-gradient(to right,transparent 0,#000 32px,#000 calc(100% - 32px),transparent 100%);}
+.ticker-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;}
+.ticker-track.running{animation:tickerScroll var(--ticker-dur,60s) linear infinite;}
+.ticker-track:hover{animation-play-state:paused;}
+.ticker-item{font-family:'DM Sans',system-ui,sans-serif;display:inline-flex;align-items:center;gap:8px;padding:0 32px 0 0;font-size:13px;color:#0D1B2A;cursor:default;letter-spacing:0.005em;}
+.ticker-item::after{content:'·';color:rgba(201,168,76,0.5);margin-left:32px;}
+.ticker-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;opacity:0.85;}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── Live news headlines in briefing (legacy, unused) ─────────────────────── */
+.b-headlines{margin-top:14px;padding-top:13px;border-top:1px solid rgba(201,168,76,0.2);}
+.bh-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B6914;margin-bottom:8px;}
+.hl-item{display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid rgba(221,211,188,0.4);}
+.hl-item:last-child{border-bottom:none;}
+.hl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:1px;}
+.hl-dot-bearish{background:#A32D2D;}
+.hl-dot-bullish{background:#0F6E56;}
+.hl-dot-neutral{background:#9CA3AF;}
+.hl-text{font-size:14px;color:#0D1B2A;line-height:1.55;text-decoration:none;flex:1;}
+.hl-text:hover{color:#8B6914;text-decoration:underline;}
+.hl-meta{font-size:12px;color:#9CA3AF;white-space:nowrap;flex-shrink:0;}
+
+/* ── Sources & data footer ─────────────────────────────────────────────────── */
+.src-footer{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:14px 20px 54px;border-top:1px solid #DDD3BC;background:#EDE5D6;}
+.src-hd{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#A89870;}
+.src-lnk{font-size:12px;color:#8B7040;text-decoration:none;transition:color 0.15s;}
+.src-lnk:hover{color:#0D1B2A;text-decoration:underline;}
+.src-div{color:#DDD3BC;font-size:14px;}
+
+/* ── Scenario Watch cards ──────────────────────────────────────────────────── */
+.scn-list{display:flex;flex-direction:column;gap:10px;margin-bottom:4px;}
+.scn-card{background:#fff;border:1px solid rgba(201,168,76,0.3);border-radius:12px;overflow:hidden;}
+.scn-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 0;}
+.scn-title{font-family:'DM Serif Display',serif;font-size:19px;color:#0D1B2A;line-height:1.3;}
+.scn-badge{font-size:11px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex-shrink:0;margin-left:10px;}
+.scn-badge-high{background:#A32D2D;color:#fff;}
+.scn-badge-elevated{background:#8B6914;color:#fff;}
+.scn-badge-monitoring{background:#6B7280;color:#fff;}
+.scn-trigger{font-size:14px;color:#4A5568;line-height:1.7;padding:8px 18px 12px;}
+.scn-assets{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-top:1px solid #DDD3BC;border-bottom:1px solid #DDD3BC;}
+.scn-asset{display:flex;gap:9px;align-items:flex-start;padding:10px 18px;border-right:1px solid #DDD3BC;}
+.scn-asset:nth-child(even){border-right:none;}
+.scn-asset:nth-last-child(-n+2){border-bottom:none;}
+.scn-arrow{font-size:15px;font-weight:600;flex-shrink:0;line-height:1.6;}
+.scn-arrow-up{color:#0F6E56;}
+.scn-arrow-down{color:#A32D2D;}
+.scn-arrow-watch{color:#8B6914;}
+.scn-ainfo{display:flex;flex-direction:column;gap:1px;}
+.scn-aname{font-size:14px;font-weight:600;color:#0D1B2A;}
+.scn-anote{font-size:13px;color:#6B7280;line-height:1.45;}
+.scn-watchfor{padding:10px 18px 8px;font-size:13px;color:#4A5568;line-height:1.6;}
+.scn-wlbl{font-size:11px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#8B6914;margin-right:5px;}
+.scn-explore{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 18px 14px;border-top:1px solid rgba(221,211,188,0.5);margin-top:2px;}
+.scn-explbl{font-size:11px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#9CA3AF;margin-right:2px;}
+.scn-exlink{font-size:13px;color:#8B6914;text-decoration:none;font-weight:500;}
+.scn-exlink:hover{text-decoration:underline;color:#0D1B2A;}
+@media(max-width:600px){.scn-assets{grid-template-columns:1fr;}.scn-asset{border-right:none;border-bottom:1px solid #DDD3BC;}.scn-asset:last-child{border-bottom:none;}}
 
 .card-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .card{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.35s;}
@@ -85,12 +169,20 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
 .itext{font-size:14px;color:#4A5568;line-height:1.6;}
 
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;}
 .ccrd{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;}
 .ccrd-head{padding:13px 17px 9px;border-bottom:1px solid #DDD3BC;}
 .ccrd-title{font-size:14px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#8B6914;margin-bottom:2px;}
 .ccrd-sub{font-size:14px;color:#4A5568;}
-.ccrd-body{padding:14px 17px;min-height:240px;}
+.ccrd-body{padding:14px 17px;min-height:0;}
+.impact-read{margin-top:14px;padding-top:12px;border-top:1px solid rgba(201,168,76,0.15);}
+.ir-label{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8B6914;margin-bottom:6px;}
+.ir-text{font-size:14px;color:#4A5568;line-height:1.65;}
+/* Mobile-only 2-col impact pill grid — hidden on desktop */
+.impact-grid-mobile{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.igm-cell{background:#F8F5EF;border-radius:8px;padding:10px 12px;}
+.igm-name{font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;margin-bottom:4px;}
+.igm-dir{font-size:15px;font-weight:600;}
 .ccrd-body.perf-body{min-height:360px;overflow:visible;}
 .macro-stat-row {
   display: flex;
@@ -124,6 +216,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .analysis-item .name{font-weight:600;}
 .analysis-item .val.up{color:#0F6E56;font-weight:600;}
 .analysis-item .val.down{color:#A32D2D;font-weight:600;}
+.analysis-item .val.na{color:#9CA3AF;font-weight:400;font-style:italic;}
 
 .story-card{background:#fff;border:1px solid rgba(201, 168, 76, 0.3);border-radius:12px;overflow:hidden;}
 .sc-hl{font-family:'DM Serif Display',serif !important;font-weight:400 !important;font-size:22px;color:#0D1B2A;line-height:1.35;padding:18px 20px 10px;}
@@ -187,7 +280,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .page-outer{padding:12px 12px 0;}
   .briefing-card{padding:16px 16px 14px;}
   .tabs-wrap{padding:0 12px;}
-  .page{padding:14px 12px 24px;}
+  .page{padding:14px 12px 54px;} /* 54px = ticker height + gap */
   .b-hl{font-size:22px;line-height:1.35;}
   .b-body{font-size:15px;line-height:1.75;}
   .cprice{font-size:34px;}
@@ -205,17 +298,38 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .nav { padding: 0 16px; }
   .page-outer { padding: 12px 14px 0; }
   .tabs-wrap { padding: 0 14px; }
-  .page { padding: 16px 14px 28px; }
+  .page { padding: 16px 14px 54px; }
   .gnsplit { grid-template-columns: 1fr; }
-  .sc-split { grid-template-columns: 1fr; }
   .impgrid { grid-template-columns: repeat(2, 1fr); }
+  /* Hide map on mobile — hotspot list is the useful content at this size */
+  #worldMap { display: none; }
+  .mapleg { display: none; }
+  /* Market impact: replace bar chart with a clean 2-col pill grid */
+  .outrow { display: none; }
+  .ccrd-body .impact-grid-mobile { display: grid; }
+  /* News item tags wrap cleanly */
+  .ntxt { flex-wrap: wrap; }
+  .ntag { margin-top: 3px; }
+  /* Ticker font smaller on mobile */
+  .ticker-item { font-size: 12px; }
+  .ticker-label { font-size: 9px; }
 }
 
 @media (max-width: 480px) {
   .prow { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
-  .stab { padding: 7px 11px; font-size: 14px; }
+  .stab { padding: 7px 11px; font-size: 13px; }
   .cprice { font-size: 30px; }
   .b-headline, .b-hl { font-size: 20px !important; }
+  .page { padding: 14px 12px 54px; }
+  /* Hotspot score badge smaller */
+  .hs-score { width: 24px; height: 24px; font-size: 12px; }
+  .hs-title { font-size: 14px; }
+  .hs-detail { font-size: 13px; }
+  /* Impact grid 1-col on tiny screens */
+  .impgrid { grid-template-columns: 1fr 1fr; }
+  /* Scenario cards */
+  .sc-hl { font-size: 17px; }
+  .sc-body { font-size: 14px; }
 }
 </style>
 </head>
@@ -234,7 +348,12 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <span class="b-ts" id="briefingTs">Sunday 29 March 2026 · 15:48 UTC · Live</span>
       </div>
       <h1 class="b-headline" id="briefingHeadline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
-      <div class="b-body" id="briefingBody">The S&P 500 dropped 1.71% and Bitcoin fell 0.87% as investors rotated into safe-haven assets. Gold held firm above $4,500, confirming classic flight-to-safety behaviour. Iran's geopolitical risk score hit maximum as new Strait of Hormuz restrictions were announced, triggering active breakout signals in oil. The yield curve remains positive at +0.46, containing near-term recession risk.</div>
+      <div class="b-body" id="briefingBody">Fear &amp; Greed sits at 11 — extreme fear territory. Readings this low have historically marked capitulation lows — watch for a recovery above 25 as the first sign selling pressure is exhausting itself. 10Y Treasury yields rose to 4.29% and the yield curve is positively sloped at +0.51, which is not yet a recession signal from rates, with inflation at 3.32% YoY. Iran geopolitical risk at 100/100 — monitor oil and gold for breakout signals.</div>
+      <div class="b-geo" id="briefingGeo" style="display:none"></div>
+      <div class="b-watch" id="briefingWatch" style="display:none">
+        <div class="bw-label">Key watch</div>
+        <div class="bw-levels" id="briefingWatchLevels"></div>
+      </div>
     </div>
   </div>
 
@@ -254,10 +373,10 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
     <div class="panel active" id="p-overview">
       <div class="slbl">Market pulse</div>
       <div class="prow">
-        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div><div class="sarea"><canvas id="psk-fg" style="width:100%;height:100%;display:block"></canvas></div></div>
-        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div><div class="sarea"><canvas id="psk-y10" style="width:100%;height:100%;display:block"></canvas></div></div>
-        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div><div class="sarea"><canvas id="spk-cpi" style="width:100%;height:100%;display:block"></canvas></div></div>
-        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div class="sarea"><canvas id="spk-fed" style="width:100%;height:100%;display:block"></canvas></div></div>
+        <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div><div class="sarea"><canvas id="psk-fg" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="fgCtx"></div></div>
+        <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div><div class="sarea"><canvas id="psk-y10" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="y10Ctx"></div></div>
+        <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div><div class="sarea"><canvas id="spk-cpi" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="cpiCtx"></div></div>
+        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div class="sarea"><canvas id="spk-fed" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="fedCtx"></div></div>
       </div>
       <div class="slbl">Key assets</div>
       <div class="card-row">
@@ -274,13 +393,13 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <div class="card cht">
           <div class="cp"><div class="ccat" id="btcCat">Crypto · Bitcoin</div><div class="cprice" id="btcPrice">$66,401</div><div class="crow"><span class="cpct" id="btcPct" style="color:#A32D2D">−0.87%</span><span class="cabs" id="btcAbs">Risk-off</span></div></div>
           <div class="sarea"><canvas id="sk-b" style="width:100%;height:100%;display:block"></canvas></div>
-          <div class="istrip"><div class="idot"></div><span class="itext" id="btcIntel">Tracking equities lower. BTC/Gold ratio falling — hard asset preference confirmed.</span></div>
+          <div class="istrip"><div class="idot"></div><span class="itext" id="btcIntel">Tracking equities lower. BTC/Gold ratio falling. Hard asset preference confirmed.</span></div>
         </div>
       </div>
       <div class="slbl">Analysis</div>
       <div class="two-col">
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub">Winners and losers this month</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub" id="perfSub">Winners and losers this month</div></div>
           <div class="ccrd-body perf-body">
             <div style="position:relative;height:220px;margin-bottom:8px"><canvas id="barC"></canvas></div>
             <div id="winnersLosersList" class="analysis-list"></div>
@@ -295,17 +414,26 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
     <!-- GEO -->
     <div class="panel" id="p-geo">
+
+      <!-- Live Scenarios — rendered from Gist data -->
+      <div id="liveScenarios" style="display:none">
+        <div class="slbl">Live scenarios · based on today's signals</div>
+        <div class="scn-list" id="scenariosList"></div>
+      </div>
+
+      <!-- Scenarios — static educational context -->
+      <div class="slbl" id="playbooksLabel">Scenarios</div>
       <div class="story-card">
-        <div class="sc-hl">Iran-US tensions escalate — Strait of Hormuz at breaking point</div>
+        <div class="sc-hl">Iran-US tensions escalate: Strait of Hormuz at breaking point</div>
         <div class="sc-body">New US sanctions on Iranian oil exports have triggered retaliatory threats to restrict shipping through the Strait of Hormuz, through which 20% of global oil supply passes. GDELT conflict index for Iran has reached 100/100. Historical precedent from 2019 Gulf of Oman incidents shows oil spiked 4% overnight on similar rhetoric. If naval confrontation occurs, a 20–30% oil price surge within 48 hours is considered likely by energy analysts.</div>
         <div class="sc-split">
           <div class="sc-left">
             <div class="plbl" style="margin-bottom:10px">Why this matters</div>
             <div class="sc-factors">
-              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Hormuz closure impacts 18–20% of global oil supply — energy markets gap up immediately</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#C9A84C"></div><div class="sf-text">Gold gains 8–12% historically in Middle East military escalation — premium builds fast</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD strengthens as reserve currency demand surges — DXY typically +3–6%</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">European equities most exposed — higher energy import costs compress margins directly</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Hormuz closure impacts 18–20% of global oil supply. Energy markets gap up immediately</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#C9A84C"></div><div class="sf-text">Gold gains 8–12% historically in Middle East military escalations. Premium builds fast</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD strengthens as reserve currency demand surges. DXY typically +3–6%</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">European equities most exposed. Higher energy import costs compress margins directly</div></div>
             </div>
           </div>
           <div class="sc-right">
@@ -329,43 +457,66 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
           <div class="ccrd-body">
             <div id="worldMap"></div>
             <div class="mapleg"><span style="font-size:14px;color:#8A96A4">Low</span><div style="display:flex;gap:2px;margin:0 6px"><div style="width:12px;height:5px;border-radius:2px;background:rgba(13,27,42,0.06)"></div><div style="width:12px;height:5px;border-radius:2px;background:rgba(201,168,76,0.35)"></div><div style="width:12px;height:5px;border-radius:2px;background:#A32D2D"></div></div><span style="font-size:14px;color:#8A96A4">High</span></div>
-            <div class="hotspot"><div class="hs-score" data-iso="IRN" style="background:rgba(163,45,45,0.1);color:#A32D2D">100</div><div><div class="hs-title">Iran · Strait of Hormuz</div><div class="hs-detail">Sanctions + naval posturing. 20% of global oil at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div></div></div>
-            <div class="hotspot"><div class="hs-score" data-iso="RUS" style="background:rgba(184,149,42,0.1);color:#B8952A">33</div><div><div class="hs-title">Russia · Ukraine</div><div class="hs-detail">Stable. Wheat and gas corridors disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EUR equities ↓</span></div></div></div>
-            <div class="hotspot"><div class="hs-score" data-iso="ISR" style="background:rgba(201,168,76,0.1);color:#C9A84C">17</div><div><div class="hs-title">Israel · Gaza</div><div class="hs-detail">Contained. Watch Iran escalation correlation.</div><div class="hs-tags"><span class="hstag" style="background:#F5F1E8;color:#8B6914">Iran-linked watch</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="IRN" style="background:rgba(163,45,45,0.1);color:#A32D2D">100</div><div><div class="hs-title">Iran · Strait of Hormuz</div><div class="hs-detail">Sanctions and naval posturing. 20% of global oil at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="YEM" style="background:rgba(163,45,45,0.1);color:#A32D2D">72</div><div><div class="hs-title">Yemen · Red Sea</div><div class="hs-detail">Houthi attacks on commercial shipping. Red Sea routes disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Shipping ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="SDN" style="background:rgba(163,45,45,0.1);color:#A32D2D">60</div><div><div class="hs-title">Sudan · Civil war</div><div class="hs-detail">Ongoing armed conflict. Gold supply and regional stability at risk.</div><div class="hs-tags"><span class="hstag" style="background:#F5F1E8;color:#8B6914">Gold supply</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EM risk ↑</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="IRQ" style="background:rgba(163,45,45,0.1);color:#A32D2D">58</div><div><div class="hs-title">Iraq · PMF militias</div><div class="hs-detail">Iran-linked forces active. Oil infrastructure and US bases at risk.</div><div class="hs-tags"><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Iran proxy</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="ISR" style="background:rgba(184,149,42,0.1);color:#B8952A">50</div><div><div class="hs-title">Israel · Gaza</div><div class="hs-detail">Ongoing conflict. Watch Iran escalation and regional spillover.</div><div class="hs-tags"><span class="hstag" style="background:#F5F1E8;color:#8B6914">Iran-linked</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">Regional risk</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="UKR" style="background:rgba(184,149,42,0.1);color:#B8952A">49</div><div><div class="hs-title">Ukraine · Russia</div><div class="hs-detail">Active front lines. Wheat and gas corridors disrupted.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#FDF2F2;color:#A32D2D">EUR equities ↓</span></div></div></div>
+            <div class="hotspot"><div class="hs-score" data-iso="RUS" style="background:rgba(184,149,42,0.1);color:#B8952A">33</div><div><div class="hs-title">Russia</div><div class="hs-detail">Sanctions in force. Energy exports rerouted. Wheat corridor watch.</div><div class="hs-tags"><span class="hstag" style="background:#FEF8F0;color:#B8952A">Wheat ↑</span><span class="hstag" style="background:#F5F1E8;color:#8B6914">Sanctions</span></div></div></div>
           </div>
         </div>
-        <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Market impact · current conditions</div><div class="ccrd-sub">How live geopolitical risk maps to assets</div></div>
-          <div class="ccrd-body">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="ccrd">
+            <div class="ccrd-head"><div class="ccrd-title">Market impact · current conditions</div><div class="ccrd-sub">How live geopolitical risk maps to assets</div></div>
+            <div class="ccrd-body">
+              <!-- Mobile-only 2-col pill grid (bars hidden via CSS on small screens) -->
+            <div class="impact-grid-mobile">
+              <div class="igm-cell"><div class="igm-name">Gold</div><div class="igm-dir" style="color:#0F6E56">↑ Strong</div></div>
+              <div class="igm-cell"><div class="igm-name">Oil</div><div class="igm-dir" style="color:#B8952A">↑ Elevated</div></div>
+              <div class="igm-cell"><div class="igm-name">Equities</div><div class="igm-dir" style="color:#A32D2D">↓ Pressure</div></div>
+              <div class="igm-cell"><div class="igm-name">USD</div><div class="igm-dir" style="color:#0F6E56">↑ Moderate</div></div>
+              <div class="igm-cell"><div class="igm-name">Wheat</div><div class="igm-dir" style="color:#B8952A">↑ Watch</div></div>
+              <div class="igm-cell"><div class="igm-name">Bitcoin</div><div class="igm-dir" style="color:#A32D2D">↓ Risk-off</div></div>
+            </div>
             <div class="outrow"><div class="outname">Gold</div><div class="outtrack"><div class="outfill" style="width:88%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">↑ Strong</div></div>
-            <div class="outrow"><div class="outname">Oil</div><div class="outtrack"><div class="outfill" style="width:76%;background:#B8952A"></div></div><div class="outdir" style="color:#B8952A">↑ Elevated</div></div>
-            <div class="outrow"><div class="outname">Equities</div><div class="outtrack"><div class="outfill" style="width:68%;background:#A32D2D"></div></div><div class="outdir" style="color:#A32D2D">↓ Pressure</div></div>
-            <div class="outrow"><div class="outname">USD</div><div class="outtrack"><div class="outfill" style="width:58%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">↑ Moderate</div></div>
-            <div class="outrow"><div class="outname">Wheat</div><div class="outtrack"><div class="outfill" style="width:46%;background:#B8952A"></div></div><div class="outdir" style="color:#B8952A">↑ Watch</div></div>
-            <div class="outrow"><div class="outname">Bitcoin</div><div class="outtrack"><div class="outfill" style="width:35%;background:#A32D2D"></div></div><div class="outdir" style="color:#A32D2D">↓ Risk-off</div></div>
+              <div class="outrow"><div class="outname">Oil</div><div class="outtrack"><div class="outfill" style="width:76%;background:#B8952A"></div></div><div class="outdir" style="color:#B8952A">↑ Elevated</div></div>
+              <div class="outrow"><div class="outname">Equities</div><div class="outtrack"><div class="outfill" style="width:68%;background:#A32D2D"></div></div><div class="outdir" style="color:#A32D2D">↓ Pressure</div></div>
+              <div class="outrow"><div class="outname">USD</div><div class="outtrack"><div class="outfill" style="width:58%;background:#0F6E56"></div></div><div class="outdir" style="color:#0F6E56">↑ Moderate</div></div>
+              <div class="outrow"><div class="outname">Wheat</div><div class="outtrack"><div class="outfill" style="width:46%;background:#B8952A"></div></div><div class="outdir" style="color:#B8952A">↑ Watch</div></div>
+              <div class="outrow"><div class="outname">Bitcoin</div><div class="outtrack"><div class="outfill" style="width:35%;background:#A32D2D"></div></div><div class="outdir" style="color:#A32D2D">↓ Risk-off</div></div>
+              <div class="impact-read" id="geoImpactRead">
+                <div class="ir-label">Current read</div>
+                <div class="ir-text">Iran and Yemen are the primary pressure points. Safe-haven demand for gold and USD is strong. Equities and Bitcoin face continued risk-off pressure until a clear geopolitical resolution catalyst emerges.</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="slbl">Live news</div>
-      <div style="background:#fff;border:1px solid #DDD3BC;border-radius:12px;overflow:hidden;">
-        <div class="nitem"><div class="ntone" style="background:#A32D2D"></div><div><div class="ntxt">Iran announces new Hormuz restrictions following US sanctions expansion<span class="ntag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="ntag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div><div class="nmeta">Reuters · 2h ago · High impact</div></div></div>
-        <div class="nitem"><div class="ntone" style="background:#B8952A"></div><div><div class="ntxt">Russia-Ukraine ceasefire talks stall — energy exports stable for now<span class="ntag" style="background:#FEF8F0;color:#B8952A">Wheat →</span></div><div class="nmeta">AP · 3h ago · Medium</div></div></div>
-        <div class="nitem"><div class="ntone" style="background:#C9A84C"></div><div><div class="ntxt">US Congress debates further Iran sanctions bill — vote expected next week<span class="ntag" style="background:#F5F1E8;color:#8B6914">Watch</span></div><div class="nmeta">FT · 5h ago · Developing</div></div></div>
-      </div>
-    </div>
+          <div class="ccrd" id="geoNewsWrap">
+            <div class="ccrd-head"><div class="ccrd-title">From the wires</div><div class="ccrd-sub">Latest intelligence</div></div>
+            <div class="ccrd-body" style="padding:0;">
+              <div id="geoNewsList">
+                <div class="nitem"><div class="ntone" style="background:#A32D2D"></div><div><div class="ntxt">Iran announces new Hormuz restrictions following US sanctions expansion<span class="ntag" style="background:#FDF2F2;color:#A32D2D">Oil ↑</span><span class="ntag" style="background:#F5F1E8;color:#8B6914">Gold ↑</span></div><div class="nmeta">Reuters · 2h ago · High impact</div></div></div>
+                <div class="nitem"><div class="ntone" style="background:#B8952A"></div><div><div class="ntxt">Russia-Ukraine ceasefire talks stall. Energy exports stable for now<span class="ntag" style="background:#FEF8F0;color:#B8952A">Wheat →</span></div><div class="nmeta">AP · 3h ago · Medium</div></div></div>
+                <div class="nitem"><div class="ntone" style="background:#C9A84C"></div><div><div class="ntxt">US Congress debates further Iran sanctions bill. Vote expected next week<span class="ntag" style="background:#F5F1E8;color:#8B6914">Watch</span></div><div class="nmeta">FT · 5h ago · Developing</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- end right column wrapper -->
+      </div><!-- end two-col -->
+    </div><!-- end geo panel -->
 
     <!-- RATE -->
     <div class="panel" id="p-rate">
       <div class="story-card">
-        <div class="sc-hl">Federal Reserve pivots hawkish — rate hike cycle reignites</div>
-        <div class="sc-body">Persistent services inflation and a resilient labour market have forced the Fed to signal further rate hikes after its pause. The bond market is repricing rapidly — 10Y Treasury yields are moving toward 5.0%, compressing growth equity valuations through the discount rate mechanism. Dollar strength is accelerating capital outflows from emerging markets. This is a 2022-style tightening environment: historically the worst outcome for long-duration assets, crypto, and gold simultaneously.</div>
+        <div class="sc-hl">Federal Reserve pivots hawkish: rate hike cycle reignites</div>
+        <div class="sc-body">Persistent services inflation and a resilient labour market have forced the Fed to signal further rate hikes after its pause. The bond market is repricing rapidly: 10Y Treasury yields are moving toward 5.0%, compressing growth equity valuations through the discount rate mechanism. Dollar strength is accelerating capital outflows from emerging markets. This is a 2022-style tightening environment: historically the worst outcome for long-duration assets, crypto, and gold simultaneously.</div>
         <div class="sc-split">
           <div class="sc-left">
             <div class="plbl" style="margin-bottom:10px">Why this matters</div>
             <div class="sc-factors">
               <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Each 25bps hike adds 3–5% compression to tech and growth equity valuations via discount rate</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Gold faces headwinds — rising real yields make the zero-yield metal less attractive vs Treasuries</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD benefits strongly from yield differential vs EUR and JPY — significant DXY upside expected</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Gold faces headwinds. Rising real yields make the zero-yield metal less attractive vs Treasuries</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">USD benefits strongly from yield differential vs EUR and JPY. Significant DXY upside expected</div></div>
               <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Emerging markets face twin pressure: stronger dollar raises debt costs and triggers capital outflows</div></div>
             </div>
           </div>
@@ -381,16 +532,16 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
             </div>
           </div>
         </div>
-        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">The critical level is 10Y yield at 5.0% — historically the threshold where equity selling accelerates. Watch Fed futures: if markets price more than 2 additional hikes, expect a sharp equity correction. Gold below $4,200 confirms safe-haven unwind.</div></div>
+        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">The critical level is 10Y yield at 5.0%, historically the threshold where equity selling accelerates. Watch Fed futures: if markets price more than 2 additional hikes, expect a sharp equity correction. Gold below $4,200 confirms safe-haven unwind.</div></div>
       </div>
       <div class="slbl">Rate environment</div>
       <div class="two-col">
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Gold vs 10Y yield · inverse relationship</div><div class="ccrd-sub">When yields rise, gold typically falls — watch for divergence</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Gold vs 10Y yield · inverse relationship</div><div class="ccrd-sub">When yields rise, gold typically falls. Watch for divergence</div></div>
           <div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="dualLineC"></canvas></div></div>
         </div>
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub">Green = healthy · Amber = watch · Red = inverted recession signal</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub">Below 0 = inverted = recession signal · Currently positive = no inversion</div></div>
           <div class="ccrd-body">
             <div class="macro-stat-row">
               <div class="mstat"><div class="mstat-label">10Y</div><div class="mstat-val" id="m10y">4.44%</div></div>
@@ -408,15 +559,15 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
     <!-- SUPPLY -->
     <div class="panel" id="p-supply">
       <div class="story-card">
-        <div class="sc-hl">Global supply chain fractures — commodity prices enter shock territory</div>
+        <div class="sc-hl">Global supply chain fractures: commodity prices enter shock territory</div>
         <div class="sc-body">A combination of Red Sea shipping disruptions, port congestion in Asia, and escalating trade tariffs is compressing global logistics capacity. Container shipping costs have risen 40% in 60 days. Companies across retail, automotive, and electronics are issuing profit warnings as input costs surge. The 2021–22 supply chain crisis showed these dynamics take 6–9 months to resolve and drive sustained commodity inflation well above central bank targets.</div>
         <div class="sc-split">
           <div class="sc-left">
             <div class="plbl" style="margin-bottom:10px">Why this matters</div>
             <div class="sc-factors">
-              <div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Container shipping rates spiking 40%+ — Maersk and MSC raising surcharges globally</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Agricultural commodities most exposed — logistics failures directly disrupt food supply chains</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold benefits as inflation hedge — supply shocks historically bullish for hard assets</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Container shipping rates spiking 40%+. Maersk and MSC raising surcharges globally</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#B8952A"></div><div class="sf-text">Agricultural commodities most exposed. Logistics failures directly disrupt food supply chains</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold benefits as an inflation hedge. Supply shocks historically bullish for hard assets</div></div>
               <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Corporate margin compression hits S&P 500 earnings forecasts across consumer and industrial sectors</div></div>
             </div>
           </div>
@@ -439,16 +590,16 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
     <!-- CRASH -->
     <div class="panel" id="p-crash">
       <div class="story-card">
-        <div class="sc-hl">Equity markets enter correction — broad risk-off event underway</div>
-        <div class="sc-body">With the Fear &amp; Greed index at 9 — its lowest reading since the 2022 bear market — the conditions for a sustained correction are present. Technical damage is mounting: the S&amp;P 500 has broken below its 50-day moving average with increasing volume on down days. Institutional investors are reducing equity exposure and rotating into Treasuries and gold. Historical corrections from this sentiment level average 12–18% peak-to-trough over 3–6 months.</div>
+        <div class="sc-hl">Equity markets enter correction: broad risk-off event underway</div>
+        <div class="sc-body">With the Fear &amp; Greed index at 9, its lowest reading since the 2022 bear market, the conditions for a sustained correction are present. Technical damage is mounting: the S&amp;P 500 has broken below its 50-day moving average with increasing volume on down days. Institutional investors are reducing equity exposure and rotating into Treasuries and gold. Historical corrections from this sentiment level average 12–18% peak-to-trough over 3–6 months.</div>
         <div class="sc-split">
           <div class="sc-left">
             <div class="plbl" style="margin-bottom:10px">Why this matters</div>
             <div class="sc-factors">
-              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">S&P 500 below 50-day MA with rising sell volume — technical breakdown confirmed</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">S&P 500 below 50-day MA with rising sell volume. Technical breakdown confirmed</div></div>
               <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Gold historically gains 8–15% in equity corrections as capital rotates to hard assets</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Bitcoin correlation to equities remains high — expect 20–40% correction if S&P falls 15%</div></div>
-              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Treasury yields compress as bond demand surges — yield compression benefits bond holders</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#A32D2D"></div><div class="sf-text">Bitcoin correlation to equities remains high. Expect 20–40% correction if S&P falls 15%</div></div>
+              <div class="sc-factor"><div class="sf-dot" style="background:#0F6E56"></div><div class="sf-text">Treasury yields compress as bond demand surges. Bond holders benefit directly</div></div>
             </div>
           </div>
           <div class="sc-right">
@@ -463,7 +614,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
             </div>
           </div>
         </div>
-        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">S&P 500 at 5,000 is the critical support level. A weekly close below triggers institutional stop-losses and accelerates selling. Gold above $4,700 confirms safe-haven rotation is fully underway. VIX above 30 signals panic — historically a contrarian buy signal for patient investors.</div></div>
+        <div class="sc-watch"><div class="kw-lbl">Key watch</div><div class="kw-txt">S&P 500 at 5,000 is the critical support level. A weekly close below triggers institutional stop-losses and accelerates selling. Gold above $4,700 confirms safe-haven rotation is fully underway. VIX above 30 signals panic, historically a contrarian buy signal for patient investors.</div></div>
       </div>
       <div class="slbl">Market context</div>
       <div class="two-col">
@@ -478,6 +629,24 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
       </div>
     </div>
 
+  </div>
+
+  <!-- Sources & data footer -->
+  <div class="src-footer">
+    <span class="src-hd">Data sources</span>
+    <a class="src-lnk" href="https://finance.yahoo.com" target="_blank" rel="noopener">Yahoo Finance</a>
+    <a class="src-lnk" href="https://fred.stlouisfed.org" target="_blank" rel="noopener">FRED</a>
+    <a class="src-lnk" href="https://www.gdeltproject.org" target="_blank" rel="noopener">GDELT</a>
+    <a class="src-lnk" href="https://metals.dev" target="_blank" rel="noopener">Metals.dev</a>
+    <a class="src-lnk" href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
+    <a class="src-lnk" href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">Fear & Greed Index</a>
+    <a class="src-lnk" href="https://newsapi.org" target="_blank" rel="noopener">NewsAPI</a>
+    <span class="src-div">·</span>
+    <span class="src-hd">Read more</span>
+    <a class="src-lnk" href="https://www.ft.com/markets" target="_blank" rel="noopener">Financial Times</a>
+    <a class="src-lnk" href="https://www.bloomberg.com/markets" target="_blank" rel="noopener">Bloomberg</a>
+    <a class="src-lnk" href="https://www.reuters.com/business/finance/" target="_blank" rel="noopener">Reuters</a>
+    <a class="src-lnk" href="https://www.wsj.com/news/markets" target="_blank" rel="noopener">WSJ</a>
   </div>
 </div>
 
@@ -497,6 +666,24 @@ Chart.defaults.plugins.tooltip.cornerRadius=6;
 
 const charts = {};
 window.liveAurumData = null;
+
+// ── Static seed history ───────────────────────────────────────────────────────
+// Used as fallback when the gist history arrays are empty or too short.
+// fetch.js will overwrite these with live data once it runs on schedule.
+const SEED_HISTORY = {
+  sp500: [
+    5954,5983,6012,5987,5943,5929,5877,5842,5808,
+    5781,5762,5740,5711,5693,5667,5641,5600,5555,
+    5497,5432,5381,5310,5249,5198,5161,5194,5214,
+    5233,5250,5246
+  ],
+  dax: [
+    21100,21340,21580,21420,21290,21190,20980,20760,20560,
+    20380,20210,20050,19860,19720,19570,19400,19210,18960,
+    18720,18480,18270,18050,17940,18110,18290,18420,18560,
+    18640,18700,18688
+  ],
+};
 const ASSET_COLORS = {
   gold:     { border: '#C9A84C', bg: 'rgba(201,168,76,0.18)', text: '#C9A84C' },
   silver:   { border: '#9090A8', bg: 'rgba(144,144,168,0.18)', text: '#9090A8' },
@@ -513,17 +700,25 @@ const fgZonePlugin = {
   afterDraw(chart) {
     const { ctx, chartArea, scales } = chart;
     if (!chartArea || !scales?.y) return;
-    const { left, right } = chartArea;
+    const { left, right, top, bottom } = chartArea;
     const yScale = scales.y;
-    const greedTop = yScale.getPixelForValue(100);
-    const greedBot = yScale.getPixelForValue(75);
-    ctx.fillStyle = 'rgba(15,110,86,0.03)';
-    ctx.fillRect(left, greedTop, right - left, greedBot - greedTop);
+    const clamp = v => Math.max(top, Math.min(bottom, yScale.getPixelForValue(v)));
 
-    const fearTop = yScale.getPixelForValue(25);
-    const fearBot = yScale.getPixelForValue(0);
-    ctx.fillStyle = 'rgba(163,45,45,0.07)';
-    ctx.fillRect(left, fearTop, right - left, fearBot - fearTop);
+    // Greed zone (75–100)
+    const greedTop = clamp(100);
+    const greedBot = clamp(75);
+    if (greedBot > greedTop) {
+      ctx.fillStyle = 'rgba(15,110,86,0.06)';
+      ctx.fillRect(left, greedTop, right - left, greedBot - greedTop);
+    }
+
+    // Fear zone (0–25)
+    const fearTop = clamp(25);
+    const fearBot = clamp(0);
+    if (fearBot > fearTop) {
+      ctx.fillStyle = 'rgba(163,45,45,0.12)';
+      ctx.fillRect(left, fearTop, right - left, fearBot - fearTop);
+    }
   }
 };
 
@@ -541,21 +736,21 @@ function pctFromHistory(series) {
 }
 
 function goldIntel(change) {
-  if (change > 1) return 'Strong safe-haven demand — gold breaking higher on risk-off flows.';
+  if (change > 1) return 'Strong safe-haven demand. Gold breaking higher on risk-off flows.';
   if (change > 0) return 'Safe-haven bid intact. Gold holding firm amid macro uncertainty.';
-  if (change < -1) return 'Gold retreating — risk appetite returning, watch support levels.';
-  return 'Gold consolidating — monitoring geopolitical and yield signals.';
+  if (change < -1) return 'Gold retreating. Risk appetite returning, watch support levels.';
+  return 'Gold consolidating. Monitoring geopolitical and yield signals.';
 }
 function sp500Intel(change) {
   if (change > 1.5) return 'Strong risk-on session. Watch for follow-through above resistance.';
-  if (change > 0) return 'Modest recovery. Sentiment fragile — breadth and volume matter.';
+  if (change > 0) return 'Modest recovery. Sentiment fragile. Breadth and volume matter.';
   if (change < -1.5) return 'Broad sell-off. Watch key support levels for signs of stabilisation.';
   return 'Cautious trade. Markets awaiting macro catalyst.';
 }
 function btcIntel(change, spChange) {
   if (change > 2 && spChange > 0) return 'Risk-on: BTC tracking equities higher. Liquidity improving.';
   if (change < -1 && spChange < 0) return 'Risk-off: BTC selling alongside equities. High correlation persists.';
-  if (change > 1 && spChange < 0) return 'BTC decoupling from equities — watch for sustained divergence.';
+  if (change > 1 && spChange < 0) return 'BTC decoupling from equities. Watch for sustained divergence.';
   return 'BTC consolidating. Monitor equity correlation for directional signal.';
 }
 
@@ -563,12 +758,27 @@ function makeLineChart(id, data, borderColor, fillColor, opts = {}) {
   const c = document.getElementById(id);
   if (!c) return null;
   if (charts[id]) charts[id].destroy();
+  // Pad a flat line to 8 points so Chart.js has something to render
+  const chartData = data.length < 2 ? Array(8).fill(data[0] ?? 0) : data;
   charts[id] = new Chart(c, {
     type: 'line',
-    data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor, borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: fillColor }] },
+    data: {
+      labels: chartData.map((_, i) => i),
+      datasets: [{
+        data: chartData,
+        borderColor,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true,
+        backgroundColor: fillColor,
+        clip: false,           // prevent line being clipped at canvas edge
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { top: 6, bottom: 2 } },  // room for line at peak
       plugins: { legend: { display: false }, tooltip: { enabled: opts.tooltip ?? false } },
       scales: {
         x: { display: false, grid: { display: false }, border: { display: false } },
@@ -582,21 +792,38 @@ function makeLineChart(id, data, borderColor, fillColor, opts = {}) {
 
 function updateChartsFromData(data) {
   const history = data?.history || {};
+  // Always ensure a full 30-day history for S&P 500 and DAX.
+  // Filters out corrupt proxy-scaled values, pads with seed data if gist is short.
+  const mergeHistory = (seed, live, minVal, maxVal) => {
+    const valid = (live || []).filter(v => v >= minVal && v <= maxVal);
+    if (valid.length >= 25) return valid.slice(-30);
+    return [...seed.slice(-(30 - valid.length)), ...valid];
+  };
+  history.sp500 = mergeHistory(SEED_HISTORY.sp500, history.sp500, 4500, 7500);
+  history.dax   = mergeHistory(SEED_HISTORY.dax,   history.dax,   14000, 28000);
   const pick = (arr, n = 30) => Array.isArray(arr) && arr.length ? arr.slice(-n) : [];
   const calcChange = (arr) => {
-    if (!arr || arr.length < 2) return 0;
-    const clean = dedupeConsecutive(arr);
+    if (!arr || arr.length < 2) return null;
+    // Strip out any near-zero or negative values that indicate a corrupt history entry
+    // (e.g. a bad parse that slipped through as 0.01 would produce a +50000% swing)
+    const clean = dedupeConsecutive(arr).filter(v => v > 0.5);
+    if (clean.length < 2) return null;
     const first = clean[0];
     const last = clean[clean.length - 1];
-    return first > 0 ? parseFloat((((last - first) / first) * 100).toFixed(2)) : 0;
+    if (first <= 0) return null;
+    const pct = parseFloat((((last - first) / first) * 100).toFixed(2));
+    // Cap at ±500% — anything beyond that is a data artefact, not a real return
+    if (Math.abs(pct) > 500) return null;
+    return pct;
   };
 
   const goldHist = pick(history.gold);
   const spxHist = dedupeConsecutive(pick(history.sp500));
   const btcHist = pick(history.bitcoin);
+  // Always draw sparklines — makeLineChart pads a flat line if only 1 point exists
   if (goldHist.length) makeLineChart('sk-g', goldHist, ASSET_COLORS.gold.border, ASSET_COLORS.gold.bg);
-  if (spxHist.length) makeLineChart('sk-s', spxHist, ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
-  if (btcHist.length) makeLineChart('sk-b', btcHist, ASSET_COLORS.bitcoin.border, ASSET_COLORS.bitcoin.bg);
+  if (spxHist.length)  makeLineChart('sk-s', spxHist,  ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
+  if (btcHist.length)  makeLineChart('sk-b', btcHist,  ASSET_COLORS.bitcoin.border, ASSET_COLORS.bitcoin.bg);
 
   const fgPulseHist = pick(history.fearGreed);
   const y10PulseHist = pick(history.treasury10y);
@@ -623,6 +850,7 @@ function updateChartsFromData(data) {
   else if (data?.macro?.fedFunds?.value != null) {
     makeLineChart('spk-fed', Array(8).fill(Number(data.macro.fedFunds.value)), '#6433B4', 'rgba(100,51,180,0.06)');
   }
+  // Filter out nulls (corrupt/insufficient history) before charting
   const perfRaw = [
     ['Gold', calcChange(history.gold), ASSET_COLORS.gold],
     ['Silver', calcChange(history.silver), ASSET_COLORS.silver],
@@ -630,7 +858,7 @@ function updateChartsFromData(data) {
     ['DAX', calcChange(history.dax), ASSET_COLORS.dax],
     ['FTSE', calcChange(history.ftse), ASSET_COLORS.ftse],
     ['Bitcoin', calcChange(history.bitcoin), ASSET_COLORS.bitcoin],
-  ].sort((a, b) => b[1] - a[1]);
+  ].filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
   const perfLabels = perfRaw.map(([label]) => label);
   const barData = perfRaw.map(([, value]) => Number(value.toFixed(2)));
   const barColors = perfRaw.map(([, , color]) => color);
@@ -663,19 +891,30 @@ function updateChartsFromData(data) {
   });
 
   // Visible winners/losers summary (no hover required)
+  // Use all 6 known assets; null means insufficient/corrupt history → show "—"
+  const ALL_PERF_ASSETS = ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold'];
   const performanceMap = Object.fromEntries(perfRaw.map(([name, v]) => [name, v]));
-  const performanceRows = ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold']
-    .map((name) => [name, performanceMap[name]])
-    .filter(([, v]) => v != null);
-  // Reorder for 2-column grid so reading is top-to-bottom in col 1, then col 2.
-  const displayRows = performanceRows.length === 6
-    ? [performanceRows[0], performanceRows[3], performanceRows[1], performanceRows[4], performanceRows[2], performanceRows[5]]
-    : performanceRows;
+  const performanceRows = ALL_PERF_ASSETS.map((name) => [name, performanceMap[name] ?? null]);
+  // Reorder for 2-column grid: col 1 = top 3, col 2 = bottom 3 by value
+  const validRows = performanceRows.filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
+  const nullRows  = performanceRows.filter(([, v]) => v === null);
+  const sorted = [...validRows, ...nullRows];
+  const displayRows = sorted.length === 6
+    ? [sorted[0], sorted[3], sorted[1], sorted[4], sorted[2], sorted[5]]
+    : sorted;
+  // Update subtitle if some histories are rebuilding after a reset
+  const perfSub = document.getElementById('perfSub');
+  if (perfSub) {
+    perfSub.textContent = nullRows.length > 0
+      ? `Winners and losers this month · ${nullRows.map(([n]) => n).join(', ')} rebuilding history`
+      : 'Winners and losers this month';
+  }
+
   const wl = document.getElementById('winnersLosersList');
   if (wl) {
     wl.innerHTML = displayRows.map(([name, v]) => {
-      const cls = v >= 0 ? 'up' : 'down';
-      const text = `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`;
+      const cls = v === null ? 'na' : v >= 0 ? 'up' : 'down';
+      const text = v === null ? 'rebuilding' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`;
       const color = ({
         'Bitcoin': ASSET_COLORS.bitcoin.text,
         'S&P 500': ASSET_COLORS.sp500.text,
@@ -717,18 +956,41 @@ function updateChartsFromData(data) {
   const fgSubCrash = document.getElementById('fgSubCrash');
   if (fgSubOverview) fgSubOverview.textContent = fgSub;
   if (fgSubCrash) fgSubCrash.textContent = fgSub;
+  // Dynamic Y-axis: zoom into actual data range so movement is visible
+  const fgDataMin = fgD.length ? Math.min(...fgD) : 0;
+  const fgDataMax = fgD.length ? Math.max(...fgD) : 100;
+  const fgPad = Math.max(5, Math.round((fgDataMax - fgDataMin) * 0.4));
+  const fgYMin = Math.max(0,   fgDataMin - fgPad);
+  const fgYMax = Math.min(100, fgDataMax + fgPad);
+  // Snap to zone boundaries so labels land cleanly
+  const fgYMinSnap = [0, 25, 50, 75].reduce((best, z) => (z <= fgYMin && z > best ? z : best), 0);
+  const fgYMaxSnap = [25, 50, 75, 100].reduce((best, z) => (z >= fgYMax && z < best ? z : best), 100);
+  const fgAxisMin = Math.min(fgYMin, fgYMinSnap);
+  const fgAxisMax = Math.max(fgYMax, fgYMaxSnap);
+  // In extreme fear the line should be red, otherwise amber
+  const fgInFear = fgDataMax <= 25;
+  const fgBorderColor = fgInFear ? '#C0392B' : '#B8952A';
+  const fgBgColor     = fgInFear ? 'rgba(192,57,43,0.10)' : 'rgba(184,149,42,0.10)';
+
   ['fgC', 'fgC2'].forEach((id) => {
     const c = document.getElementById(id);
     if (!c || !fgD.length) return;
     if (charts[id]) charts[id].destroy();
     charts[id] = new Chart(c, {
       type: 'line',
-      data: { labels: fgL, datasets: [{ data: fgD, borderColor: '#B8952A', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: 'rgba(184,149,42,0.10)' }] },
+      data: { labels: fgL, datasets: [{ data: fgD, borderColor: fgBorderColor, borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: fgBgColor }] },
       options: {
         responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
         scales: {
           x: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 4 } },
-          y: { min: 0, max: 100, grid: { color: 'rgba(221,211,188,0.7)' }, border: { display: false }, ticks: { callback: v => (v === 25 ? 'Fear' : v === 75 ? 'Greed' : v === 50 ? 'Neutral' : v), stepSize: 25 } },
+          y: {
+            min: fgAxisMin, max: fgAxisMax,
+            grid: { color: 'rgba(221,211,188,0.7)' }, border: { display: false },
+            ticks: {
+              callback: v => (v === 25 ? 'Fear' : v === 75 ? 'Greed' : v === 50 ? 'Neutral' : v === 0 ? '0' : v),
+              stepSize: Math.max(5, Math.round((fgAxisMax - fgAxisMin) / 4 / 5) * 5),
+            }
+          },
         },
       },
       plugins: [fgZonePlugin],
@@ -804,6 +1066,38 @@ function updateChartsFromData(data) {
   });
   if (charts.spreadC) charts.spreadC.destroy();
   if (spreadHistory.length) {
+    // Zoom Y to data range with enough headroom to show the 0 threshold clearly
+    const spreadMin = Math.min(0, ...spreadHistory);
+    const spreadMax = Math.max(...spreadHistory);
+    const spreadPad = Math.max(0.15, (spreadMax - spreadMin) * 0.25);
+    const spreadYMin = spreadMin - spreadPad;
+    const spreadYMax = spreadMax + spreadPad;
+
+    // Plugin: draw a bold red "Inversion threshold" line at y=0
+    const zeroLinePlugin = {
+      id: 'zeroLine',
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales?.y) return;
+        const y0 = scales.y.getPixelForValue(0);
+        if (y0 < chartArea.top || y0 > chartArea.bottom) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y0);
+        ctx.lineTo(chartArea.right, y0);
+        ctx.strokeStyle = 'rgba(163,45,45,0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#A32D2D';
+        ctx.font = '10px "DM Sans", system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('← inversion risk', chartArea.right - 4, y0 - 4);
+        ctx.restore();
+      }
+    };
+
     charts.spreadC = new Chart(document.getElementById('spreadC'), {
       type: 'bar',
       data: {
@@ -812,10 +1106,10 @@ function updateChartsFromData(data) {
           label: '10Y−2Y spread',
           data: spreadHistory,
           backgroundColor: spreadHistory.map(v =>
-            v < 0 ? 'rgba(163,45,45,0.2)' :
-            v < 0.3 ? 'rgba(184,149,42,0.2)' :
-            v < 0.6 ? 'rgba(15,110,86,0.15)' :
-            'rgba(15,110,86,0.25)'
+            v < 0 ? 'rgba(163,45,45,0.25)' :
+            v < 0.3 ? 'rgba(184,149,42,0.22)' :
+            v < 0.6 ? 'rgba(15,110,86,0.18)' :
+            'rgba(15,110,86,0.28)'
           ),
           borderColor: spreadHistory.map(v =>
             v < 0 ? '#A32D2D' :
@@ -833,15 +1127,20 @@ function updateChartsFromData(data) {
           legend: { display: false },
           tooltip: { callbacks: { label: ctx => {
             const v = ctx.parsed.y;
-            const status = v < 0 ? 'Inverted — recession risk' : v < 0.3 ? 'Watch zone' : 'Healthy';
+            const status = v < 0 ? 'Inverted — recession signal' : v < 0.3 ? 'Watch zone — nearing flat' : 'Healthy — curve not inverted';
             return `Spread: ${v >= 0 ? '+' : ''}${v.toFixed(3)}% · ${status}`;
           }}}
         },
         scales: {
-          x: { grid: { display: false }, border: { display: false } },
-          y: { grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => `${Number(v) >= 0 ? '+' : ''}${Number(v).toFixed(2)}%` } }
+          x: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 6 } },
+          y: {
+            min: spreadYMin, max: spreadYMax,
+            grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false },
+            ticks: { callback: v => `${Number(v) >= 0 ? '+' : ''}${Number(v).toFixed(2)}` }
+          }
         }
-      }
+      },
+      plugins: [zeroLinePlugin],
     });
   }
 
@@ -935,10 +1234,9 @@ function show(id,btn){
   document.getElementById('p-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='geo'){ drawWorldMap(); }
-  // Re-render charts after tab switch so hidden canvases don't remain blank.
-  if (window.liveAurumData) {
-    setTimeout(() => updateChartsFromData(window.liveAurumData), 30);
-  }
+  // Re-render charts after tab switch so hidden canvases get proper dimensions.
+  // Use live data if available, otherwise fall back to seed history.
+  setTimeout(() => updateChartsFromData(window.liveAurumData || { history: SEED_HISTORY }), 80);
 }
 
 let mapRendered = false;
@@ -976,97 +1274,214 @@ async function drawWorldMap(){
     .translate([width / 2, height / 1.9]);
   const path = d3.geoPath().projection(projection);
 
-  const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  let world;
+  try {
+    // Use 50m (higher resolution) for better small-country visibility
+    world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+  } catch (err) {
+    container.innerHTML = '<p style="color:#8A96A4;font-size:13px;padding:24px;text-align:center;">Map unavailable. Check your connection and try again.</p>';
+    return;
+  }
   const countries = topojson.feature(world, world.objects.countries).features;
 
-  // world-atlas uses numeric country ids, so map key states explicitly.
+  // ISO numeric → alpha-3 lookup
   const idToIso = {
-    '364': 'IRN',
-    '643': 'RUS',
-    '376': 'ISR',
-    '804': 'UKR',
-    '156': 'CHN',
-    '840': 'USA',
-    '408': 'PRK'
+    // Middle East & Gulf
+    '364': 'IRN', '376': 'ISR', '422': 'LBN', '760': 'SYR',
+    '887': 'YEM', '368': 'IRQ', '682': 'SAU', '784': 'ARE',
+    '400': 'JOR', '414': 'KWT', '634': 'QAT', '512': 'OMN',
+    '048': 'BHR', '792': 'TUR', '818': 'EGY', '275': 'PSE',
+    // Central & South Asia
+    '004': 'AFG', '586': 'PAK', '356': 'IND', '050': 'BGD',
+    // Europe & Russia
+    '643': 'RUS', '804': 'UKR',
+    // East Asia
+    '156': 'CHN', '408': 'PRK', '840': 'USA',
+    // Africa
+    '434': 'LBY', '729': 'SDN', '706': 'SOM', '566': 'NGA',
+    '231': 'ETH', '104': 'MMR',
+    // Americas
+    '862': 'VEN',
   };
 
-  const riskData = window.liveAurumData?.geopolitical?.riskByCountry || { IRN: 100, RUS: 33, ISR: 17, UKR: 49, CHN: 22, PRK: 28 };
-  const countryNames = { IRN:'Iran', RUS:'Russia', ISR:'Israel', UKR:'Ukraine', CHN:'China', USA:'United States', PRK:'North Korea' };
+  const riskData = window.liveAurumData?.geopolitical?.riskByCountry || {
+    // High risk
+    IRN: 100, YEM: 72, SDN: 60, IRQ: 58, LBN: 55,
+    // Elevated
+    ISR: 50, AFG: 48, UKR: 49, SYR: 42, VEN: 40,
+    // Watch
+    RUS: 33, NGA: 32, SAU: 28, PRK: 28, LBY: 28, SOM: 28,
+    PAK: 26, ETH: 24, PSE: 22,
+    // Monitoring
+    CHN: 22, EGY: 20, TUR: 20, KWT: 18, JOR: 18, IND: 18,
+    OMN: 16, ARE: 15, QAT: 14, BHR: 14, BGD: 12, MMR: 12,
+  };
+
+  const countryNames = {
+    IRN:'Iran', ISR:'Israel', LBN:'Lebanon', SYR:'Syria',
+    YEM:'Yemen', IRQ:'Iraq', SAU:'Saudi Arabia', ARE:'UAE',
+    JOR:'Jordan', KWT:'Kuwait', QAT:'Qatar', OMN:'Oman',
+    BHR:'Bahrain', TUR:'Turkey', EGY:'Egypt', PSE:'Palestinian Territories',
+    AFG:'Afghanistan', PAK:'Pakistan', IND:'India', BGD:'Bangladesh',
+    RUS:'Russia', UKR:'Ukraine',
+    CHN:'China', PRK:'North Korea', USA:'United States',
+    LBY:'Libya', SDN:'Sudan', SOM:'Somalia', NGA:'Nigeria',
+    ETH:'Ethiopia', MMR:'Myanmar', VEN:'Venezuela',
+  };
   const countrySignals = {
-    IRN:'Oil ↑ · Gold ↑',
-    RUS:'Wheat ↑ · EUR equities ↓',
-    ISR:'Iran-linked · watch',
-    UKR:'Gas ↑ · Wheat ↑',
-    CHN:'Trade risk · USD ↑',
-    USA:'Tariff risk · policy watch',
-    PRK:'Risk premium watch'
+    IRN: 'Oil · Gold · Strait of Hormuz closure risk',
+    ISR: 'Active conflict · Iran escalation watch',
+    LBN: 'Hezbollah · Iran proxy · regional stability',
+    SYR: 'Ongoing conflict · humanitarian spillover',
+    YEM: 'Houthi shipping disruption · Red Sea routes',
+    IRQ: 'Oil output · Iran-linked militias · US presence',
+    SAU: 'OPEC+ production · Red Sea security · oil floor',
+    ARE: 'Oil hub · trade finance · Gulf stability',
+    JOR: 'Regional buffer · spillover risk',
+    KWT: 'Gulf oil · US alliance · proximity to Iran',
+    QAT: 'LNG exports · Al Udeid airbase · diplomacy',
+    OMN: 'Hormuz proximity · gas exports · neutral broker',
+    BHR: 'US Fifth Fleet · Gulf security',
+    TUR: 'Bosphorus Strait · NATO · grain corridor',
+    EGY: 'Suez Canal · regional stability · IMF debt',
+    PSE: 'Gaza conflict · regional spillover',
+    AFG: 'Taliban · narcotics · regional destabilisation',
+    PAK: 'Nuclear state · India tensions · IMF risk',
+    IND: 'India-Pakistan tensions · EM growth engine',
+    BGD: 'Political instability · garment supply chain',
+    RUS: 'Wheat · EUR equities · gas supply disruption',
+    UKR: 'Gas · Wheat · EUR equities · reconstruction',
+    CHN: 'Trade war · tech supply chain · Taiwan risk',
+    PRK: 'Nuclear risk premium · Korean peninsula',
+    USA: 'Tariff policy · rate path · dollar dominance',
+    LBY: 'Oil output disruption · Mediterranean migration',
+    SDN: 'Civil war · gold supply · humanitarian crisis',
+    SOM: 'Houthi coordination · piracy · Horn of Africa',
+    NGA: 'Oil output · Boko Haram · EM risk',
+    ETH: 'Conflict · Horn of Africa · EM bond risk',
+    MMR: 'Civil war · supply chain · ASEAN instability',
+    VEN: 'Oil sanctions · political instability · migration',
   };
 
   const riskColor = (score) => {
     if (score >= 90) return '#A32D2D';
-    if (score >= 60) return 'rgba(163,45,45,0.45)';
-    if (score >= 40) return 'rgba(184,149,42,0.22)';
-    if (score >= 20) return 'rgba(184,149,42,0.12)';
-    if (score >= 1) return 'rgba(13,27,42,0.07)';
+    if (score >= 60) return 'rgba(163,45,45,0.5)';
+    if (score >= 40) return 'rgba(184,149,42,0.30)';
+    if (score >= 20) return 'rgba(184,149,42,0.15)';
+    if (score >=  1) return 'rgba(13,27,42,0.07)';
     return 'rgba(13,27,42,0.03)';
   };
   const hotspotBadgeStyle = (score) => {
-    if (score >= 90) return { bg: 'rgba(163,45,45,0.1)', color: '#A32D2D' };
-    if (score >= 40) return { bg: 'rgba(184,149,42,0.1)', color: '#B8952A' };
-    return { bg: 'rgba(201,168,76,0.1)', color: '#C9A84C' };
+    if (score >= 90) return { bg: 'rgba(163,45,45,0.1)',   color: '#A32D2D' };
+    if (score >= 40) return { bg: 'rgba(184,149,42,0.1)',  color: '#B8952A' };
+    return              { bg: 'rgba(201,168,76,0.1)',  color: '#C9A84C' };
   };
+
+  // Tooltip helper — reused by both path hover and dot markers
+  function showTooltip(event, iso, score) {
+    const name = countryNames[iso];
+    if (!name) return;
+    const signal = countrySignals[iso] || '';
+    const scoreLabel = score > 0
+      ? `<span style="color:${score >= 60 ? '#A32D2D' : score >= 40 ? '#B8952A' : '#C9A84C'}">${score}/100</span>`
+      : '<span style="color:#9CA3AF">Monitoring</span>';
+    mapTooltip.style('opacity', 1).html(
+      `<strong style="color:#fff">${name}</strong>` +
+      `<br><span style="color:#9CA3AF;font-size:11px">Risk score</span> ${scoreLabel}` +
+      (signal ? `<br><span style="color:#D4C5A0;font-size:11px">${signal}</span>` : '')
+    );
+    mapTooltip.style('left', `${event.pageX + 14}px`).style('top', `${event.pageY - 36}px`);
+  }
 
   svg.selectAll('path')
     .data(countries)
     .join('path')
     .attr('d', path)
-    .attr('fill', d => {
-      const iso = idToIso[String(d.id)];
-      const score = riskData[iso] || 0;
-      return riskColor(score);
-    })
+    .attr('fill', d => riskColor(riskData[idToIso[String(d.id)]] || 0))
     .attr('stroke', 'rgba(249,246,240,0.6)')
     .attr('stroke-width', 0.4)
     .on('mouseover', function(event, d) {
       const iso = idToIso[String(d.id)];
+      if (!iso || !countryNames[iso]) return;
       const score = riskData[iso] || 0;
-      if (score === 0) return;
-      const name = countryNames[iso];
-      if (!name) return;
-      mapTooltip.style('opacity', 1)
-        .html(`<strong>${name}</strong><br>Risk: ${score}/100<br>${countrySignals[iso] || ''}`);
+      showTooltip(event, iso, score);
       d3.select(this).attr('stroke', '#C9A84C').attr('stroke-width', 1.5);
     })
     .on('mousemove', function(event) {
-      mapTooltip.style('left', `${event.pageX + 12}px`).style('top', `${event.pageY - 28}px`);
+      mapTooltip.style('left', `${event.pageX + 14}px`).style('top', `${event.pageY - 36}px`);
     })
     .on('mouseout', function() {
       mapTooltip.style('opacity', 0);
       d3.select(this).attr('stroke', 'rgba(249,246,240,0.6)').attr('stroke-width', 0.4);
     });
 
-  const iranFeature = countries.find(f => idToIso[String(f.id)] === 'IRN');
-  if (iranFeature && (riskData['IRN'] || 0) >= 90) {
-    const centroid = path.centroid(iranFeature);
-    function pulse() {
-      svg.append('circle')
-        .attr('cx', centroid[0])
-        .attr('cy', centroid[1])
-        .attr('r', 4)
-        .attr('fill', 'none')
-        .attr('stroke', '#A32D2D')
-        .attr('stroke-width', 1.5)
-        .attr('opacity', 0.8)
-        .transition()
-        .duration(1800)
-        .ease(d3.easeCubicOut)
-        .attr('r', 16)
-        .attr('opacity', 0)
-        .remove()
-        .on('end', pulse);
+  // ── Dot markers for small countries invisible at world scale ─────────────────
+  // Israel and Lebanon are too small to see as polygons even at 50m resolution.
+  // Place explicit coloured dots at their geographic centroids.
+  const SMALL_MARKERS = {
+    ISR: { lon: 35.0, lat: 31.5 },
+    LBN: { lon: 35.5, lat: 33.9 },
+    KWT: { lon: 47.9, lat: 29.4 },
+    QAT: { lon: 51.5, lat: 25.3 },
+    ARE: { lon: 54.4, lat: 24.5 },
+    BHR: { lon: 50.6, lat: 26.2 },
+    PSE: { lon: 34.5, lat: 31.4 },
+    JOR: { lon: 37.0, lat: 30.6 },
+  };
+  Object.entries(SMALL_MARKERS).forEach(([iso, coords]) => {
+    const score = riskData[iso] || 0;
+    const [cx, cy] = projection([coords.lon, coords.lat]);
+    if (!cx || !cy || isNaN(cx) || isNaN(cy)) return;
+    const colour = score >= 60 ? '#A32D2D' : score >= 40 ? '#B8952A' : '#C9A84C';
+    // Static filled dot
+    svg.append('circle')
+      .attr('cx', cx).attr('cy', cy).attr('r', 4)
+      .attr('fill', colour).attr('opacity', 0.9)
+      .style('cursor', 'pointer')
+      .on('mouseover', (event) => showTooltip(event, iso, score))
+      .on('mousemove', (event) => {
+        mapTooltip.style('left', `${event.pageX + 14}px`).style('top', `${event.pageY - 36}px`);
+      })
+      .on('mouseout', () => mapTooltip.style('opacity', 0));
+  });
+
+  // ── Pulse animations for elevated hotspots ────────────────────────────────────
+  // Run for ISR/LBN via dot coords; for larger countries use polygon centroid
+  const pulseTargets = [
+    { iso: 'IRN', useCoords: null },
+    { iso: 'ISR', useCoords: SMALL_MARKERS.ISR },
+    { iso: 'LBN', useCoords: SMALL_MARKERS.LBN },
+    { iso: 'YEM', useCoords: null },
+    { iso: 'IRQ', useCoords: null },
+    { iso: 'SDN', useCoords: null },
+    { iso: 'AFG', useCoords: null },
+    { iso: 'UKR', useCoords: null },
+    { iso: 'PSE', useCoords: SMALL_MARKERS.PSE },
+  ];
+  pulseTargets.forEach(({ iso, useCoords }) => {
+    const score = riskData[iso] || 0;
+    if (score < 40) return;   // pulse at 40+ now floors are applied
+    let cx, cy;
+    if (useCoords) {
+      [cx, cy] = projection([useCoords.lon, useCoords.lat]);
+    } else {
+      const feature = countries.find(f => idToIso[String(f.id)] === iso);
+      if (!feature) return;
+      [cx, cy] = path.centroid(feature);
     }
-    pulse();
-  }
+    if (!cx || !cy || isNaN(cx) || isNaN(cy)) return;
+    const colour = score >= 90 ? '#A32D2D' : '#B8952A';
+    function pulseOne() {
+      svg.append('circle')
+        .attr('cx', cx).attr('cy', cy)
+        .attr('r', 4).attr('fill', 'none')
+        .attr('stroke', colour).attr('stroke-width', 1.5).attr('opacity', 0.8)
+        .transition().duration(1800).ease(d3.easeCubicOut)
+        .attr('r', 18).attr('opacity', 0).remove()
+        .on('end', pulseOne);
+    }
+    pulseOne();
+  });
 
   document.querySelectorAll('.hs-score[data-iso]').forEach((el) => {
     const iso = el.getAttribute('data-iso');
@@ -1093,6 +1508,41 @@ function styleFearGreedPulse(){
 }
 
 styleFearGreedPulse();
+
+// ── News ticker ───────────────────────────────────────────────────────────────
+function buildTicker(items) {
+  const track = document.getElementById('tickerTrack');
+  if (!track || !items?.length) return;
+  const toneColor = (t) => t === 'bearish' ? '#A32D2D' : t === 'bullish' ? '#0F6E56' : '#B8952A';
+  const html = items.map(item =>
+    `<div class="ticker-item">
+      <div class="ticker-dot" style="background:${toneColor(item.tone)}"></div>
+      <span>${item.text}</span>
+    </div>`
+  ).join('');
+  // Duplicate for seamless infinite scroll
+  track.innerHTML = html + html;
+  // Speed: ~90px/s feels right for news
+  requestAnimationFrame(() => {
+    const halfW = track.scrollWidth / 2;
+    const dur   = Math.max(45, Math.round(halfW / 50));
+    track.style.setProperty('--ticker-dur', `${dur}s`);
+    track.classList.add('running');
+  });
+}
+// Start ticker animation on static content immediately
+(function initTicker() {
+  const track = document.getElementById('tickerTrack');
+  if (!track) return;
+  // Duplicate static items for seamless loop
+  track.innerHTML += track.innerHTML;
+  requestAnimationFrame(() => {
+    const halfW = track.scrollWidth / 2;
+    const dur   = Math.max(45, Math.round(halfW / 50));
+    track.style.setProperty('--ticker-dur', `${dur}s`);
+    track.classList.add('running');
+  });
+})();
 
 async function loadLiveBriefing() {
   // Uses secret/unlisted gist raw URL as runtime content source.
@@ -1198,14 +1648,312 @@ async function loadLiveBriefing() {
     setText('spxIntel', sp500Intel(data?.indices?.sp500?.change ?? 0));
     setText('btcIntel', btcIntel(data?.crypto?.bitcoin?.change ?? 0, data?.indices?.sp500?.change ?? 0));
 
+    // Historical context on pulse cards + Key Watch strip + Live Scenarios
+    populatePulseContext(data);
+    populateScenarios(data);
+
     // Keep all charts anchored to real snapshot/history data.
     updateChartsFromData(data);
+    // Re-render after a short delay so any currently-visible tab gets correct dimensions.
+    setTimeout(() => updateChartsFromData(data), 200);
   } catch {
     // Keep curated fallback copy if live briefing fails.
   }
 }
 
+// ── PULSE CARD CONTEXT + KEY WATCH ───────────────────────────────────────────
+function populatePulseContext(data) {
+  const history = data?.history || {};
+  const mergeHistory = (seed, live, minVal, maxVal) => {
+    const valid = (live || []).filter(v => v >= minVal && v <= maxVal);
+    if (valid.length >= 25) return valid.slice(-30);
+    return [...seed.slice(-(30 - valid.length)), ...valid];
+  };
+  history.sp500 = mergeHistory(SEED_HISTORY.sp500, history.sp500, 4500, 7500);
+  history.dax   = mergeHistory(SEED_HISTORY.dax,   history.dax,   14000, 28000);
+  const pick = (arr, n = 90) => Array.isArray(arr) && arr.length ? arr.slice(-n) : [];
+  const set = (id, txt) => { const el = document.getElementById(id); if (el && txt) el.textContent = txt; };
+
+  // Correct English ordinal suffix: 1st, 2nd, 3rd, 4th…
+  const ord = (n) => {
+    const s = ['th','st','nd','rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
+  // Compute what percentile `val` sits at within `arr` (higher = rare high reading)
+  const pctile = (arr, val) => {
+    if (!arr.length || val == null) return null;
+    return Math.round((arr.filter(v => v < val).length / arr.length) * 100);
+  };
+
+  // ── Fear & Greed ────────────────────────────────────────────────────────────
+  const fgHist = pick(history.fearGreed);
+  const fgVal  = data?.fearGreed?.value;
+  if (fgHist.length >= 5 && fgVal != null) {
+    const p    = pctile(fgHist, fgVal);
+    const days = fgHist.length;
+    const ctx  = p <= 10 ? `${days}-day low · lower than ${100 - p}% of readings`
+               : p >= 90 ? `${days}-day high · higher than ${p}% of readings`
+               : p <= 25 ? `Near ${days}-day low · ${ord(p)} percentile`
+               : p >= 75 ? `Near ${days}-day high · ${ord(p)} percentile`
+               : `${ord(p)} percentile over ${days} days`;
+    set('fgCtx', ctx);
+  }
+
+  // ── 10Y Yield ───────────────────────────────────────────────────────────────
+  const y10Hist = pick(history.treasury10y);
+  const y10Val  = data?.macro?.treasury10y?.value;
+  if (y10Hist.length >= 5 && y10Val != null) {
+    const p   = pctile(y10Hist, y10Val);
+    const days = y10Hist.length;
+    // 10-day trend in basis points
+    const trend = y10Hist.length >= 10
+      ? Math.round((y10Hist[y10Hist.length - 1] - y10Hist[y10Hist.length - 10]) * 100)
+      : 0;
+    const ctx = p >= 90 ? `Near ${days}-day high · ${Math.max(...y10Hist).toFixed(2)}% peak`
+              : p <= 10 ? `Near ${days}-day low · ${Math.min(...y10Hist).toFixed(2)}% floor`
+              : trend >  5 ? `Rising · +${trend}bps over 10 days`
+              : trend < -5 ? `Falling · ${trend}bps over 10 days`
+              : `Stable · ${ord(p)} percentile (${days} days)`;
+    set('y10Ctx', ctx);
+  }
+
+  // ── CPI ─────────────────────────────────────────────────────────────────────
+  const cpiYoy = data?.macro?.cpi?.yoyPct;
+  if (cpiYoy != null) {
+    const gap = (cpiYoy - 2.0).toFixed(2);
+    const ctx = cpiYoy > 4   ? `${gap}pp above Fed's 2% target — restrictive territory`
+              : cpiYoy > 2   ? `${gap}pp above Fed's 2% target — still sticky`
+              : cpiYoy > 0   ? `At or near Fed's 2% target — easing pressure`
+              : `Below target · deflationary risk watch`;
+    set('cpiCtx', ctx);
+  }
+
+  // ── Fed Funds ───────────────────────────────────────────────────────────────
+  const fedVal    = data?.macro?.fedFunds?.value;
+  const fedChange = data?.macro?.fedFunds?.change;
+  if (fedVal != null) {
+    const ctx = fedChange != null && Math.abs(fedChange) >= 0.1
+      ? fedChange > 0 ? `Hiking · last move +${Math.abs(fedChange).toFixed(2)}pp`
+                      : `Cutting · last move −${Math.abs(fedChange).toFixed(2)}pp`
+      : `Held steady · neutral policy stance`;
+    set('fedCtx', ctx);
+  }
+
+  // ── Geo context paragraph in briefing ───────────────────────────────────────
+  // Picks the highest-probability scenario and writes a single article-style
+  // paragraph that appears between the main briefing body and the Key Watch strip.
+  const geoEl = document.getElementById('briefingGeo');
+  if (geoEl) {
+    const scenarios  = data?.sentiment?.scenarios ?? [];
+    const geo        = data?.geopolitical?.riskByCountry ?? {};
+    const topScenario = scenarios[0]; // scenarios are ordered by severity in fetch.js
+
+    // Only surface geo content when there's an active signal worth calling out
+    const iranRisk   = geo.IRN ?? 0;
+    const isrRisk    = geo.ISR ?? 0;
+    const lbnRisk    = geo.LBN ?? 0;
+    const mideast    = Math.max(iranRisk, isrRisk, lbnRisk);
+    const spreadVal  = data?.macro?.yieldSpread?.value;
+    const cpiVal     = data?.macro?.cpi?.yoyPct;
+
+    let geoPara = '';
+
+    // Helper: build inline coloured asset list with no boxes, just text
+    const dirLabel = { up: '↑', down: '↓', watch: '→' };
+    const inlineAssets = (assets) => assets.map(a =>
+      `<span class="b-geo-tag b-geo-tag-${a.direction}">${dirLabel[a.direction] || '→'} ${a.name}</span>`
+    ).join('');
+    const geoLink = `<a class="b-geo-link" href="#" onclick="document.querySelectorAll('.stab')[1].click();return false;">Full analysis →</a>`;
+
+    if (topScenario && topScenario.probability !== 'monitoring') {
+      let lead = '';
+      if (topScenario.id === 'mideast-escalation') {
+        const hotspot = iranRisk >= isrRisk && iranRisk >= lbnRisk
+          ? `Iran's GDELT conflict score sits at ${iranRisk}/100`
+          : isrRisk >= lbnRisk
+            ? `Israel-Lebanon tensions are at ${Math.max(isrRisk, lbnRisk)}/100`
+            : `Lebanon risk is elevated at ${lbnRisk}/100`;
+        lead = `<span class="b-geo-hl">Geopolitical backdrop.</span> ${hotspot}, with Strait of Hormuz posturing putting roughly 20% of global oil supply at risk. A confirmed naval incident would likely send oil up 20–30% and gold up 8–15% within 48 hours.`;
+      } else if (topScenario.id === 'risk-off-extreme') {
+        const fg = data?.fearGreed?.value;
+        lead = `<span class="b-geo-hl">Market context.</span> With Fear & Greed at ${fg ?? 'extreme lows'}, capital is rotating defensively out of equities and into safe havens. Historically, readings this low have marked major capitulation events. Watch for a recovery above 30 as the first signal that selling pressure is beginning to exhaust itself.`;
+      } else if (topScenario.id === 'risk-off-geo') {
+        lead = `<span class="b-geo-hl">Geopolitical risk-off.</span> Elevated geopolitical risk scores are combining with weak sentiment to drive selective safe-haven flows, particularly affecting energy-sensitive sectors. Oil and gold are the primary beneficiaries in this environment.`;
+      } else if (topScenario.id === 'yield-curve-recession') {
+        const spread = data?.macro?.yieldSpread?.value;
+        lead = `<span class="b-geo-hl">Rates picture.</span> The 10Y–2Y yield spread has narrowed to ${spread != null ? (spread >= 0 ? '+' : '') + spread.toFixed(2) : 'tight levels'}, a pattern that has historically preceded recessions by 12–18 months. Long bonds and defensive sectors tend to benefit as markets begin pricing a Fed pivot.`;
+      } else if (topScenario.id === 'inflation-persistence') {
+        const cpi = data?.macro?.cpi?.yoyPct;
+        lead = `<span class="b-geo-hl">Inflation context.</span> CPI is running at ${cpi != null ? cpi.toFixed(1) + '%' : 'elevated levels'} against the Fed's 2% target, keeping rate cuts firmly off the table. Real assets and commodities have historically performed well in this environment, while long-duration equities and bonds face continued pressure.`;
+      } else if (topScenario.id === 'gold-breakout') {
+        lead = `<span class="b-geo-hl">Gold signal.</span> A breakout is underway. The key diagnostic is the direction of the dollar: if gold and the USD are rising together, it signals genuine fear-driven buying rather than a simple currency play. Silver and mining stocks typically follow with a short lag.`;
+      } else {
+        lead = `<span class="b-geo-hl">${topScenario.title}.</span> ${topScenario.trigger}`;
+      }
+
+      const tags = inlineAssets(topScenario.assets || []);
+      geoPara = `${lead} <span class="b-geo-assets">${tags}</span> ${geoLink}`;
+
+    } else if (mideast >= 45) {
+      const hotCountry = iranRisk >= isrRisk ? `Iran (${iranRisk}/100)` : `Israel-Lebanon (${Math.max(isrRisk, lbnRisk)}/100)`;
+      geoPara = `<span class="b-geo-hl">Geopolitical watch.</span> Middle East risk remains elevated at ${hotCountry}. No confirmed escalation trigger yet, but oil and gold are on alert for any Hormuz-related developments. ${geoLink}`;
+    }
+
+    if (geoPara) {
+      geoEl.innerHTML = geoPara;
+      geoEl.style.display = 'block';
+    }
+  }
+
+  // ── Live news: ticker + Geo tab "From the wires" ───────────────────────────
+  const newsItems   = data?.sentiment?.newsItems;
+  const geoNewsList = document.getElementById('geoNewsList');
+  const toneColor   = (tone) =>
+    tone === 'bearish' ? '#A32D2D' : tone === 'bullish' ? '#0F6E56' : '#B8952A';
+  const timeAgo = (iso) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return h > 0 ? `${h}h ago` : `${m}m ago`;
+  };
+
+  // Strip items without a named source — prevents unverified copy reaching the UI
+  const verifiedItems = (newsItems || []).filter(item => item.source?.trim());
+
+  if (verifiedItems.length) {
+    // ── Ticker: replace static items with live feed ──────────────────────────
+    buildTicker(verifiedItems);
+
+    // ── Geo tab full list ────────────────────────────────────────────────────
+    if (geoNewsList) {
+      geoNewsList.innerHTML = verifiedItems.slice(0, 6).map(item => {
+        const color = toneColor(item.tone);
+        const ago  = item.published ? timeAgo(item.published) : '';
+        const src  = item.source || '';
+        const meta = [src, ago].filter(Boolean).join(' · ');
+        const text = item.url
+          ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${item.text}</a>`
+          : item.text;
+        return `<div class="nitem">
+          <div class="ntone" style="background:${color}"></div>
+          <div><div class="ntxt">${text}</div>${meta ? `<div class="nmeta">${meta}</div>` : ''}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Key Watch strip ─────────────────────────────────────────────────────────
+  const watchLevels = data?.sentiment?.watchLevels;
+  const watchEl     = document.getElementById('briefingWatch');
+  const watchListEl = document.getElementById('briefingWatchLevels');
+  if (watchLevels?.length && watchEl && watchListEl) {
+    watchListEl.innerHTML = watchLevels
+      .map(w => `<div class="bw-item"><div class="bw-dot"></div><span>${w}</span></div>`)
+      .join('');
+    watchEl.style.display = 'block';
+  }
+}
+
+// ── LIVE SCENARIO WATCH ───────────────────────────────────────────────────────
+function populateScenarios(data) {
+  const scenarios = data?.sentiment?.scenarios;
+  const container = document.getElementById('liveScenarios');
+  const list      = document.getElementById('scenariosList');
+  if (!scenarios?.length || !container || !list) return;
+
+  const dirClass = d => d === 'up' ? 'scn-arrow-up' : d === 'down' ? 'scn-arrow-down' : 'scn-arrow-watch';
+  const dirArrow = d => d === 'up' ? '↑' : d === 'down' ? '↓' : '→';
+  const badgeClass = p => p === 'high' ? 'scn-badge-high' : p === 'elevated' ? 'scn-badge-elevated' : 'scn-badge-monitoring';
+  const badgeLabel = p => p === 'high' ? 'High' : p === 'elevated' ? 'Elevated' : 'Monitoring';
+
+  // Contextual "Explore further" links per scenario type
+  const EXPLORE_LINKS = {
+    'mideast-escalation': [
+      { label: 'GDELT risk map', url: 'https://gdeltproject.org' },
+      { label: 'Oil price (EIA)', url: 'https://www.eia.gov/petroleum/gasprices/' },
+      { label: 'Reuters Middle East', url: 'https://www.reuters.com/world/middle-east/' },
+    ],
+    'yield-curve-recession': [
+      { label: 'FRED yield curve', url: 'https://fred.stlouisfed.org/graph/?g=T8wf' },
+      { label: 'Bloomberg rates', url: 'https://www.bloomberg.com/markets/rates-bonds' },
+      { label: 'FT economics', url: 'https://www.ft.com/economics' },
+    ],
+    'inflation-persistence': [
+      { label: 'FRED CPI data', url: 'https://fred.stlouisfed.org/series/CPIAUCSL' },
+      { label: 'Fed dot plot', url: 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm' },
+      { label: 'WSJ inflation tracker', url: 'https://www.wsj.com/economy/inflation-tracker' },
+    ],
+    'risk-off-extreme': [
+      { label: 'Fear & Greed history', url: 'https://alternative.me/crypto/fear-and-greed-index/' },
+      { label: 'VIX (CBOE)', url: 'https://www.cboe.com/tradable_products/vix/' },
+      { label: 'FT markets', url: 'https://www.ft.com/markets' },
+    ],
+    'risk-off-geo': [
+      { label: 'Reuters markets', url: 'https://www.reuters.com/business/finance/' },
+      { label: 'Bloomberg markets', url: 'https://www.bloomberg.com/markets' },
+    ],
+    'gold-breakout': [
+      { label: 'Gold spot (LBMA)', url: 'https://www.lbma.org.uk/prices-and-data/precious-metal-prices' },
+      { label: 'Gold vs USD chart', url: 'https://fred.stlouisfed.org/series/GOLDAMGBD228NLBM' },
+      { label: 'FT commodities', url: 'https://www.ft.com/commodities' },
+    ],
+  };
+
+  list.innerHTML = scenarios.map(s => {
+    const links = EXPLORE_LINKS[s.id] || [];
+    const exploreHtml = links.length
+      ? `<div class="scn-explore"><span class="scn-explbl">Explore</span>${links.map(l =>
+          `<a class="scn-exlink" href="${l.url}" target="_blank" rel="noopener">${l.label} →</a>`
+        ).join('')}</div>`
+      : '';
+    return `
+    <div class="scn-card">
+      <div class="scn-head">
+        <div class="scn-title">${s.title}</div>
+        <div class="scn-badge ${badgeClass(s.probability)}">${badgeLabel(s.probability)}</div>
+      </div>
+      <div class="scn-trigger">${s.trigger}</div>
+      <div class="scn-assets">
+        ${(s.assets || []).map(a => `
+          <div class="scn-asset">
+            <div class="scn-arrow ${dirClass(a.direction)}">${dirArrow(a.direction)}</div>
+            <div class="scn-ainfo">
+              <div class="scn-aname">${a.name}</div>
+              <div class="scn-anote">${a.note}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="scn-watchfor"><span class="scn-wlbl">Watch for</span>${s.watchFor}</div>
+      ${exploreHtml}
+    </div>`;
+  }).join('');
+
+  container.style.display = 'block';
+
+  // Also hide the static "Scenario playbooks" label if live scenarios are showing,
+  // so the page doesn't look redundant
+  const playbooksLabel = document.getElementById('playbooksLabel');
+  if (playbooksLabel) playbooksLabel.style.marginTop = '22px';
+}
+
 loadLiveBriefing();
 </script>
+
+<!-- ── Sticky news ticker ──────────────────────────────────────────────────── -->
+<div class="ticker-wrap">
+  <span class="ticker-label">Wires</span>
+  <div class="ticker-overflow">
+    <div class="ticker-track" id="tickerTrack">
+      <div class="ticker-item"><div class="ticker-dot" style="background:#A32D2D"></div><span>Iran announces new Hormuz restrictions following US sanctions expansion</span></div>
+      <div class="ticker-item"><div class="ticker-dot" style="background:#B8952A"></div><span>Russia-Ukraine ceasefire talks stall. Energy exports stable for now</span></div>
+      <div class="ticker-item"><div class="ticker-dot" style="background:#C9A84C"></div><span>US Congress debates further Iran sanctions bill. Vote expected next week</span></div>
+      <div class="ticker-item"><div class="ticker-dot" style="background:#A32D2D"></div><span>Yemen Houthi forces report new Red Sea shipping disruption</span></div>
+      <div class="ticker-item"><div class="ticker-dot" style="background:#B8952A"></div><span>Sudan civil conflict continues. Gold supply corridor at risk</span></div>
+      <div class="ticker-item"><div class="ticker-dot" style="background:#0F6E56"></div><span>Gold holds above $4,500 as safe-haven demand persists</span></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
