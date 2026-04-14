@@ -197,7 +197,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .cabs{font-size:14px;color:#6B7280;}
 .sarea{height:60px;padding:4px 17px 8px;}
 .pulse .sarea{height:44px;padding:4px 14px 10px;}
-#barC { width: 100%; height: 220px !important; }
+#barC { width: 100%; height: 248px !important; }
 .istrip{padding:9px 17px 13px;border-top:1px solid #DDD3BC;display:flex;gap:7px;}
 .idot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:5px;}
 .itext{font-size:14px;color:#4A5568;line-height:1.6;}
@@ -439,7 +439,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <div class="ccrd">
           <div class="ccrd-head"><div class="ccrd-title">30-day asset performance</div><div class="ccrd-sub" id="perfSub">Winners and losers this month</div></div>
           <div class="ccrd-body perf-body">
-            <div style="position:relative;height:220px;margin-bottom:8px"><canvas id="barC"></canvas></div>
+            <div style="position:relative;height:248px;margin-bottom:14px"><canvas id="barC"></canvas></div>
             <div id="winnersLosersList" class="analysis-list"></div>
           </div>
         </div>
@@ -912,11 +912,12 @@ function updateChartsFromData(data) {
     ['Bitcoin', calcChange(history.bitcoin), Number(data?.crypto?.bitcoin?.change),ASSET_COLORS.bitcoin],
   ].map(([label, histPct, livePct, color]) => {
     const v = (histPct !== null && Number.isFinite(histPct)) ? histPct
-      : (Number.isFinite(livePct) ? Number(livePct.toFixed(2)) : null);
-    const source = (histPct !== null && Number.isFinite(histPct)) ? 'history' : (Number.isFinite(livePct) ? 'live' : 'none');
+      : (Number.isFinite(livePct) ? Number(livePct.toFixed(2)) : 0);
+    const source = (histPct !== null && Number.isFinite(histPct)) ? 'history'
+      : (Number.isFinite(livePct) ? 'live' : 'synthetic');
     return [label, v, color, source];
   });
-  const perfRaw = perfRawAll.filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
+  const perfRaw = perfRawAll.slice().sort((a, b) => b[1] - a[1]);
   const perfLabels = perfRaw.map(([label]) => label);
   const barData = perfRaw.map(([, value]) => Number(value.toFixed(2)));
   const barColors = perfRaw.map(([, , color]) => color);
@@ -953,11 +954,11 @@ function updateChartsFromData(data) {
   const ALL_PERF_ASSETS = ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold'];
   const performanceMap = Object.fromEntries(perfRaw.map(([name, v]) => [name, v]));
   const performanceSourceMap = Object.fromEntries(perfRawAll.map(([name, , , source]) => [name, source]));
-  const performanceRows = ALL_PERF_ASSETS.map((name) => [name, performanceMap[name] ?? null]);
+  const performanceRows = ALL_PERF_ASSETS.map((name) => [name, performanceMap[name] ?? 0]);
   // Reorder for 2-column grid: col 1 = top 3, col 2 = bottom 3 by value
-  const validRows = performanceRows.filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
-  const nullRows  = performanceRows.filter(([, v]) => v === null);
-  const sorted = [...validRows, ...nullRows];
+  const validRows = performanceRows.slice().sort((a, b) => b[1] - a[1]);
+  const syntheticRows = ALL_PERF_ASSETS.filter((n) => performanceSourceMap[n] === 'synthetic');
+  const sorted = validRows;
   const displayRows = sorted.length === 6
     ? [sorted[0], sorted[3], sorted[1], sorted[4], sorted[2], sorted[5]]
     : sorted;
@@ -965,16 +966,16 @@ function updateChartsFromData(data) {
   const perfSub = document.getElementById('perfSub');
   if (perfSub) {
     const usingLiveFallback = ALL_PERF_ASSETS.some((n) => performanceSourceMap[n] === 'live');
-    perfSub.textContent = nullRows.length > 0
-      ? `Winners and losers this month · ${nullRows.map(([n]) => n).join(', ')} rebuilding history`
+    perfSub.textContent = syntheticRows.length > 0
+      ? `Winners and losers this month · ${syntheticRows.join(', ')} awaiting history`
       : (usingLiveFallback ? 'Winners and losers this month · live fallback on sparse history' : 'Winners and losers this month');
   }
 
   const wl = document.getElementById('winnersLosersList');
   if (wl) {
     wl.innerHTML = displayRows.map(([name, v]) => {
-      const cls = v === null ? 'na' : v >= 0 ? 'up' : 'down';
-      const text = v === null ? 'rebuilding' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`;
+      const cls = performanceSourceMap[name] === 'synthetic' ? 'na' : (v >= 0 ? 'up' : 'down');
+      const text = performanceSourceMap[name] === 'synthetic' ? 'awaiting history' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}%`;
       const color = ({
         'Bitcoin': ASSET_COLORS.bitcoin.text,
         'S&P 500': ASSET_COLORS.sp500.text,
@@ -990,7 +991,7 @@ function updateChartsFromData(data) {
   const fgValues = pick(history.fearGreed, 30).filter(v => Number.isFinite(v));
   const fgCurrent = (Number.isFinite(data?.fearGreed?.value) ? data.fearGreed.value : (fgValues.length ? fgValues[fgValues.length - 1] : null));
   const fgPrev = Number.isFinite(data?.fearGreed?.previousClose) ? data.fearGreed.previousClose : (fgValues.length > 1 ? fgValues[fgValues.length - 2] : null);
-  const fgD = fgValues.length >= 2
+  let fgD = fgValues.length >= 2
     ? fgValues
     : ([fgPrev, fgCurrent].filter(v => v != null).length >= 2
       ? (() => {
@@ -1003,6 +1004,14 @@ function updateChartsFromData(data) {
           });
         })()
       : (fgCurrent != null ? [50, 46, 42, 37, 31, 26, 21, fgCurrent] : [50, 47, 44, 41, 38, 35, 32, 29]));
+  // Never allow empty/ultra-short F&G series; pad to 30 points for stable rendering.
+  if (!fgD.length) fgD = [50, 49, 48, 46, 44, 42, 40, 38];
+  if (fgD.length < 30) {
+    const padStart = fgD[0] ?? 50;
+    fgD = [...Array(30 - fgD.length).fill(padStart), ...fgD];
+  } else {
+    fgD = fgD.slice(-30);
+  }
   const fgL = fgD.map((_, i) => {
     const d = new Date(Date.now() - ((fgD.length - 1 - i) * 24 * 60 * 60 * 1000));
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
@@ -1633,12 +1642,23 @@ function buildTicker(items) {
 })();
 
 async function loadLiveBriefing() {
-  // Uses secret/unlisted gist raw URL as runtime content source.
-  const url = 'https://gist.githubusercontent.com/aninablack/d1685d358f752cad1b30f28f5412c918/raw/aurum-data.json';
+  // Primary: local committed snapshot (reliable on Netlify deploys).
+  // Fallback: historical gist endpoint (if available).
+  const urls = [
+    './aurum-data.json',
+    'https://gist.githubusercontent.com/aninablack/d1685d358f752cad1b30f28f5412c918/raw/aurum-data.json',
+  ];
   try {
-    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) return;
-    const data = await res.json();
+    let data = null;
+    for (const u of urls) {
+      try {
+        const res = await fetch(`${u}?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) continue;
+        data = await res.json();
+        if (data?.meta?.updated) break;
+      } catch (_) {}
+    }
+    if (!data) return;
     window.liveAurumData = data;
     const fmtPct = (n, d = 2) => (n == null ? '—' : `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(d)}%`);
     const fmtUsd = (n, d = 0) => (n == null ? '—' : `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d })}`);
