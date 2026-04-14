@@ -21,17 +21,18 @@
   <text x="72" y="198" font-family="'DM Sans', system-ui, sans-serif" font-size="20" font-weight="400" letter-spacing="0.01em" fill="#6B7280">Live Geopolitical Financial Dashboard</text>
 
   <!-- Main headline — large serif -->
-  <text x="72" y="296" font-family="'DM Serif Display', Georgia, serif" font-size="56" font-weight="400" fill="#0D1B2A">Gold, rates, and geopolitical</text>
-  <text x="72" y="362" font-family="'DM Serif Display', Georgia, serif" font-size="56" font-weight="400" fill="#0D1B2A">risk — in one live briefing.</text>
+  <text x="72" y="286" font-family="'DM Serif Display', Georgia, serif" font-size="52" font-weight="400" fill="#0D1B2A">Gold, rates, and</text>
+  <text x="72" y="346" font-family="'DM Serif Display', Georgia, serif" font-size="52" font-weight="400" fill="#0D1B2A">geopolitical risk —</text>
+  <text x="72" y="406" font-family="'DM Serif Display', Georgia, serif" font-size="52" font-weight="400" fill="#0D1B2A">in one live briefing.</text>
 
   <!-- Subtext -->
-  <text x="72" y="416" font-family="'DM Sans', system-ui, sans-serif" font-size="24" font-weight="400" fill="#4A5568">Real-time macro signals, sentiment, and scenario analysis.</text>
-  <text x="72" y="450" font-family="'DM Sans', system-ui, sans-serif" font-size="24" font-weight="400" fill="#4A5568">Built for investors who act on information.</text>
+  <text x="72" y="456" font-family="'DM Sans', system-ui, sans-serif" font-size="22" font-weight="400" fill="#4A5568">Real-time macro signals, sentiment, and scenario analysis.</text>
+  <text x="72" y="488" font-family="'DM Sans', system-ui, sans-serif" font-size="22" font-weight="400" fill="#4A5568">Built for investors who act on information.</text>
 
   <!-- Divider -->
-  <rect x="72" y="484" width="1056" height="1" fill="#EDE5D6"/>
+  <rect x="72" y="516" width="1056" height="1" fill="#EDE5D6"/>
 
   <!-- Feature strip -->
-  <text x="72" y="532" font-family="'DM Sans', system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="0.08em" fill="#8B6914">AURUM</text>
-  <text x="188" y="532" font-family="'DM Sans', system-ui, sans-serif" font-size="18" fill="#6B7280">· Live briefing · Fear &amp; Greed · Yield curve · Geopolitical risk map</text>
+  <text x="72" y="558" font-family="'DM Sans', system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="0.08em" fill="#8B6914">AURUM</text>
+  <text x="188" y="558" font-family="'DM Sans', system-ui, sans-serif" font-size="18" fill="#6B7280">· Live briefing · Fear &amp; Greed · Yield curve · Geopolitical risk map</text>
 </svg>
