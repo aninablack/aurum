@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="gold" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%"   stop-color="#F2DC6B"/>
+      <stop offset="45%"  stop-color="#C9A84C"/>
+      <stop offset="100%" stop-color="#8B6200"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="5" fill="#111827"/>
+  <!--
+    Lambda Λ drawn as two thick angled strokes:
+    Left leg:  top-centre → bottom-left
+    Right leg: top-centre → bottom-right
+    Stroke width 3.5, rounded caps/joins for quality at small sizes
+  -->
+  <polyline
+    points="4,27 16,5 28,27"
+    fill="none"
+    stroke="url(#gold)"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
