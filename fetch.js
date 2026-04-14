@@ -1175,77 +1175,135 @@ async function main() {
   }
 }
 
-// ── NARRATIVE GENERATOR (rule-based v1) ──────────────────────────────────────
-function generateHeadline(data) {
-  const { fearGreed, macro, metals, indices, sentiment, geopolitical } = data || {};
-  const fg = fearGreed?.value;
-  const gold = metals?.gold?.price;
-  const goldChg = metals?.gold?.change;
-  const sp = indices?.sp500?.price;
-  const spChg = indices?.sp500?.change;
-  const topRisk = Object.entries(geopolitical?.riskByCountry || {})
-    .filter(([,v]) => v >= 80).sort(([,a],[,b]) => b - a)[0];
-  const names = { IRN:'Iran', RUS:'Russia', UKR:'Ukraine', ISR:'Israel', CHN:'China' };
+// ── NARRATIVE GENERATOR ──────────────────────────────────────────────────────
+// Produces a connected briefing that links macro conditions, geopolitical risk,
+// and asset implications so readers can make informed decisions.
 
-  if (fg <= 20 && gold != null) {
-    if (goldChg > 0) return `Extreme fear grips markets as gold advances to $${Math.round(gold).toLocaleString()}`;
-    if (spChg < 0) return `Markets in extreme fear — S&P 500 falls ${Math.abs(spChg).toFixed(2)}% amid risk-off flight`;
+function generateHeadline(data) {
+  const { fearGreed, macro, metals, indices, geopolitical } = data || {};
+  const fg    = fearGreed?.value;
+  const gold  = metals?.gold?.price;
+  const goldChg = metals?.gold?.change;
+  const spChg = indices?.sp500?.change;
+  const cpi   = macro?.cpi?.yoyPct;
+  const fed   = macro?.fedFunds?.value;
+  const topRisk = Object.entries(geopolitical?.riskByCountry || {})
+    .filter(([, v]) => v >= 80).sort(([, a], [, b]) => b - a)[0];
+  const names = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China' };
+
+  // Geo crisis + fear combo
+  if (topRisk && topRisk[1] >= 90 && fg != null && fg <= 30)
+    return `${names[topRisk[0]] || topRisk[0]} tensions and market fear combine to lift gold`;
+
+  // Extreme fear with direction
+  if (fg != null && fg <= 20) {
+    if (goldChg > 2)  return `Capitulation fear sends investors to gold as equities sell off`;
+    if (spChg < -1.5) return `Extreme fear grips equities — safe havens and cash are in demand`;
+    if (gold)         return `Extreme fear in markets; gold holding at $${Math.round(gold).toLocaleString()} as volatility builds`;
   }
-  if (topRisk && topRisk[1] >= 90) return `${names[topRisk[0]] || topRisk[0]} crisis escalates — oil and gold on alert`;
-  if (fg >= 70 && spChg > 0) return `Risk appetite returns as S&P 500 gains ${spChg.toFixed(2)}% and sentiment improves`;
+
+  // Geo crisis (standalone)
+  if (topRisk && topRisk[1] >= 90)
+    return `${names[topRisk[0]] || topRisk[0]} risk at maximum — energy and gold markets on alert`;
+
+  // Sticky inflation with rates held
+  if (cpi != null && cpi > 3.5 && fed != null)
+    return `Inflation stays sticky at ${cpi.toFixed(1)}% — Fed holds rates, gold benefits from real-rate pressure`;
+
+  // Risk-on greed
+  if (fg != null && fg >= 70 && spChg > 0)
+    return `Risk appetite builds as equities gain and sentiment reaches greed territory`;
+
+  // Gold-led move
   if (Math.abs(goldChg || 0) > Math.abs(spChg || 0)) {
-    const dir = (goldChg || 0) > 0 ? 'advances' : 'retreats';
-    return `Gold ${dir} to $${Math.round(gold || 0).toLocaleString()} as macro pressure builds`;
+    const dir = (goldChg || 0) > 0 ? 'advances' : 'pulls back';
+    return `Gold ${dir} to $${Math.round(gold || 0).toLocaleString()} as macro signals dominate`;
   }
-  const dir = (spChg || 0) >= 0 ? 'gains' : 'falls';
-  return `S&P 500 ${dir} ${Math.abs(spChg || 0).toFixed(2)}% as markets digest macro signals`;
+
+  // Default equity-led
+  const dir = (spChg || 0) >= 0 ? 'steadies' : 'falls';
+  return `S&P 500 ${dir} as markets weigh inflation, rates, and geopolitical risk`;
 }
 
 function generateBody(data) {
-  const { fearGreed, macro, sentiment, geopolitical } = data || {};
-  const sentences = [];
+  const { fearGreed, macro, metals, indices, sentiment, geopolitical } = data || {};
+  const parts = [];
 
-  // Fear & Greed — lead with sentiment context
-  const fg = fearGreed?.value;
-  if (fg != null) {
-    const fgZone = fg <= 20 ? 'extreme fear' : fg <= 40 ? 'fear' : fg >= 80 ? 'extreme greed' : fg >= 60 ? 'greed' : 'neutral';
-    const fgContext = fg <= 20
-      ? `Readings this low have historically marked capitulation lows — watch for a recovery above 25 as the first sign selling pressure is exhausting itself.`
-      : fg <= 40
-        ? `Fear-driven positioning is creating selective value opportunities in quality assets.`
-        : fg >= 60
-          ? `Elevated sentiment suggests stretched positioning — monitor for a reversal trigger.`
-          : ``;
-    sentences.push(`Fear & Greed sits at ${fg} — ${fgZone} territory. ${fgContext}`.trim());
-  }
-
-  // Yield curve + CPI
-  const t10 = macro?.treasury10y?.value;
+  const fg     = fearGreed?.value;
+  const gold   = metals?.gold?.price;
+  const goldChg = metals?.gold?.change;
+  const t10    = macro?.treasury10y?.value;
   const spread = macro?.yieldSpread?.value;
-  const cpi = macro?.cpi?.yoyPct;
-  if (t10 != null && spread != null && macro?.treasury10y?.change != null) {
-    const curveSignal = spread < 0
-      ? `the yield curve has inverted to ${spread.toFixed(2)} — a historically reliable recession leading indicator`
-      : spread < 0.2
-        ? `the yield curve is near-flat at +${spread.toFixed(2)}, approaching inversion — watch closely`
-        : `the yield curve is positively sloped at +${spread.toFixed(2)}, which is not yet a recession signal from rates`;
-    sentences.push(`10Y Treasury yields ${macro.treasury10y.change >= 0 ? 'rose' : 'fell'} to ${t10.toFixed(2)}% and ${curveSignal}${cpi != null ? `, with inflation at ${cpi.toFixed(2)}% YoY` : ''}.`);
+  const cpi    = macro?.cpi?.yoyPct;
+  const fed    = macro?.fedFunds?.value;
+  const spChg  = indices?.sp500?.change;
+
+  const countryNames = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China' };
+  const topRisks = Object.entries(geopolitical?.riskByCountry || {})
+    .filter(([, v]) => v >= 70).sort(([, a], [, b]) => b - a).slice(0, 2);
+  const topRisk = topRisks[0];
+
+  // ── 1. Lead with the dominant driver ─────────────────────────────────────
+  if (fg != null && fg <= 25) {
+    const fgLabel = fg <= 15 ? 'extreme fear' : 'fear';
+    const origin = topRisk
+      ? `, driven in part by ${countryNames[topRisk[0]] || topRisk[0]} geopolitical tensions`
+      : '';
+    const implication = goldChg > 0
+      ? `Gold is responding as expected, rising as investors seek safety.`
+      : goldChg < -1
+        ? `Unusually, gold is also under pressure — watch for a divergence recovery.`
+        : `Gold is holding firm as a safe-haven anchor.`;
+    parts.push(`Investor sentiment is deep in ${fgLabel} territory (Fear and Greed Index: ${fg})${origin}. ${implication}`);
+  } else if (fg != null && fg >= 70) {
+    parts.push(`Markets are leaning into risk (Fear and Greed: ${fg}), with equities gaining ground. This environment typically compresses gold's safe-haven premium, though macro risks remain present.`);
+  } else if (fg != null) {
+    parts.push(`Sentiment is ${fg <= 40 ? 'cautious' : 'balanced'} (Fear and Greed: ${fg}), reflecting uncertainty across macro and geopolitical fronts.`);
   }
 
-  // Geopolitical
-  const topRisk = Object.entries(geopolitical?.riskByCountry || {})
-    .filter(([, v]) => v >= 80)
-    .sort(([, a], [, b]) => b - a)[0];
-  const countryNames = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China' };
+  // ── 2. Rates, inflation, and what it means for Fed policy ─────────────────
+  if (t10 != null && cpi != null && fed != null) {
+    const realRate = parseFloat((fed - cpi).toFixed(2));
+    const rateStance = realRate > 1.5 ? 'clearly restrictive' : realRate > 0 ? 'mildly restrictive' : 'still accommodative in real terms';
+    const curveRead = spread == null ? ''
+      : spread < 0   ? ` The yield curve is inverted at ${spread.toFixed(2)}, which is a historically reliable recession warning.`
+      : spread < 0.3 ? ` The yield curve is near-flat at +${spread.toFixed(2)}, worth monitoring as a recession leading indicator.`
+      : ` The yield curve is positively sloped at +${spread.toFixed(2)}, which does not yet signal a recession from rates.`;
+    parts.push(`The 10-year Treasury yield stands at ${t10.toFixed(2)}%, with inflation running at ${cpi.toFixed(2)}% — giving a real rate of ${realRate >= 0 ? '+' : ''}${realRate.toFixed(2)}%, meaning monetary policy is ${rateStance}.${curveRead} Until inflation falls closer to the Fed's 2% target, rate cuts remain unlikely, which ${realRate > 0 ? 'supports the case for gold as an inflation hedge' : 'limits gold\'s rate-cut tailwind'}.`);
+  } else if (t10 != null && spread != null) {
+    const curveRead = spread < 0
+      ? `The yield curve is inverted at ${spread.toFixed(2)}, a historically reliable recession warning.`
+      : `The yield curve is positively sloped at +${spread.toFixed(2)}, not yet a recession signal.`;
+    parts.push(`The 10-year yield is at ${t10.toFixed(2)}%. ${curveRead}`);
+  }
+
+  // ── 3. Geopolitical context tied to specific asset implications ──────────
   if (topRisk) {
     const [iso, score] = topRisk;
     const name = countryNames[iso] || iso;
-    sentences.push(`${name} geopolitical risk at ${score}/100 — monitor oil and gold for breakout signals.`);
+    const isOilRisk = ['IRN', 'RUS', 'IRQ', 'SAU'].includes(iso);
+    const assetImplications = isOilRisk
+      ? `Any escalation would directly threaten oil supply, historically pushing energy prices up 15 to 30% and triggering a parallel rally in gold as a geopolitical hedge.`
+      : `Sustained tension at this level typically drives capital into safe-haven assets including gold, government bonds, and the Swiss franc.`;
+    const second = topRisks[1]
+      ? ` ${countryNames[topRisks[1][0]] || topRisks[1][0]} is also elevated at ${topRisks[1][1]}/100.`
+      : '';
+    parts.push(`${name} geopolitical risk is at ${score}/100.${second} ${assetImplications}`);
   } else if (sentiment?.newsItems?.[0]?.text) {
-    sentences.push(`Key development: ${sentiment.newsItems[0].text}.`);
+    parts.push(`From the wires: ${sentiment.newsItems[0].text}.`);
   }
 
-  return sentences.join(' ') || 'Markets stable — monitoring macro and geopolitical signals.';
+  // ── 4. Forward-looking watch point ───────────────────────────────────────
+  const watches = [];
+  if (fg != null && fg <= 30) watches.push(`a Fear and Greed recovery above 30 as the first signal that selling pressure may be exhausting`);
+  if (spread != null && spread < 0.3 && spread >= 0) watches.push(`any further flattening of the yield curve toward inversion`);
+  if (topRisk && topRisk[1] >= 90) watches.push(`oil prices and gold for breakout moves on any confirmed geopolitical escalation`);
+  if (cpi != null && cpi > 3) watches.push(`the next CPI print for signs that inflation is moving back toward the Fed's 2% target`);
+  if (watches.length) {
+    parts.push(`Watch for ${watches.slice(0, 2).join(', and for ')}.`);
+  }
+
+  return parts.join(' ') || 'Markets stable. Monitoring macro and geopolitical signals.';
 }
 
 function generateNarrative(data) {

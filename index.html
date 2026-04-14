@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Aurum v13Apr-c</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,7 +92,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .bw-dot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:6px;}
 
 /* ── News ticker strip ─────────────────────────────────────────────────────── */
-.ticker-wrap{background:#EDE5D6;display:flex;align-items:center;height:40px;overflow:hidden;padding-left:20px;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
+.ticker-wrap{background:#EDE5D6;display:flex;align-items:center;height:40px;overflow:hidden;padding-left:20px;padding-bottom:env(safe-area-inset-bottom,0px);flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
 .ticker-label{font-family:'DM Sans',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8B6914;white-space:nowrap;flex-shrink:0;padding-right:14px;border-right:1px solid rgba(201,168,76,0.4);}
 .ticker-overflow{overflow:hidden;flex:1;mask-image:linear-gradient(to right,transparent 0,#000 32px,#000 calc(100% - 32px),transparent 100%);}
 .ticker-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;}
@@ -280,7 +280,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .page-outer{padding:12px 12px 0;}
   .briefing-card{padding:16px 16px 14px;}
   .tabs-wrap{padding:0 12px;}
-  .page{padding:14px 12px 60px;} /* 60px = ticker height + gap */
+  .page{padding:14px 12px calc(60px + env(safe-area-inset-bottom,0px));}
   .b-hl{font-size:22px;line-height:1.35;}
   .b-body{font-size:15px;line-height:1.75;}
   .cprice{font-size:34px;}
