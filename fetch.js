@@ -386,8 +386,9 @@ async function fetchMetalsYahoo() {
 // ── FRED — macro economic indicators (120 req/min free) ─────────────────────
 const FRED_BASE = 'https://api.stlouisfed.org/fred/series/observations';
 
-async function fredSeries(seriesId, limit = 2) {
-  const url = `${FRED_BASE}?series_id=${seriesId}&api_key=${CONFIG.fred}&file_type=json&sort_order=desc&limit=${limit}`;
+async function fredSeries(seriesId, limit = 2, frequency = null) {
+  let url = `${FRED_BASE}?series_id=${seriesId}&api_key=${CONFIG.fred}&file_type=json&sort_order=desc&limit=${limit}`;
+  if (frequency) url += `&frequency=${frequency}&aggregation_method=avg`;
   const data = await fetchJSON(url);
   const obs = data?.observations?.filter(o => o.value !== '.');
   if (!obs?.length) throw new Error(`No FRED data for ${seriesId}`);
@@ -410,7 +411,7 @@ async function fetchMacro() {
     safe('FRED: Fed Funds',   () => fredSeries('FEDFUNDS', 24)),
     safe('FRED: Unemployment',() => fredSeries('UNRATE')),
     safe('FRED: GDP',         () => fredSeries('GDPC1')),
-    safe('FRED: 10Y-2Y spread',() => fredSeries('T10Y2Y')),
+    safe('FRED: 10Y-2Y spread',() => fredSeries('T10Y2Y', 24, 'm')),
   ]);
 
   const get = (s) => s.status === 'fulfilled' ? s.value : null;
@@ -419,17 +420,23 @@ async function fetchMacro() {
   const spreadSeries = get(yieldSpreadSeries);
 
   // Prefer computed spread from latest 10Y/2Y values, fallback to direct FRED spread series.
+  // monthlyHistory: 24 months of T10Y2Y from FRED (chronological order) — used to seed history.yieldSpread
+  const spreadMonthlyHistory = Array.isArray(spreadSeries?.observations)
+    ? spreadSeries.observations.slice().reverse().filter(v => v != null && !Number.isNaN(v))
+    : [];
   const yieldSpread = (t10 && t2)
     ? {
         value: round(t10.value - t2.value, 4),
         date: t10.date,
         change: round((t10.change ?? 0) - (t2.change ?? 0), 4),
+        monthlyHistory: spreadMonthlyHistory,
       }
     : spreadSeries
       ? {
           value: spreadSeries.value,
           date: spreadSeries.date,
           change: spreadSeries.change,
+          monthlyHistory: spreadMonthlyHistory,
         }
       : null;
 
@@ -809,18 +816,20 @@ async function main() {
     eurusd:      [],
     gbpusd:      [],
     usdjpy:      [],
-    treasury10y: [],
-    treasury2y:  [],
-    fedFunds:    [],
-    cpiYoy:      [],
-    bitcoin:     [],
-    ethereum:    [],
+    treasury10y:  [],
+    treasury2y:   [],
+    yieldSpread:  [],
+    fedFunds:     [],
+    cpiYoy:       [],
+    bitcoin:      [],
+    ethereum:     [],
   };
 
   // Backfill newly added history keys for older snapshots.
-  if (!Array.isArray(history.fearGreed)) history.fearGreed = [];
-  if (!Array.isArray(history.fedFunds)) history.fedFunds = [];
-  if (!Array.isArray(history.cpiYoy)) history.cpiYoy = [];
+  if (!Array.isArray(history.fearGreed))   history.fearGreed   = [];
+  if (!Array.isArray(history.fedFunds))    history.fedFunds    = [];
+  if (!Array.isArray(history.cpiYoy))      history.cpiYoy      = [];
+  if (!Array.isArray(history.yieldSpread)) history.yieldSpread = [];
 
   // Clean metals history using SANITY bounds — drop values outside realistic ranges.
   history.gold = (existing?.history?.gold || [])
@@ -970,6 +979,13 @@ async function main() {
   }
   history.treasury10y = appendDailyValue(t10Base, macro?.treasury10y?.value, lastMacroDate === today);
   history.treasury2y  = appendDailyValue(t2Base,  macro?.treasury2y?.value,  lastMacroDate === today);
+  // Yield spread monthly history: refresh from FRED T10Y2Y monthly observations each run.
+  // Gives 24 months of context — shows the full inversion-and-recovery arc.
+  const spreadMonthly = macro?.yieldSpread?.monthlyHistory ?? [];
+  if (spreadMonthly.length >= 3) {
+    history.yieldSpread = spreadMonthly.slice(-24);
+    console.log(`  yieldSpread: ${history.yieldSpread.length} months from FRED T10Y2Y`);
+  }
   const fedBackfill = Array.isArray(macro?.fedFunds?.observations)
     ? macro.fedFunds.observations.slice().reverse().filter(v => v != null && !Number.isNaN(v))
     : [];

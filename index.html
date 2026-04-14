@@ -376,7 +376,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <div class="pulse fg-pulse"><div class="plbl">Fear &amp; Greed</div><div class="pval" id="fgValue">9</div><div class="pdelt" id="fgLabel">Extreme fear</div><div class="sarea"><canvas id="psk-fg" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="fgCtx"></div></div>
         <div class="pulse"><div class="plbl">10Y yield</div><div class="pval" id="y10Value">4.42%</div><div class="pdelt" id="y10Delta" style="color:#0F6E56">+0.09%</div><div class="sarea"><canvas id="psk-y10" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="y10Ctx"></div></div>
         <div class="pulse"><div class="plbl">CPI (YoY)</div><div class="pval" id="cpiValue">2.66%</div><div class="pdelt" id="cpiDelta" style="color:#0F6E56">Easing</div><div class="sarea"><canvas id="spk-cpi" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="cpiCtx"></div></div>
-        <div class="pulse"><div class="plbl">Fed Funds</div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div class="sarea"><canvas id="spk-fed" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="fedCtx"></div></div>
+        <div class="pulse"><div class="plbl">Fed Funds <span style="font-size:9px;opacity:0.6;font-weight:400">· real rate</span></div><div class="pval" id="fedValue">3.64%</div><div class="pdelt" id="fedDelta" style="color:#8A96A4">Unchanged</div><div class="sarea"><canvas id="spk-fed" style="width:100%;height:100%;display:block"></canvas></div><div class="pctx" id="fedCtx"></div></div>
       </div>
       <div class="slbl">Key assets</div>
       <div class="card-row">
@@ -541,7 +541,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
           <div class="ccrd-body"><div style="position:relative;height:180px"><canvas id="dualLineC"></canvas></div></div>
         </div>
         <div class="ccrd">
-          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub">Below 0 = inverted = recession signal · Currently positive = no inversion</div></div>
+          <div class="ccrd-head"><div class="ccrd-title">Yield curve · 10Y minus 2Y spread</div><div class="ccrd-sub" id="spreadSubtitle">24 months · below 0 = inverted = recession signal</div></div>
           <div class="ccrd-body">
             <div class="macro-stat-row">
               <div class="mstat"><div class="mstat-label">10Y</div><div class="mstat-val" id="m10y">4.44%</div></div>
@@ -830,6 +830,13 @@ function updateChartsFromData(data) {
   const fedPulseHist = (Array.isArray(history.fedFunds) && history.fedFunds.length >= 2)
     ? pick(history.fedFunds)
     : ((data?.macro?.fedFunds?.observations || []).slice().reverse().map(Number).filter(v => Number.isFinite(v)));
+  // Real rate = Fed Funds − CPI YoY (monthly aligned). More informative than a flat fed line.
+  const _cpiForReal = (Array.isArray(history.cpiYoy) && history.cpiYoy.length >= 2) ? history.cpiYoy : [];
+  const _fedForReal = fedPulseHist;
+  const _rrLen = Math.min(_fedForReal.length, _cpiForReal.length);
+  const realRateHist = _rrLen >= 2
+    ? _fedForReal.slice(-_rrLen).map((v, i) => parseFloat((v - _cpiForReal.slice(-_rrLen)[i]).toFixed(2)))
+    : [];
   const cpiPulseHist = (Array.isArray(history.cpiYoy) && history.cpiYoy.length >= 2)
     ? pick(history.cpiYoy)
     : (() => {
@@ -846,8 +853,15 @@ function updateChartsFromData(data) {
   if (fgPulseHist.length) makeLineChart('psk-fg', fgPulseHist, '#B8952A', 'rgba(184,149,42,0.10)');
   if (y10PulseHist.length) makeLineChart('psk-y10', y10PulseHist, ASSET_COLORS.sp500.border, ASSET_COLORS.sp500.bg);
   if (cpiPulseHist.length) makeLineChart('spk-cpi', cpiPulseHist, '#B8952A', 'rgba(184,149,42,0.08)');
-  if (fedPulseHist.length) makeLineChart('spk-fed', fedPulseHist, '#6433B4', 'rgba(100,51,180,0.06)');
-  else if (data?.macro?.fedFunds?.value != null) {
+  // Real rate sparkline: positive = restrictive policy (green), negative = accommodative (red)
+  if (realRateHist.length >= 2) {
+    const rrLatest = realRateHist[realRateHist.length - 1];
+    const rrColor  = rrLatest >= 0 ? '#0F6E56' : '#A32D2D';
+    const rrFill   = rrLatest >= 0 ? 'rgba(15,110,86,0.08)' : 'rgba(163,45,45,0.07)';
+    makeLineChart('spk-fed', realRateHist, rrColor, rrFill);
+  } else if (fedPulseHist.length) {
+    makeLineChart('spk-fed', fedPulseHist, '#6433B4', 'rgba(100,51,180,0.06)');
+  } else if (data?.macro?.fedFunds?.value != null) {
     makeLineChart('spk-fed', Array(8).fill(Number(data.macro.fedFunds.value)), '#6433B4', 'rgba(100,51,180,0.06)');
   }
   // Filter out nulls (corrupt/insufficient history) before charting
@@ -1055,27 +1069,61 @@ function updateChartsFromData(data) {
     });
   }
 
-  const spreadHistory = yD.map((v, i) => {
-    const twoY = pick(history.treasury2y, 30)[i];
-    return twoY != null ? parseFloat((v - twoY).toFixed(3)) : null;
-  }).filter(v => v !== null);
+  // Yield curve: prefer 24-month FRED T10Y2Y history to show the full inversion arc.
+  // Falls back to daily computed spread from treasury10y/2y if monthly data not yet available.
+  const spreadMonthly = Array.isArray(history.yieldSpread) && history.yieldSpread.length >= 3
+    ? history.yieldSpread : null;
+  const spreadHistory = spreadMonthly
+    ? spreadMonthly
+    : yD.map((v, i) => {
+        const twoY = pick(history.treasury2y, 30)[i];
+        return twoY != null ? parseFloat((v - twoY).toFixed(3)) : null;
+      }).filter(v => v !== null);
+  const isMonthlySpread = !!spreadMonthly;
   const spreadLabels = spreadHistory.map((_, i) => {
     const d = new Date();
+    if (isMonthlySpread) {
+      d.setMonth(d.getMonth() - (spreadHistory.length - 1 - i));
+      return d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+    }
     d.setDate(d.getDate() - (spreadHistory.length - 1 - i));
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
   });
+
+  // Update chart subtitle dynamically
+  const spreadSubEl = document.getElementById('spreadSubtitle');
+  if (spreadSubEl && isMonthlySpread) {
+    const hadInversion = spreadHistory.some(v => v < 0);
+    const currentSpread = spreadHistory[spreadHistory.length - 1];
+    spreadSubEl.textContent = hadInversion
+      ? `Curve inverted 2022–2024 · now recovering · currently ${currentSpread >= 0 ? '+' : ''}${currentSpread.toFixed(2)}`
+      : `Below 0 = inverted = recession signal · currently ${currentSpread >= 0 ? '+' : ''}${currentSpread.toFixed(2)}`;
+  }
+
   if (charts.spreadC) charts.spreadC.destroy();
   if (spreadHistory.length) {
-    // Zoom Y to data range with enough headroom to show the 0 threshold clearly
-    const spreadMin = Math.min(0, ...spreadHistory);
+    const spreadMin = Math.min(...spreadHistory);
     const spreadMax = Math.max(...spreadHistory);
-    const spreadPad = Math.max(0.15, (spreadMax - spreadMin) * 0.25);
-    const spreadYMin = spreadMin - spreadPad;
+    const spreadPad = Math.max(0.15, (spreadMax - spreadMin) * 0.18);
+    const spreadYMin = Math.min(-0.15, spreadMin - spreadPad);
     const spreadYMax = spreadMax + spreadPad;
+    const latestSpread = spreadHistory[spreadHistory.length - 1];
 
-    // Plugin: draw a bold red "Inversion threshold" line at y=0
-    const zeroLinePlugin = {
-      id: 'zeroLine',
+    // Plugin: draw dashed red inversion threshold at y=0 + shade below-zero zone
+    const spreadZonePlugin = {
+      id: 'spreadZone',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales?.y) return;
+        const y0 = scales.y.getPixelForValue(0);
+        // Red inversion zone background
+        if (y0 > chartArea.top && y0 < chartArea.bottom) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(163,45,45,0.07)';
+          ctx.fillRect(chartArea.left, y0, chartArea.width, chartArea.bottom - y0);
+          ctx.restore();
+        }
+      },
       afterDraw(chart) {
         const { ctx, chartArea, scales } = chart;
         if (!chartArea || !scales?.y) return;
@@ -1085,7 +1133,7 @@ function updateChartsFromData(data) {
         ctx.beginPath();
         ctx.moveTo(chartArea.left, y0);
         ctx.lineTo(chartArea.right, y0);
-        ctx.strokeStyle = 'rgba(163,45,45,0.55)';
+        ctx.strokeStyle = 'rgba(163,45,45,0.50)';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([5, 4]);
         ctx.stroke();
@@ -1093,31 +1141,24 @@ function updateChartsFromData(data) {
         ctx.fillStyle = '#A32D2D';
         ctx.font = '10px "DM Sans", system-ui, sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText('← inversion risk', chartArea.right - 4, y0 - 4);
+        ctx.fillText('← inversion', chartArea.right - 4, y0 - 4);
         ctx.restore();
       }
     };
 
     charts.spreadC = new Chart(document.getElementById('spreadC'), {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: spreadLabels,
         datasets: [{
           label: '10Y−2Y spread',
           data: spreadHistory,
-          backgroundColor: spreadHistory.map(v =>
-            v < 0 ? 'rgba(163,45,45,0.25)' :
-            v < 0.3 ? 'rgba(184,149,42,0.22)' :
-            v < 0.6 ? 'rgba(15,110,86,0.18)' :
-            'rgba(15,110,86,0.28)'
-          ),
-          borderColor: spreadHistory.map(v =>
-            v < 0 ? '#A32D2D' :
-            v < 0.3 ? '#B8952A' :
-            '#0F6E56'
-          ),
-          borderWidth: 1.5,
-          borderRadius: 3,
+          borderColor: latestSpread >= 0 ? '#0F6E56' : '#A32D2D',
+          backgroundColor: latestSpread >= 0 ? 'rgba(15,110,86,0.07)' : 'rgba(163,45,45,0.07)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35,
+          fill: 'origin',
         }]
       },
       options: {
@@ -1127,20 +1168,22 @@ function updateChartsFromData(data) {
           legend: { display: false },
           tooltip: { callbacks: { label: ctx => {
             const v = ctx.parsed.y;
-            const status = v < 0 ? 'Inverted — recession signal' : v < 0.3 ? 'Watch zone — nearing flat' : 'Healthy — curve not inverted';
-            return `Spread: ${v >= 0 ? '+' : ''}${v.toFixed(3)}% · ${status}`;
+            const status = v < 0 ? 'Inverted — recession signal'
+              : v < 0.3 ? 'Watch zone — nearing flat' : 'Healthy — not inverted';
+            return `Spread: ${v >= 0 ? '+' : ''}${v.toFixed(2)}% · ${status}`;
           }}}
         },
         scales: {
-          x: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 6 } },
+          x: { grid: { display: false }, border: { display: false },
+               ticks: { maxTicksLimit: isMonthlySpread ? 8 : 6, font: { size: 10 } } },
           y: {
             min: spreadYMin, max: spreadYMax,
-            grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false },
-            ticks: { callback: v => `${Number(v) >= 0 ? '+' : ''}${Number(v).toFixed(2)}` }
+            grid: { color: 'rgba(221,211,188,0.5)' }, border: { display: false },
+            ticks: { callback: v => `${Number(v) >= 0 ? '+' : ''}${Number(v).toFixed(2)}`, font: { size: 10 } }
           }
         }
       },
-      plugins: [zeroLinePlugin],
+      plugins: [spreadZonePlugin],
     });
   }
 
@@ -1734,11 +1777,15 @@ function populatePulseContext(data) {
   const fedVal    = data?.macro?.fedFunds?.value;
   const fedChange = data?.macro?.fedFunds?.change;
   if (fedVal != null) {
-    const ctx = fedChange != null && Math.abs(fedChange) >= 0.1
-      ? fedChange > 0 ? `Hiking · last move +${Math.abs(fedChange).toFixed(2)}pp`
-                      : `Cutting · last move −${Math.abs(fedChange).toFixed(2)}pp`
-      : `Held steady · neutral policy stance`;
-    set('fedCtx', ctx);
+    const cpiForCtx = data?.macro?.cpi?.yoyPct;
+    const rrNow = (fedVal != null && cpiForCtx != null) ? parseFloat((fedVal - cpiForCtx).toFixed(2)) : null;
+    const rrLabel = rrNow != null
+      ? `Real rate ${rrNow >= 0 ? '+' : ''}${rrNow.toFixed(2)}pp · ${rrNow > 1.5 ? 'restrictive' : rrNow > 0 ? 'mildly tight' : 'accommodative'}`
+      : null;
+    const moveLabel = fedChange != null && Math.abs(fedChange) >= 0.1
+      ? (fedChange > 0 ? `Hiking · last move +${Math.abs(fedChange).toFixed(2)}pp` : `Cutting · last move −${Math.abs(fedChange).toFixed(2)}pp`)
+      : `Held steady`;
+    set('fedCtx', rrLabel ? `${moveLabel} · ${rrLabel}` : moveLabel);
   }
 
   // ── Geo context paragraph in briefing ───────────────────────────────────────
