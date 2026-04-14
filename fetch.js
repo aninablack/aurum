@@ -116,13 +116,14 @@ function fetchCSV(url) {
  * Safely attempt a fetch. On failure, log the error and return null.
  * This means one broken API never kills the whole pipeline.
  */
-async function safe(label, fn) {
+async function safe(label, fn, opts = {}) {
   try {
     const result = await fn();
     console.log(`✓ ${label}`);
     return result;
   } catch (err) {
     console.warn(`✗ ${label}: ${err.message}`);
+    if (opts.fatal) throw err;
     return null;
   }
 }
@@ -787,6 +788,13 @@ async function main() {
   console.log('═══ Aurum fetch.js ═══');
   console.log(`Run: ${new Date().toISOString()}`);
   console.log(`Mode: ${DRY_RUN ? 'dry-run (local file output)' : 'pipeline (Gist read/write)'}`);
+  if (!DRY_RUN) {
+    if (!CONFIG.gistId || !CONFIG.gistToken) {
+      throw new Error('Missing required secrets: GIST_ID and/or GIST_TOKEN');
+    }
+    const maskedGist = `${CONFIG.gistId.slice(0, 8)}...${CONFIG.gistId.slice(-6)}`;
+    console.log(`Gist target: ${maskedGist}`);
+  }
 
   // 1. Read existing snapshot for history continuation
   let existing = null;
@@ -1158,7 +1166,7 @@ async function main() {
     console.log(`✓ Local snapshot written: ${outputPath}`);
   } else {
     console.log('\n── Writing to Gist...');
-    await safe('Write Gist', () => writeGist(snapshot));
+    await safe('Write Gist', () => writeGist(snapshot), { fatal: true });
   }
 
   // 10. Summary
