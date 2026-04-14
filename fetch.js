@@ -255,13 +255,19 @@ function buildCpiYoYSeriesFromObsDesc(obsDesc) {
 
 // ── FEAR & GREED — alternative.me (keyless) ──────────────────────────────────
 async function fetchFearGreed() {
-  const data = await fetchJSON('https://api.alternative.me/fng/?limit=2&format=json');
+  const data = await fetchJSON('https://api.alternative.me/fng/?limit=30&format=json');
   const [latest, prev] = data.data;
+  // Extract chronological history (API returns newest-first, so reverse)
+  const history = (data.data || [])
+    .map(d => parseInt(d.value, 10))
+    .filter(v => !isNaN(v))
+    .reverse();
   return {
     value:          parseInt(latest.value, 10),
     classification: latest.value_classification,
     previousClose:  parseInt(prev?.value ?? latest.value, 10),
     updatedAt:      new Date(parseInt(latest.timestamp, 10) * 1000).toISOString(),
+    history,
   };
 }
 
@@ -398,9 +404,9 @@ async function fredSeries(seriesId, limit = 2) {
 
 async function fetchMacro() {
   const [treasury10y, treasury2y, cpi, fedFunds, unrate, gdp, yieldSpreadSeries] = await Promise.allSettled([
-    safe('FRED: 10Y yield',   () => fredSeries('DGS10')),
-    safe('FRED: 2Y yield',    () => fredSeries('DGS2')),
-    safe('FRED: CPI',         () => fredSeries('CPIAUCSL', 14)),
+    safe('FRED: 10Y yield',   () => fredSeries('DGS10', 30)),
+    safe('FRED: 2Y yield',    () => fredSeries('DGS2', 30)),
+    safe('FRED: CPI',         () => fredSeries('CPIAUCSL', 42)),
     safe('FRED: Fed Funds',   () => fredSeries('FEDFUNDS', 24)),
     safe('FRED: Unemployment',() => fredSeries('UNRATE')),
     safe('FRED: GDP',         () => fredSeries('GDPC1')),
@@ -923,7 +929,17 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const lastFgDate = existing?.meta?.lastFgDate;
   const lastMacroDate = existing?.meta?.lastMacroDate;
-  history.fearGreed = appendDailyValue(existing?.history?.fearGreed, fearGreed?.value, lastFgDate === today);
+  // Fear & Greed: use API history to backfill when array is short
+  const fgApiHistory = Array.isArray(fearGreed?.history) && fearGreed.history.length >= 5
+    ? fearGreed.history
+    : null;
+  const fgBase = (existing?.history?.fearGreed?.length ?? 0) >= 5
+    ? existing?.history?.fearGreed
+    : (fgApiHistory ?? existing?.history?.fearGreed ?? []);
+  if (fgApiHistory && (existing?.history?.fearGreed?.length ?? 0) < 5) {
+    console.log(`  fearGreed: seeded ${fgApiHistory.length} days from API`);
+  }
+  history.fearGreed = appendDailyValue(fgBase, fearGreed?.value, lastFgDate === today);
   history.silver = [...history.silver, silverPrice].filter(v => v != null && !Number.isNaN(v)).slice(-30);
   pushHistory(history.platinum,    platinumPrice);
   pushHistory(history.sp500,       yahooIndices?.sp500?.price);
@@ -933,8 +949,27 @@ async function main() {
   pushHistory(history.eurusd,      fx?.EURUSD?.rate);
   pushHistory(history.gbpusd,      fx?.GBPUSD?.rate);
   pushHistory(history.usdjpy,      fx?.USDJPY?.rate);
-  pushHistory(history.treasury10y, macro?.treasury10y?.value);
-  pushHistory(history.treasury2y,  macro?.treasury2y?.value);
+  // Treasury 10y/2y: use FRED observations to backfill when array is short
+  const t10Backfill = Array.isArray(macro?.treasury10y?.observations)
+    ? macro.treasury10y.observations.slice().reverse().filter(v => v != null && !Number.isNaN(v))
+    : [];
+  const t2Backfill = Array.isArray(macro?.treasury2y?.observations)
+    ? macro.treasury2y.observations.slice().reverse().filter(v => v != null && !Number.isNaN(v))
+    : [];
+  const t10Base = (existing?.history?.treasury10y?.length ?? 0) >= 5
+    ? existing?.history?.treasury10y
+    : (t10Backfill.length >= 3 ? t10Backfill : existing?.history?.treasury10y ?? []);
+  const t2Base = (existing?.history?.treasury2y?.length ?? 0) >= 5
+    ? existing?.history?.treasury2y
+    : (t2Backfill.length >= 3 ? t2Backfill : existing?.history?.treasury2y ?? []);
+  if (t10Backfill.length >= 3 && (existing?.history?.treasury10y?.length ?? 0) < 5) {
+    console.log(`  treasury10y: seeded ${t10Backfill.length} days from FRED`);
+  }
+  if (t2Backfill.length >= 3 && (existing?.history?.treasury2y?.length ?? 0) < 5) {
+    console.log(`  treasury2y: seeded ${t2Backfill.length} days from FRED`);
+  }
+  history.treasury10y = appendDailyValue(t10Base, macro?.treasury10y?.value, lastMacroDate === today);
+  history.treasury2y  = appendDailyValue(t2Base,  macro?.treasury2y?.value,  lastMacroDate === today);
   const fedBackfill = Array.isArray(macro?.fedFunds?.observations)
     ? macro.fedFunds.observations.slice().reverse().filter(v => v != null && !Number.isNaN(v))
     : [];
