@@ -902,15 +902,21 @@ function updateChartsFromData(data) {
   } else if (data?.macro?.fedFunds?.value != null) {
     makeLineChart('spk-fed', Array(8).fill(Number(data.macro.fedFunds.value)), '#6433B4', 'rgba(100,51,180,0.06)');
   }
-  // Filter out nulls (corrupt/insufficient history) before charting
-  const perfRaw = [
-    ['Gold', calcChange(history.gold), ASSET_COLORS.gold],
-    ['Silver', calcChange(history.silver), ASSET_COLORS.silver],
-    ['S&P 500', calcChange(history.sp500), ASSET_COLORS.sp500],
-    ['DAX', calcChange(history.dax), ASSET_COLORS.dax],
-    ['FTSE', calcChange(history.ftse), ASSET_COLORS.ftse],
-    ['Bitcoin', calcChange(history.bitcoin), ASSET_COLORS.bitcoin],
-  ].filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
+  // Prefer 30-day history; fall back to live % change when history is still rebuilding.
+  const perfRawAll = [
+    ['Gold',    calcChange(history.gold),    Number(data?.metals?.gold?.change),   ASSET_COLORS.gold],
+    ['Silver',  calcChange(history.silver),  Number(data?.metals?.silver?.change), ASSET_COLORS.silver],
+    ['S&P 500', calcChange(history.sp500),   Number(data?.indices?.sp500?.change), ASSET_COLORS.sp500],
+    ['DAX',     calcChange(history.dax),     Number(data?.indices?.dax?.change),   ASSET_COLORS.dax],
+    ['FTSE',    calcChange(history.ftse),    Number(data?.indices?.ftse?.change),  ASSET_COLORS.ftse],
+    ['Bitcoin', calcChange(history.bitcoin), Number(data?.crypto?.bitcoin?.change),ASSET_COLORS.bitcoin],
+  ].map(([label, histPct, livePct, color]) => {
+    const v = (histPct !== null && Number.isFinite(histPct)) ? histPct
+      : (Number.isFinite(livePct) ? Number(livePct.toFixed(2)) : null);
+    const source = (histPct !== null && Number.isFinite(histPct)) ? 'history' : (Number.isFinite(livePct) ? 'live' : 'none');
+    return [label, v, color, source];
+  });
+  const perfRaw = perfRawAll.filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
   const perfLabels = perfRaw.map(([label]) => label);
   const barData = perfRaw.map(([, value]) => Number(value.toFixed(2)));
   const barColors = perfRaw.map(([, , color]) => color);
@@ -946,6 +952,7 @@ function updateChartsFromData(data) {
   // Use all 6 known assets; null means insufficient/corrupt history → show "—"
   const ALL_PERF_ASSETS = ['Bitcoin', 'S&P 500', 'DAX', 'FTSE', 'Silver', 'Gold'];
   const performanceMap = Object.fromEntries(perfRaw.map(([name, v]) => [name, v]));
+  const performanceSourceMap = Object.fromEntries(perfRawAll.map(([name, , , source]) => [name, source]));
   const performanceRows = ALL_PERF_ASSETS.map((name) => [name, performanceMap[name] ?? null]);
   // Reorder for 2-column grid: col 1 = top 3, col 2 = bottom 3 by value
   const validRows = performanceRows.filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]);
@@ -957,9 +964,10 @@ function updateChartsFromData(data) {
   // Update subtitle if some histories are rebuilding after a reset
   const perfSub = document.getElementById('perfSub');
   if (perfSub) {
+    const usingLiveFallback = ALL_PERF_ASSETS.some((n) => performanceSourceMap[n] === 'live');
     perfSub.textContent = nullRows.length > 0
       ? `Winners and losers this month · ${nullRows.map(([n]) => n).join(', ')} rebuilding history`
-      : 'Winners and losers this month';
+      : (usingLiveFallback ? 'Winners and losers this month · live fallback on sparse history' : 'Winners and losers this month');
   }
 
   const wl = document.getElementById('winnersLosersList');
@@ -979,14 +987,13 @@ function updateChartsFromData(data) {
     }).join('');
   }
 
-  const fgValues = pick(history.fearGreed, 30);
-  const fgCurrent = data?.fearGreed?.value;
-  const fgPrev = data?.fearGreed?.previousClose;
-  const fgD = fgValues.length >= 6
+  const fgValues = pick(history.fearGreed, 30).filter(v => Number.isFinite(v));
+  const fgCurrent = (Number.isFinite(data?.fearGreed?.value) ? data.fearGreed.value : (fgValues.length ? fgValues[fgValues.length - 1] : null));
+  const fgPrev = Number.isFinite(data?.fearGreed?.previousClose) ? data.fearGreed.previousClose : (fgValues.length > 1 ? fgValues[fgValues.length - 2] : null);
+  const fgD = fgValues.length >= 2
     ? fgValues
     : ([fgPrev, fgCurrent].filter(v => v != null).length >= 2
       ? (() => {
-          // Build a simple 30-day glide from neutral(50) to current value to avoid empty-looking panel.
           const end = fgCurrent;
           const start = 50;
           const points = 30;
@@ -995,7 +1002,7 @@ function updateChartsFromData(data) {
             return Math.round(start + (end - start) * t);
           });
         })()
-      : (fgCurrent != null ? [50, 42, 34, 26, 18, fgCurrent] : []));
+      : (fgCurrent != null ? [50, 46, 42, 37, 31, 26, 21, fgCurrent] : [50, 47, 44, 41, 38, 35, 32, 29]));
   const fgL = fgD.map((_, i) => {
     const d = new Date(Date.now() - ((fgD.length - 1 - i) * 24 * 60 * 60 * 1000));
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
