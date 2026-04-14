@@ -1,11 +1,11 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <title>Aurum — Live Geopolitical Financial Dashboard</title>
+  <title>Aurum Live Geopolitical Financial Dashboard</title>
 
   <!-- Background -->
   <rect width="1200" height="630" fill="#EDE5D6"/>
 
   <!-- Nav bar -->
-  <text x="36" y="60" font-family="'Cormorant Garamond', Georgia, serif"
+  <text x="72" y="60" font-family="'Cormorant Garamond', Georgia, serif"
         font-size="52" font-weight="600" letter-spacing="2" fill="#0D1B2A">Aurum</text>
   <rect x="0" y="78" width="1200" height="1" fill="#DDD3BC"/>
 
@@ -19,9 +19,9 @@
         font-size="13" font-weight="700" letter-spacing="2.2" fill="#8B6914">MARKET BRIEFING</text>
 
   <!-- Subtitle -->
-  <text x="72" y="175"
+  <text x="72" y="176"
         font-family="'DM Sans', system-ui, sans-serif"
-        font-size="18" font-weight="400" fill="#6B7280">Live Geopolitical Financial Dashboard</text>
+        font-size="18" font-weight="400" fill="#6B7280">Geopolitical Financial Dashboard</text>
 
   <!-- Headline — 2 lines, tighter phrasing to avoid 3rd line -->
   <text x="72" y="258"
@@ -29,7 +29,7 @@
         font-size="62" font-weight="400" fill="#0D1B2A">Gold, rates &amp; geopolitical risk</text>
   <text x="72" y="332"
         font-family="'DM Serif Display', Georgia, serif"
-        font-size="62" font-weight="400" fill="#0D1B2A">— in one live briefing.</text>
+        font-size="62" font-weight="400" fill="#0D1B2A">in one live briefing.</text>
 
   <!-- Body copy — 2 lines -->
   <text x="72" y="388"
