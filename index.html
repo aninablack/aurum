@@ -92,7 +92,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .bw-dot{width:4px;height:4px;border-radius:50%;background:#C9A84C;flex-shrink:0;margin-top:6px;}
 
 /* ── News ticker strip ─────────────────────────────────────────────────────── */
-.ticker-wrap{background:#EDE5D6;display:flex;align-items:center;height:36px;overflow:hidden;padding-left:20px;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
+.ticker-wrap{background:#EDE5D6;display:flex;align-items:center;height:40px;overflow:hidden;padding-left:20px;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
 .ticker-label{font-family:'DM Sans',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8B6914;white-space:nowrap;flex-shrink:0;padding-right:14px;border-right:1px solid rgba(201,168,76,0.4);}
 .ticker-overflow{overflow:hidden;flex:1;mask-image:linear-gradient(to right,transparent 0,#000 32px,#000 calc(100% - 32px),transparent 100%);}
 .ticker-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;}
@@ -117,7 +117,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .hl-meta{font-size:12px;color:#9CA3AF;white-space:nowrap;flex-shrink:0;}
 
 /* ── Sources & data footer ─────────────────────────────────────────────────── */
-.src-footer{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:14px 20px 54px;border-top:1px solid #DDD3BC;background:#EDE5D6;}
+.src-footer{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:14px 20px 60px;border-top:1px solid #DDD3BC;background:#EDE5D6;}
 .src-hd{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#A89870;}
 .src-lnk{font-size:12px;color:#8B7040;text-decoration:none;transition:color 0.15s;}
 .src-lnk:hover{color:#0D1B2A;text-decoration:underline;}
@@ -280,7 +280,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .page-outer{padding:12px 12px 0;}
   .briefing-card{padding:16px 16px 14px;}
   .tabs-wrap{padding:0 12px;}
-  .page{padding:14px 12px 54px;} /* 54px = ticker height + gap */
+  .page{padding:14px 12px 60px;} /* 60px = ticker height + gap */
   .b-hl{font-size:22px;line-height:1.35;}
   .b-body{font-size:15px;line-height:1.75;}
   .cprice{font-size:34px;}
@@ -298,7 +298,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .nav { padding: 0 16px; }
   .page-outer { padding: 12px 14px 0; }
   .tabs-wrap { padding: 0 14px; }
-  .page { padding: 16px 14px 54px; }
+  .page { padding: 16px 14px 60px; }
   .gnsplit { grid-template-columns: 1fr; }
   .impgrid { grid-template-columns: repeat(2, 1fr); }
   /* Hide map on mobile — hotspot list is the useful content at this size */
@@ -310,9 +310,14 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   /* News item tags wrap cleanly */
   .ntxt { flex-wrap: wrap; }
   .ntag { margin-top: 3px; }
-  /* Ticker font smaller on mobile */
-  .ticker-item { font-size: 12px; }
-  .ticker-label { font-size: 9px; }
+  /* Ticker on mobile */
+  .ticker-item { font-size: 12.5px; }
+  .ticker-label { font-size: 10px; letter-spacing: 0.12em; }
+  /* Briefing eyebrow: stack label above date/time on mobile */
+  .b-eyebrow { flex-wrap: wrap; gap: 4px 8px; }
+  .b-label { width: 100%; margin-bottom: 0; }
+  .b-sep { display: none; }
+  .b-ts { font-size: 11px; letter-spacing: 0.06em; }
 }
 
 @media (max-width: 480px) {
@@ -337,7 +342,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
 <div class="shell">
   <div class="nav">
-    <div class="wordmark" style="font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 600; color: #0D1B2A; letter-spacing: 0.05em; line-height: 1;">Aurum</div>
+    <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" style="text-decoration:none;"><div class="wordmark" style="font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 600; color: #0D1B2A; letter-spacing: 0.05em; line-height: 1;">Aurum</div></a>
   </div>
 
   <div class="page-outer">
