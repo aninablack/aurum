@@ -1,0 +1,24 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Aurum UX Case Study Thumbnail</title>
+  <desc id="desc">UX portfolio case study cover in Aurum briefing card style.</desc>
+
+  <rect width="1600" height="900" fill="#EDE5D6"/>
+  <rect x="0" y="120" width="1600" height="1" fill="#DDD3BC"/>
+
+  <text x="56" y="84" font-family="'Cormorant Garamond', Georgia, serif" font-size="84" font-weight="600" letter-spacing="0.04em" fill="#0D1B2A">Aurum</text>
+
+  <rect x="40" y="156" width="1520" height="700" rx="24" fill="#FFFFFF" stroke="#C9A84C" stroke-width="4"/>
+
+  <text x="88" y="224" font-family="'DM Sans', system-ui, sans-serif" font-size="22" letter-spacing="0.14em" font-weight="700" fill="#8B6914">MARKET BRIEFING</text>
+  <text x="88" y="262" font-family="'DM Sans', system-ui, sans-serif" font-size="20" font-weight="400" letter-spacing="0.01em" fill="#6B7280">Live Geopolitical Financial Dashboard</text>
+
+  <text x="88" y="384" font-family="'DM Serif Display', Georgia, serif" font-size="86" font-weight="400" fill="#0D1B2A">Live Geopolitical Financial Dashboard Intelligence</text>
+
+  <text x="88" y="470" font-family="'DM Sans', system-ui, sans-serif" font-size="44" font-weight="400" fill="#4A5568">Real-time macro signals, geopolitical risk, and market positioning.</text>
+  <text x="88" y="532" font-family="'DM Sans', system-ui, sans-serif" font-size="44" font-weight="400" fill="#4A5568">Built for decision-making with premium visual clarity.</text>
+
+  <rect x="88" y="594" width="1424" height="1" fill="#EDE5D6"/>
+
+  <text x="88" y="672" font-family="'DM Sans', system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="0.08em" fill="#8B6914">UX CASE STUDY</text>
+  <text x="386" y="672" font-family="'DM Sans', system-ui, sans-serif" font-size="30" fill="#6B7280">• Live briefing • Fear &amp; Greed • Yield curve • Geopolitical risk map</text>
+</svg>
