@@ -10,13 +10,15 @@
 <meta property="og:title" content="Aurum Pulse" />
 <meta property="og:description" content="Geopolitical and macro market dashboard." />
 <meta property="og:url" content="https://aurumpulse.netlify.app/" />
-<meta property="og:image" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail.png" />
+<meta property="og:image" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail-v2.png" />
+<meta property="og:image:secure_url" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail-v2.png" />
+<meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Aurum Pulse" />
 <meta name="twitter:description" content="Geopolitical and macro market dashboard." />
-<meta name="twitter:image" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail.png" />
+<meta name="twitter:image" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail-v2.png" />
 <link rel="icon" href="assets/brand/favicon/favicon.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon/favicon-16.png">
@@ -51,7 +53,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;max-width:100%;overflow-x:hidden;}
 body{font-size:15px;background:var(--parchment);color:var(--ink);}
-.shell{font-family:'DM Sans',system-ui,sans-serif;background:var(--parchment);border-radius:0;overflow:hidden;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
+.shell{font-family:'DM Sans',system-ui,sans-serif;background:var(--parchment);border-radius:0;overflow-x:hidden;overflow-y:visible;width:100%;max-width:1400px;min-height:100vh;margin:0 auto;}
 
 .nav{background:var(--parchment);padding:0 28px;height:56px;display:flex;align-items:center;border-bottom:1px solid var(--gold-border);}
 .wordmark{font-family:'Cormorant Garamond','DM Serif Display',Georgia,serif;font-size:32px;font-weight:600;color:var(--ink);letter-spacing:0.05em;line-height:1;}
@@ -847,14 +849,13 @@ function makeLineChart(id, data, borderColor, fillColor, opts = {}) {
 
 function updateChartsFromData(data) {
   const history = data?.history || {};
-  // Always ensure a full 30-day history for S&P 500 and DAX.
-  // Filters out corrupt proxy-scaled values, pads with seed data if gist is short.
-  const mergeHistory = (seed, live, minVal, maxVal) => {
+  // Use live history only; keep strict sanity ranges to block bad artifacts.
+  // (Seed fallback can reintroduce legacy mixed-scale values.)
+  const mergeHistory = (_seed, live, minVal, maxVal) => {
     const valid = (live || []).filter(v => v >= minVal && v <= maxVal);
-    if (valid.length >= 25) return valid.slice(-30);
-    return [...seed.slice(-(30 - valid.length)), ...valid];
+    return valid.slice(-30);
   };
-  history.sp500 = mergeHistory(SEED_HISTORY.sp500, history.sp500, 4500, 7500);
+  history.sp500 = mergeHistory(SEED_HISTORY.sp500, history.sp500, 4500, 6500);
   history.dax   = mergeHistory(SEED_HISTORY.dax,   history.dax,   14000, 28000);
   const pick = (arr, n = 30) => Array.isArray(arr) && arr.length ? arr.slice(-n) : [];
   const calcChange = (arr) => {
@@ -1087,6 +1088,15 @@ function updateChartsFromData(data) {
   const dualLen = Math.min(yD.length, gD.length);
   const dualGold = gD.slice(-dualLen);
   const dualYield = yD.slice(-dualLen);
+  const goldMin = dualGold.length ? Math.min(...dualGold) : null;
+  const goldMax = dualGold.length ? Math.max(...dualGold) : null;
+  const goldRange = (goldMin != null && goldMax != null) ? (goldMax - goldMin) : 0;
+  const goldPad = Math.max(2, goldRange * 0.15);
+  const yldMin = dualYield.length ? Math.min(...dualYield) : null;
+  const yldMax = dualYield.length ? Math.max(...dualYield) : null;
+  const yldRange = (yldMin != null && yldMax != null) ? (yldMax - yldMin) : 0;
+  const yldPad = Math.max(0.005, yldRange * 0.25);
+  const yldTickDecimals = yldRange < 0.04 ? 3 : 2;
   const dualLabels = dualGold.map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (dualGold.length - 1 - i));
@@ -1133,8 +1143,27 @@ function updateChartsFromData(data) {
         },
         scales: {
           x: { grid: { display: false }, border: { display: false } },
-          yGold: { position: 'left', grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => '$' + Number(v).toLocaleString(), color: '#C9A84C', font: { size: 10 } } },
-          yYield: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { callback: v => Number(v).toFixed(2) + '%', color: '#2D82DC', font: { size: 10 } } }
+          yGold: {
+            position: 'left',
+            min: goldMin != null ? goldMin - goldPad : undefined,
+            max: goldMax != null ? goldMax + goldPad : undefined,
+            grid: { color: 'rgba(221,211,188,0.6)' },
+            border: { display: false },
+            ticks: { callback: v => '$' + Number(v).toLocaleString(), color: '#C9A84C', font: { size: 10 }, maxTicksLimit: 6 }
+          },
+          yYield: {
+            position: 'right',
+            min: yldMin != null ? yldMin - yldPad : undefined,
+            max: yldMax != null ? yldMax + yldPad : undefined,
+            grid: { display: false },
+            border: { display: false },
+            ticks: {
+              callback: v => Number(v).toFixed(yldTickDecimals) + '%',
+              color: '#2D82DC',
+              font: { size: 10 },
+              maxTicksLimit: 4
+            }
+          }
         }
       }
     });
@@ -1267,13 +1296,16 @@ function updateChartsFromData(data) {
 
   // S&P line + volatility bars
   if (spxHist.length > 1) {
-    const spHistory = spxHist;
+    const spHistory = spxHist
+      .filter(v => Number.isFinite(v))
+      .filter(v => v >= 4500 && v <= 8000);
+    if (spHistory.length < 2) return;
     const hasEnoughHistory = spHistory.length >= 10;
     const spIsUp = spHistory[spHistory.length - 1] >= spHistory[0];
     const spLineColor = spIsUp ? '#2D82DC' : '#A32D2D';
     const spFillColor = spIsUp ? 'rgba(45,130,220,0.05)' : 'rgba(163,45,45,0.05)';
-    const spMin = Math.min(...spHistory) * 0.998;
-    const spMax = Math.max(...spHistory) * 1.002;
+    const spMin = Math.floor(Math.min(...spHistory) * 0.998);
+    const spMax = Math.ceil(Math.max(...spHistory) * 1.002);
     const spChanges = spHistory.map((v, i) => i === 0 ? 0 : Math.abs(((v - spHistory[i - 1]) / spHistory[i - 1]) * 100));
     const spLabels = spHistory.map((_, i) => {
       const d = new Date();
@@ -1321,7 +1353,18 @@ function updateChartsFromData(data) {
         },
         scales: {
           x: { grid: { display: false }, border: { display: false } },
-          yPrice: { position: 'left', min: spMin, max: spMax, grid: { color: 'rgba(221,211,188,0.6)' }, border: { display: false }, ticks: { callback: v => Number(v).toLocaleString(), font: { size: 10 } } },
+          yPrice: {
+            position: 'left',
+            min: spMin,
+            max: spMax,
+            grid: { color: 'rgba(221,211,188,0.6)' },
+            border: { display: false },
+            ticks: {
+              callback: v => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(Number(v))),
+              font: { size: 10 },
+              maxTicksLimit: 6
+            }
+          },
           yVol: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { display: false }, min: 0, max: Math.max(...spChanges, 0) * 8, display: hasEnoughHistory }
         }
       }
