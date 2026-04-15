@@ -7,15 +7,15 @@
 <meta name="description" content="Aurum Pulse is a live financial intelligence dashboard covering macro, markets, geopolitical risk, and sentiment in one view." />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Aurum Pulse" />
-<meta property="og:title" content="Aurum Pulse | Financial Intelligence Dashboard" />
-<meta property="og:description" content="Live macro, market, and geopolitical intelligence with clear briefing signals." />
+<meta property="og:title" content="Aurum Pulse" />
+<meta property="og:description" content="Geopolitical and macro market dashboard." />
 <meta property="og:url" content="https://aurumpulse.netlify.app/" />
 <meta property="og:image" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Aurum Pulse | Financial Intelligence Dashboard" />
-<meta name="twitter:description" content="Live macro, market, and geopolitical intelligence with clear briefing signals." />
+<meta name="twitter:title" content="Aurum Pulse" />
+<meta name="twitter:description" content="Geopolitical and macro market dashboard." />
 <meta name="twitter:image" content="https://aurumpulse.netlify.app/assets/brand/aurum-social-thumbnail.png" />
 <link rel="icon" href="assets/brand/favicon/favicon.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon/favicon-32.png">
@@ -335,7 +335,14 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .cprice { font-size: 34px; }
   .nav { padding: 0 16px; }
   .page-outer { padding: 12px 14px 0; }
-  .tabs-wrap { padding: 0 14px; }
+  .tabs-wrap {
+    padding: 0 14px;
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    background: var(--parchment);
+    border-bottom: 1px solid rgba(221,211,188,0.7);
+  }
   .page { padding: 16px 14px calc(56px + env(safe-area-inset-bottom,0px)); }
   .gnsplit { grid-template-columns: 1fr; }
   .impgrid { grid-template-columns: repeat(2, 1fr); }
@@ -364,6 +371,11 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .cprice { font-size: 30px; }
   .b-headline, .b-hl { font-size: 20px !important; }
   .page { padding: 14px 12px 54px; }
+  .ccrd-body { padding: 12px; }
+  .macro-stat-row { margin-left: -2px; margin-right: -2px; }
+  .mstat { min-width: 62px; padding: 9px 10px; }
+  .mstat-label { font-size: 8px; letter-spacing: 0.06em; }
+  .mstat-val { font-size: 16px; }
   /* Hotspot score badge smaller */
   .hs-score { width: 24px; height: 24px; font-size: 12px; }
   .hs-title { font-size: 14px; }
@@ -1647,12 +1659,12 @@ function buildTicker(items) {
 })();
 
 async function loadLiveBriefing() {
-  // Primary: local committed snapshot (reliable on Netlify deploys).
-  // Fallback: historical gist endpoint (if available).
+  // Primary: live Gist snapshot (fresh data from pipeline).
+  // Fallback: local committed snapshot (deploy safety net).
   const urls = [
-    './aurum-data.json',
     'https://gist.githubusercontent.com/aninablack/a75d53425ebda6a21eac8bb78baf0a19/raw/aurum-data.json',
     'https://gist.githubusercontent.com/aninablack/8d863391f3e9cbf2205dbf013e47b14a/raw/aurum-data.json',
+    './aurum-data.json',
   ];
   try {
     let data = null;

@@ -65,7 +65,7 @@ const SANITY = {
   silver:   { min: 10,   max: 150  },
   platinum: { min: 400,  max: 3000 },
 };
-const NEWS_MAX_AGE_HOURS = 72;
+const NEWS_MAX_AGE_HOURS = 24;
 
 // ── UTILITIES ────────────────────────────────────────────────────────────────
 
@@ -160,6 +160,11 @@ function isRecent(isoTs, maxHours = NEWS_MAX_AGE_HOURS) {
   const t = new Date(isoTs).getTime();
   if (!Number.isFinite(t)) return false;
   return ((Date.now() - t) / (1000 * 60 * 60)) <= maxHours;
+}
+
+function hasFreshNews(items, maxHours = NEWS_MAX_AGE_HOURS) {
+  if (!Array.isArray(items) || !items.length) return false;
+  return items.some(i => isRecent(i?.published, maxHours));
 }
 
 function daysInMonthUTC(date = new Date()) {
@@ -516,7 +521,9 @@ async function fetchNewsDataNews() {
   const q = encodeURIComponent('gold OR federal reserve OR inflation OR stock market OR treasury yield');
   const url = `https://newsdata.io/api/1/news?apikey=${CONFIG.newsdata}&language=en&category=business&q=${q}`;
   const data = await fetchJSON(url);
-  return (data?.results ?? []).slice(0, 8).map(a => ({
+  const raw = data?.results;
+  const rows = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : []);
+  return rows.slice(0, 8).map(a => ({
     text: a.title, source: a.source_id || a.source_name, tone: classifyTone(a.title || ''), url: a.link, published: a.pubDate,
   })).filter(i => i.text && isRecent(i.published));
 }
@@ -558,11 +565,12 @@ function selectRelevantNews(items) {
 }
 
 const NEWS_PROVIDER_POLICIES = {
-  finnhub:   { minHours: 6 },                 // free tier is RPM-based; cadence keeps usage low
-  marketaux: { minHours: 6, maxPerDay: 100 }, // free: 100/day
-  newsdata:  { minHours: 6, maxPerDay: 200 }, // free: 200 credits/day
-  newsapi:   { minHours: 6, maxPerDay: 100 }, // free: 100/day
-  gnews:     { minHours: 6, maxPerDay: 100 }, // free: 100/day
+  // Run on every pipeline execution (4x/day). Daily caps still protect quotas.
+  finnhub:   { minHours: 0 },                  // RPM-based free tier; safe at 4/day
+  marketaux: { minHours: 0, maxPerDay: 100 },  // free: 100/day
+  newsdata:  { minHours: 0, maxPerDay: 200 },  // free: 200/day
+  newsapi:   { minHours: 0, maxPerDay: 100 },  // free: 100/day
+  gnews:     { minHours: 0, maxPerDay: 100 },  // free: 100/day
 };
 
 async function fetchNewsWithFallback(existing, now = new Date()) {
@@ -615,15 +623,20 @@ async function fetchGeopolitical() {
 
   let data = null;
   let lastErr = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 4; attempt++) {
     try {
       data = await fetchJSON(url);
       lastErr = null;
       break;
     } catch (err) {
       lastErr = err;
-      if (attempt < 2) {
-        const backoffMs = 5500 + Math.floor(Math.random() * 2001); // 5.5-7.5s — respects GDELT's 5s rate limit
+      if (attempt < 3) {
+        const msg = String(err?.message ?? '');
+        const isRateLimited = /Please limit requests to one every 5 seconds/i.test(msg) || /429/.test(msg);
+        const floorMs = isRateLimited ? 6500 : 5500;
+        const stepMs = attempt * 1500;
+        const jitterMs = Math.floor(Math.random() * 1500);
+        const backoffMs = floorMs + stepMs + jitterMs;
         await sleep(backoffMs);
       }
     }
@@ -1035,10 +1048,10 @@ async function main() {
     { text: 'Gold holds firm as safe-haven demand persists amid macro headwinds', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
     { text: 'Federal Reserve policy path remains key focus for bond and equity markets', source: 'Aurum Intelligence', tone: 'neutral', url: '#', published: new Date().toISOString() },
   ];
+  const existingNews = existing?.sentiment?.newsItems ?? [];
   const resolvedNewsItems =
     (news?.items?.length > 0) ? news.items :
-    (existing?.sentiment?.newsItems?.length > 0) ? existing.sentiment.newsItems :
-    sentinelItems;
+    (hasFreshNews(existingNews) ? existingNews : sentinelItems);
 
   // 8. Assemble the final snapshot
   const snapshot = {

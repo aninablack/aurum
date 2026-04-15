@@ -1,52 +1,38 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <title>Aurum Live Geopolitical Financial Dashboard</title>
+  <title>Aurum Geopolitical Financial Dashboard</title>
 
   <!-- Background -->
   <rect width="1200" height="630" fill="#EDE5D6"/>
 
-  <!-- Nav bar -->
-  <text x="72" y="60" font-family="'Cormorant Garamond', Georgia, serif"
-        font-size="52" font-weight="600" letter-spacing="2" fill="#0D1B2A">Aurum</text>
-  <rect x="0" y="78" width="1200" height="1" fill="#DDD3BC"/>
-
-  <!-- Card: x=36, y=100, w=1128, h=502 -->
-  <rect x="36" y="100" width="1128" height="502" rx="18"
+  <!-- Card: x=36, y=40, w=1128, h=550 -->
+  <rect x="36" y="40" width="1128" height="550" rx="18"
         fill="#FFFFFF" stroke="#C9A84C" stroke-width="2.5"/>
 
-  <!-- MARKET BRIEFING label -->
-  <text x="72" y="150"
-        font-family="'DM Sans', system-ui, sans-serif"
-        font-size="13" font-weight="700" letter-spacing="2.2" fill="#8B6914">MARKET BRIEFING</text>
+  <!-- In-card ribbon -->
+  <rect x="56" y="58" width="1088" height="88" rx="10" fill="#F5F1E8"/>
+  <text x="84" y="124"
+        font-family="'Cormorant Garamond', Georgia, serif"
+        font-size="54" font-weight="600" letter-spacing="2" fill="#0D1B2A">Aurum</text>
+  <rect x="56" y="146" width="1088" height="2" fill="#C9A84C"/>
 
-  <!-- Subtitle -->
-  <text x="72" y="176"
+  <!-- Descriptor -->
+  <text x="84" y="198"
         font-family="'DM Sans', system-ui, sans-serif"
-        font-size="18" font-weight="400" fill="#6B7280">Geopolitical Financial Dashboard</text>
+        font-size="16" font-weight="700" letter-spacing="1.8" fill="#8B6914">GEOPOLITICAL FINANCIAL DASHBOARD</text>
 
-  <!-- Headline — 2 lines, tighter phrasing to avoid 3rd line -->
-  <text x="72" y="258"
+  <!-- Headline -->
+  <text x="84" y="306"
         font-family="'DM Serif Display', Georgia, serif"
         font-size="62" font-weight="400" fill="#0D1B2A">Gold, rates &amp; geopolitical risk</text>
-  <text x="72" y="332"
+  <text x="84" y="380"
         font-family="'DM Serif Display', Georgia, serif"
-        font-size="62" font-weight="400" fill="#0D1B2A">in one live briefing.</text>
+        font-size="62" font-weight="400" fill="#0D1B2A">in one clear briefing.</text>
 
-  <!-- Body copy — 2 lines -->
-  <text x="72" y="388"
+  <!-- Body copy -->
+  <text x="84" y="430"
         font-family="'DM Sans', system-ui, sans-serif"
         font-size="22" font-weight="400" fill="#4A5568">Real-time macro signals, sentiment, and scenario analysis.</text>
-  <text x="72" y="418"
+  <text x="84" y="464"
         font-family="'DM Sans', system-ui, sans-serif"
-        font-size="22" font-weight="400" fill="#4A5568">Built for investors who act on information.</text>
-
-  <!-- Divider -->
-  <rect x="72" y="456" width="1056" height="1" fill="#DDD3BC"/>
-
-  <!-- Feature strip — all on one line -->
-  <text x="72" y="498"
-        font-family="'DM Sans', system-ui, sans-serif"
-        font-size="18" font-weight="700" letter-spacing="1.5" fill="#8B6914">AURUM</text>
-  <text x="180" y="498"
-        font-family="'DM Sans', system-ui, sans-serif"
-        font-size="18" font-weight="400" fill="#9CA3AF">·  Live briefing  ·  Fear &amp; Greed  ·  Yield curve  ·  Risk map</text>
+        font-size="22" font-weight="400" fill="#4A5568">Fear &amp; Greed • Yield curve • Risk map.</text>
 </svg>
