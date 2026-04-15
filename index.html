@@ -125,7 +125,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 .bw-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:6px;}
 
 /* ── News ticker strip ─────────────────────────────────────────────────────── */
-.ticker-wrap{background:var(--parchment);display:flex;align-items:flex-start;min-height:40px;height:calc(40px + env(safe-area-inset-bottom,0px));overflow:hidden;padding-left:20px;padding-bottom:env(safe-area-inset-bottom,0px);flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
+.ticker-wrap{background:var(--parchment);display:flex;align-items:center;height:40px;padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:content-box;overflow:hidden;padding-left:20px;flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:200;border-top:1px solid #C8B97A;}
 .ticker-label{font-family:'DM Sans',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-dark);white-space:nowrap;flex-shrink:0;padding-right:14px;border-right:1px solid rgba(201,168,76,0.4);}
 .ticker-overflow{overflow:hidden;flex:1;mask-image:linear-gradient(to right,transparent 0,#000 32px,#000 calc(100% - 32px),transparent 100%);}
 .ticker-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;}
@@ -1651,7 +1651,7 @@ async function loadLiveBriefing() {
   // Fallback: historical gist endpoint (if available).
   const urls = [
     './aurum-data.json',
-    'https://gist.githubusercontent.com/aninablack/8d863391f3e9cbf2205dbf013e47b14a/raw/aurum-data.json',
+    'https://gist.githubusercontent.com/aninablack/a75d53425ebda6a21eac8bb78baf0a19/raw/aurum-data.json',
   ];
   try {
     let data = null;
