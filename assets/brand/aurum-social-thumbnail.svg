@@ -21,18 +21,18 @@
         font-size="16" font-weight="700" letter-spacing="1.8" fill="#8B6914">GEOPOLITICAL FINANCIAL DASHBOARD</text>
 
   <!-- Headline -->
-  <text x="84" y="306"
+  <text x="84" y="270"
         font-family="'DM Serif Display', Georgia, serif"
         font-size="62" font-weight="400" fill="#0D1B2A">Gold, rates &amp; geopolitical risk</text>
-  <text x="84" y="380"
+  <text x="84" y="344"
         font-family="'DM Serif Display', Georgia, serif"
-        font-size="62" font-weight="400" fill="#0D1B2A">in one clear briefing.</text>
+        font-size="62" font-weight="400" fill="#0D1B2A">in one live briefing.</text>
 
   <!-- Body copy -->
-  <text x="84" y="430"
+  <text x="84" y="404"
         font-family="'DM Sans', system-ui, sans-serif"
         font-size="22" font-weight="400" fill="#4A5568">Real-time macro signals, sentiment, and scenario analysis.</text>
-  <text x="84" y="464"
+  <text x="84" y="438"
         font-family="'DM Sans', system-ui, sans-serif"
         font-size="22" font-weight="400" fill="#4A5568">Fear &amp; Greed • Yield curve • Risk map.</text>
 </svg>
