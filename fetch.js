@@ -581,22 +581,36 @@ function selectRelevantNews(items) {
 }
 
 const NEWS_PROVIDER_POLICIES = {
-  // Run on every pipeline execution (4x/day). Daily caps still protect quotas.
-  finnhub:   { minHours: 0 },                  // RPM-based free tier; safe at 4/day
+  // Run on every pipeline execution. Daily caps still protect quotas.
+  finnhub:   { minHours: 0 },                  // RPM-based free tier
   marketaux: { minHours: 0, maxPerDay: 100 },  // free: 100/day
   newsdata:  { minHours: 0, maxPerDay: 200 },  // free: 200/day
   newsapi:   { minHours: 0, maxPerDay: 100 },  // free: 100/day
   gnews:     { minHours: 0, maxPerDay: 100 },  // free: 100/day
 };
 
+function rotateChain(chain, offset) {
+  if (!Array.isArray(chain) || !chain.length) return chain;
+  const n = chain.length;
+  const k = ((offset % n) + n) % n;
+  if (k === 0) return chain;
+  return [...chain.slice(k), ...chain.slice(0, k)];
+}
+
 async function fetchNewsWithFallback(existing, now = new Date()) {
-  const chain = [
+  const baseChain = [
     ['Finnhub', 'finnhub', CONFIG.finnhub, fetchFinnhubNews],
     ['Marketaux', 'marketaux', CONFIG.marketaux, fetchMarketauxNews],
     ['NewsData', 'newsdata', CONFIG.newsdata, fetchNewsDataNews],
     ['NewsAPI', 'newsapi', CONFIG.newsapi, fetchNewsAPI],
     ['GNews', 'gnews', CONFIG.gnews, fetchGNewsFeed],
   ];
+  // Rotate starting provider by UTC 4-hour slot to improve source diversity
+  // across scheduled runs while preserving fallback reliability.
+  const runSlot = Math.floor(now.getUTCHours() / 4);
+  const chain = rotateChain(baseChain, runSlot);
+  console.log(`~ News provider rotation slot=${runSlot}, start=${chain[0]?.[0] ?? 'n/a'}`);
+
   for (const [label, quotaKey, apiKey, fn] of chain) {
     if (!apiKey) continue;
     const policyCfg = NEWS_PROVIDER_POLICIES[quotaKey] ?? { minHours: 6 };
