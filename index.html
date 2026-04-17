@@ -415,7 +415,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
         <span class="b-ts" id="briefingTs">Sunday 29 March 2026 · 15:48 UTC · Live</span>
       </div>
       <h1 class="b-headline" id="briefingHeadline">Extreme fear grips global markets as equities fall and gold advances to $4,524</h1>
-      <div class="b-body" id="briefingBody">Fear &amp; Greed sits at 11 — extreme fear territory. Readings this low have historically marked capitulation lows — watch for a recovery above 25 as the first sign selling pressure is exhausting itself. 10Y Treasury yields rose to 4.29% and the yield curve is positively sloped at +0.51, which is not yet a recession signal from rates, with inflation at 3.32% YoY. Iran geopolitical risk at 100/100 — monitor oil and gold for breakout signals.</div>
+      <div class="b-body" id="briefingBody">Fear &amp; Greed sits at 11 — extreme fear territory. Readings this low have historically marked capitulation lows — watch for a recovery above 25 as the first sign selling pressure is exhausting itself. 10Y Treasury yields rose to 4.29% and the yield curve is positively sloped at +0.51, which is not yet a recession signal from rates, with inflation at 3.32% YoY. Iran currently carries the highest geopolitical risk score — monitor oil and gold for breakout signals.</div>
       <div class="b-geo" id="briefingGeo" style="display:none"></div>
       <div class="b-watch" id="briefingWatch" style="display:none">
         <div class="bw-label">Key watch</div>
@@ -492,7 +492,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
       <div class="slbl" id="playbooksLabel">Scenarios</div>
       <div class="story-card" id="geoStoryCard">
         <div class="sc-hl">Iran-US tensions escalate: Strait of Hormuz at breaking point</div>
-        <div class="sc-body">New US sanctions on Iranian oil exports have triggered retaliatory threats to restrict shipping through the Strait of Hormuz, through which 20% of global oil supply passes. GDELT conflict index for Iran has reached 100/100. Historical precedent from 2019 Gulf of Oman incidents shows oil spiked 4% overnight on similar rhetoric. If naval confrontation occurs, a 20–30% oil price surge within 48 hours is considered likely by energy analysts.</div>
+        <div class="sc-body">New US sanctions on Iranian oil exports have triggered retaliatory threats to restrict shipping through the Strait of Hormuz, through which 20% of global oil supply passes. Iran remains the highest-risk node in the live conflict map. Historical precedent from 2019 Gulf of Oman incidents shows oil spiked 4% overnight on similar rhetoric. If naval confrontation occurs, a 20–30% oil price surge within 48 hours is considered likely by energy analysts.</div>
         <div class="sc-split">
           <div class="sc-left">
             <div class="plbl" style="margin-bottom:10px">Why this matters</div>
@@ -1473,7 +1473,7 @@ async function drawWorldMap(){
 
   const riskData = window.liveAurumData?.geopolitical?.riskByCountry || {
     // High risk
-    IRN: 100, YEM: 72, SDN: 60, IRQ: 58, LBN: 55,
+    IRN: 95, YEM: 72, SDN: 60, IRQ: 58, LBN: 55,
     // Elevated
     ISR: 50, AFG: 48, UKR: 49, SYR: 42, VEN: 40,
     // Watch
@@ -1650,14 +1650,36 @@ async function drawWorldMap(){
     pulseOne();
   });
 
-  document.querySelectorAll('.hs-score[data-iso]').forEach((el) => {
-    const iso = el.getAttribute('data-iso');
+  const hotspotRows = Array.from(document.querySelectorAll('.hotspot'));
+  const topRiskIso = Object.entries(riskData)
+    .sort(([, a], [, b]) => Number(b || 0) - Number(a || 0))[0]?.[0] || null;
+  let visibleHotspots = 0;
+
+  hotspotRows.forEach((row) => {
+    const scoreEl = row.querySelector('.hs-score[data-iso]');
+    if (!scoreEl) return;
+    const iso = scoreEl.getAttribute('data-iso');
     const score = Number(riskData[iso] || 0);
-    el.textContent = String(score);
+
+    // Hide inactive hotspots to avoid a noisy list full of zero scores.
+    // Keep the top risk row visible as a fallback so the list is never empty.
+    if (score <= 0 && iso !== topRiskIso) {
+      row.style.display = 'none';
+      return;
+    }
+
+    row.style.display = 'flex';
+    visibleHotspots += 1;
+    scoreEl.textContent = String(score);
     const badge = hotspotBadgeStyle(score);
-    el.style.color = badge.color;
-    el.style.background = badge.bg;
+    scoreEl.style.color = badge.color;
+    scoreEl.style.background = badge.bg;
   });
+
+  // Final safeguard: if everything was hidden for any reason, unhide the first row.
+  if (visibleHotspots === 0 && hotspotRows[0]) {
+    hotspotRows[0].style.display = 'flex';
+  }
 
   mapRendered = true;
 }
@@ -2192,8 +2214,8 @@ function buildLiveStoryPayloads(data) {
       { name: 'Shipping', dir: 'up', val: fmtSignedRange(8, 25), why: 'Route disruption' },
       { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
     ],
-    watch: topScore >= 100
-      ? `Risk confirmed at 100/100 in ${topName}. Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
+    watch: topScore >= 95
+      ? `${topName} remains the highest-risk live node (${topScore}/100). Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
       : topScore >= 80
         ? `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`
         : `Watch for any acceleration in ${topName} risk toward 80+, and monitor oil and gold reaction to fresh wires.`,

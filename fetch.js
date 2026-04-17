@@ -733,12 +733,19 @@ async function fetchGeopolitical() {
     ).length;
   }
 
-  // Normalise to 0–100
+  // Normalise to 0–95 (avoid treating this relative score as an absolute 100/100 certainty)
   const maxCount = Math.max(...Object.values(rawCounts), 1);
   const riskByCountry = {};
   for (const [country, count] of Object.entries(rawCounts)) {
     const iso = ISO3[country];
-    if (iso) riskByCountry[iso] = Math.round((count / maxCount) * 100);
+    if (iso) {
+      if (count <= 0) {
+        riskByCountry[iso] = 0;
+      } else {
+        const score = Math.round((count / maxCount) * 95);
+        riskByCountry[iso] = Math.max(5, Math.min(95, score));
+      }
+    }
   }
 
   return {
@@ -1386,7 +1393,7 @@ function generateBody(data) {
     const second = topRisks[1]
       ? ` ${countryNames[topRisks[1][0]] || topRisks[1][0]} is also elevated at ${topRisks[1][1]}/100.`
       : '';
-    parts.push(`${name} geopolitical risk is at ${score}/100.${second} ${assetImplications}`);
+    parts.push(`${name} is the highest current geopolitical risk score at ${score}/100.${second} ${assetImplications}`);
   } else if (sentiment?.newsItems?.[0]?.text) {
     parts.push(`From the wires: ${sentiment.newsItems[0].text}.`);
   }
@@ -1395,7 +1402,7 @@ function generateBody(data) {
   const watches = [];
   if (fg != null && fg <= 30) watches.push(`a Fear and Greed recovery above 30 as the first signal that selling pressure may be exhausting`);
   if (spread != null && spread < 0.3 && spread >= 0) watches.push(`any further flattening of the yield curve toward inversion`);
-  if (topRisk && topRisk[1] >= 100) {
+  if (topRisk && topRisk[1] >= 95) {
     watches.push(`a drop in ${countryNames[topRisk[0]] || topRisk[0]} risk below 80 as the first de-escalation signal, plus oil for any relief rally`);
   } else if (topRisk && topRisk[1] >= 90) {
     watches.push(`oil prices and gold for breakout moves on any confirmed geopolitical escalation`);
@@ -1449,8 +1456,8 @@ function generatePlaybooks(data) {
       { name: 'Shipping', dir: 'up', val: '+8%–+25%', why: 'Route disruption' },
       { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
     ],
-    watch: topScore >= 100
-      ? `Risk confirmed at 100/100 in ${topName}. Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
+    watch: topScore >= 95
+      ? `${topName} remains the highest-risk live node (${topScore}/100). Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
       : topScore >= 80
         ? `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`
         : `Watch for any acceleration in ${topName} risk toward 80+, and monitor oil and gold reaction to fresh wires.`,
