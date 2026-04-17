@@ -1089,6 +1089,18 @@ async function main() {
     },
     geopolitical: geoResolved,
   });
+  const playbooks = generatePlaybooks({
+    fearGreed,
+    macro,
+    metals: { gold: metalWithChange(goldPrice, 'gold') },
+    indices: yahooIndices ?? existing?.indices ?? null,
+    crypto: crypto ?? existing?.crypto ?? null,
+    sentiment: {
+      signal: news?.signal ?? existing?.sentiment?.signal ?? 'neutral',
+      newsItems: news?.items ?? existing?.sentiment?.newsItems ?? [],
+    },
+    geopolitical: geoResolved,
+  });
   const newsProvider = news?.provider ?? null;
   const sentinelItems = [
     { text: 'Markets on edge as global uncertainty weighs on investor sentiment', source: 'Aurum Intelligence', tone: 'bearish', url: '#', published: new Date().toISOString() },
@@ -1201,6 +1213,7 @@ async function main() {
       headline:  narrative.headline ?? existing?.sentiment?.headline ?? 'Markets stable — monitoring macro and geopolitical signals.',
       briefingBody: narrative.body ?? existing?.sentiment?.briefingBody ?? null,
       newsItems: resolvedNewsItems,
+      playbooks: playbooks ?? existing?.sentiment?.playbooks ?? null,
     },
 
     geopolitical: geoResolved,
@@ -1379,6 +1392,106 @@ function generateNarrative(data) {
     headline: generateHeadline(data),
     body: generateBody(data),
   };
+}
+
+function generatePlaybooks(data) {
+  const fg = data?.fearGreed?.value ?? null;
+  const gold = data?.metals?.gold?.price ?? null;
+  const spChg = data?.indices?.sp500?.change ?? null;
+  const spread = data?.macro?.yieldSpread?.value ?? null;
+  const cpi = data?.macro?.cpi?.yoyPct ?? null;
+  const t10 = data?.macro?.treasury10y?.value ?? null;
+  const t2 = data?.macro?.treasury2y?.value ?? null;
+  const btcChg = data?.crypto?.bitcoin?.change ?? null;
+
+  const risk = data?.geopolitical?.riskByCountry || {};
+  const top = Object.entries(risk).sort((a, b) => b[1] - a[1])[0] || ['IRN', 0];
+  const topIso = top[0];
+  const topScore = top[1];
+  const names = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China', USA: 'United States', PAK: 'Pakistan' };
+  const topName = names[topIso] || topIso;
+
+  const geo = {
+    hl: `${topName} tensions and macro uncertainty: geopolitical risk at the center`,
+    body: `Conflict risk is concentrated in ${topName} (${topScore}/100), while Fear & Greed remains ${fg != null ? fg : 'elevated'} and defensive positioning persists. Gold is ${gold != null ? `trading near $${Math.round(gold).toLocaleString()}` : 'acting as a safe-haven proxy'}. The setup remains sensitive to any confirmation of de-escalation talks versus escalation headlines.`,
+    why: [
+      `${topName} remains the dominant geopolitical node in your live risk map (${topScore}/100).`,
+      'Safe-haven demand tends to favor gold and USD when geopolitical uncertainty remains unresolved.',
+      'Energy and shipping channels remain the fastest transmission path into broader risk assets.',
+      'Headline volatility can reverse quickly; treat single-source wires as tactical, not structural, signals.',
+    ],
+    impact: [
+      { name: 'Gold', dir: 'up', val: '+4%–+12%', why: 'Safe-haven bid' },
+      { name: 'Oil', dir: 'up', val: '+6%–+20%', why: 'Supply risk premium' },
+      { name: 'S&P 500', dir: 'down', val: '−3%–−10%', why: 'Risk repricing' },
+      { name: 'USD', dir: 'up', val: '+2%–+6%', why: 'Reserve demand' },
+      { name: 'Shipping', dir: 'up', val: '+8%–+25%', why: 'Route disruption' },
+      { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
+    ],
+    watch: `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`,
+  };
+
+  const rate = {
+    hl: `Rates regime check: real-rate pressure remains ${spread != null && spread > 0 ? 'positive' : 'fragile'}`,
+    body: `10Y Treasury is ${t10 != null ? t10.toFixed(2) + '%' : 'n/a'}, 2Y is ${t2 != null ? t2.toFixed(2) + '%' : 'n/a'}, and curve spread is ${spread != null ? (spread >= 0 ? '+' : '') + spread.toFixed(2) : 'n/a'}. With CPI at ${cpi != null ? cpi.toFixed(2) + '%' : 'n/a'}, the current backdrop suggests rates remain a primary valuation driver for equities, gold, and crypto.`,
+    why: [
+      'Higher real rates generally compress long-duration equity multiples.',
+      'Positive but narrowing spread can still coexist with growth scares and volatility spikes.',
+      'Gold response depends on real-rate direction more than nominal yield alone.',
+      'USD relative strength tends to persist when US rates stay restrictive.',
+    ],
+    impact: [
+      { name: 'Gold', dir: spread != null && spread > 0.3 ? 'down' : 'up', val: spread != null && spread > 0.3 ? '−2%–−8%' : '+1%–+6%', why: 'Real-rate sensitivity' },
+      { name: 'USD', dir: 'up', val: '+2%–+7%', why: 'Yield differential' },
+      { name: 'S&P 500', dir: 'down', val: '−4%–−12%', why: 'Discount-rate drag' },
+      { name: 'Bonds', dir: 'down', val: '−2%–−8%', why: 'Price inverse to yield' },
+      { name: 'Silver', dir: 'down', val: '−2%–−7%', why: 'Cyclical + real-rate pressure' },
+      { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Liquidity sensitivity' },
+    ],
+    watch: 'Watch 10Y at 4.50% as a risk threshold and track whether spread holds above +0.20; a break lower usually amplifies recession narrative and equity volatility.',
+  };
+
+  const supply = {
+    hl: 'Supply chain stress test: inflation and logistics remain headline-sensitive',
+    body: 'Supply conditions are not in full crisis mode, but geopolitical shipping risk and energy uncertainty still create tail-risk for costs. If disruptions persist, input inflation can re-accelerate even with moderating headline CPI, especially in transport, food, and industrial channels.',
+    why: [
+      'Shipping and energy volatility transmit into producer margins with a lag.',
+      'Food and commodity corridors remain vulnerable to geopolitical disruption.',
+      'Margin pressure can appear before CPI prints show the full impact.',
+      'Hard assets often outperform when supply stress meets policy uncertainty.',
+    ],
+    impact: [
+      { name: 'Oil', dir: 'up', val: '+8%–+22%', why: 'Logistics + geopolitical premium' },
+      { name: 'Wheat', dir: 'up', val: '+6%–+18%', why: 'Corridor sensitivity' },
+      { name: 'Gold', dir: 'up', val: '+2%–+9%', why: 'Inflation hedge' },
+      { name: 'S&P 500', dir: 'down', val: '−2%–−7%', why: 'Margin compression' },
+      { name: 'Shipping', dir: 'up', val: '+12%–+35%', why: 'Capacity squeeze' },
+      { name: 'Bitcoin', dir: btcChg != null && btcChg > 0 ? 'watch' : 'down', val: btcChg != null && btcChg > 0 ? '→ mixed' : '−3%–−10%', why: 'Indirect macro channel' },
+    ],
+    watch: 'Watch shipping-cost proxies and fresh Middle East headlines together; persistent disruption over multiple weeks is materially more inflationary than one-off shocks.',
+  };
+
+  const crash = {
+    hl: 'Risk-off monitor: sentiment and positioning still dominate tape action',
+    body: `Fear & Greed sits at ${fg != null ? fg : 'n/a'}, while S&P daily change is ${spChg != null ? (spChg >= 0 ? '+' : '') + spChg.toFixed(2) + '%' : 'n/a'}. This is a fragile environment where short-covering rallies can coexist with defensive rotation. Gold and USD leadership with weak breadth would confirm ongoing risk-off structure.`,
+    why: [
+      'Low sentiment historically aligns with high realized volatility and fast reversals.',
+      'If breadth lags index rebounds, risk remains concentrated rather than resolved.',
+      'Gold strength during equity bounces is a classic caution signal.',
+      'Crypto often magnifies equity direction in late-cycle risk moves.',
+    ],
+    impact: [
+      { name: 'Gold', dir: 'up', val: '+4%–+12%', why: 'Defensive allocation' },
+      { name: 'S&P 500', dir: 'down', val: '−8%–−20%', why: 'Multiple compression' },
+      { name: 'Bitcoin', dir: 'down', val: '−12%–−30%', why: 'Liquidity + beta' },
+      { name: 'Bonds', dir: 'up', val: '+3%–+9%', why: 'Flight to quality' },
+      { name: 'VIX', dir: 'up', val: '+60%–+150%', why: 'Volatility repricing' },
+      { name: 'USD', dir: 'up', val: '+2%–+7%', why: 'Safe-haven demand' },
+    ],
+    watch: 'Watch Fear & Greed recovery above 30 and whether S&P can hold gains on rising volume; failed follow-through usually signals continuation risk.',
+  };
+
+  return { geo, rate, supply, crash };
 }
 
 // ── RUN ────────────────────────────────────────────────────────────────────────

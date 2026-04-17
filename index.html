@@ -490,7 +490,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
       <!-- Scenarios — static educational context -->
       <div class="slbl" id="playbooksLabel">Scenarios</div>
-      <div class="story-card">
+      <div class="story-card" id="geoStoryCard">
         <div class="sc-hl">Iran-US tensions escalate: Strait of Hormuz at breaking point</div>
         <div class="sc-body">New US sanctions on Iranian oil exports have triggered retaliatory threats to restrict shipping through the Strait of Hormuz, through which 20% of global oil supply passes. GDELT conflict index for Iran has reached 100/100. Historical precedent from 2019 Gulf of Oman incidents shows oil spiked 4% overnight on similar rhetoric. If naval confrontation occurs, a 20–30% oil price surge within 48 hours is considered likely by energy analysts.</div>
         <div class="sc-split">
@@ -574,7 +574,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
     <!-- RATE -->
     <div class="panel" id="p-rate">
-      <div class="story-card">
+      <div class="story-card" id="rateStoryCard">
         <div class="sc-hl">Federal Reserve pivots hawkish: rate hike cycle reignites</div>
         <div class="sc-body">Persistent services inflation and a resilient labour market have forced the Fed to signal further rate hikes after its pause. The bond market is repricing rapidly: 10Y Treasury yields are moving toward 5.0%, compressing growth equity valuations through the discount rate mechanism. Dollar strength is accelerating capital outflows from emerging markets. This is a 2022-style tightening environment: historically the worst outcome for long-duration assets, crypto, and gold simultaneously.</div>
         <div class="sc-split">
@@ -625,7 +625,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
     <!-- SUPPLY -->
     <div class="panel" id="p-supply">
-      <div class="story-card">
+      <div class="story-card" id="supplyStoryCard">
         <div class="sc-hl">Global supply chain fractures: commodity prices enter shock territory</div>
         <div class="sc-body">A combination of Red Sea shipping disruptions, port congestion in Asia, and escalating trade tariffs is compressing global logistics capacity. Container shipping costs have risen 40% in 60 days. Companies across retail, automotive, and electronics are issuing profit warnings as input costs surge. The 2021–22 supply chain crisis showed these dynamics take 6–9 months to resolve and drive sustained commodity inflation well above central bank targets.</div>
         <div class="sc-split">
@@ -656,7 +656,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 
     <!-- CRASH -->
     <div class="panel" id="p-crash">
-      <div class="story-card">
+      <div class="story-card" id="crashStoryCard">
         <div class="sc-hl">Equity markets enter correction: broad risk-off event underway</div>
         <div class="sc-body">With the Fear &amp; Greed index at 9, its lowest reading since the 2022 bear market, the conditions for a sustained correction are present. Technical damage is mounting: the S&amp;P 500 has broken below its 50-day moving average with increasing volume on down days. Institutional investors are reducing equity exposure and rotating into Treasuries and gold. Historical corrections from this sentiment level average 12–18% peak-to-trough over 3–6 months.</div>
         <div class="sc-split">
@@ -1830,6 +1830,7 @@ async function loadLiveBriefing() {
     // Historical context on pulse cards + Key Watch strip + Live Scenarios
     populatePulseContext(data);
     populateScenarios(data);
+    populateLiveStoryCards(data);
 
     // Keep all charts anchored to real snapshot/history data.
     updateChartsFromData(data);
@@ -2119,6 +2120,164 @@ function populateScenarios(data) {
   // so the page doesn't look redundant
   const playbooksLabel = document.getElementById('playbooksLabel');
   if (playbooksLabel) playbooksLabel.style.marginTop = '22px';
+}
+
+function fmtSignedRange(min, max) {
+  const sign = min >= 0 && max >= 0 ? '+' : '';
+  return `${sign}${min}%–${max}%`;
+}
+
+function buildLiveStoryPayloads(data) {
+  const livePlaybooks = data?.sentiment?.playbooks;
+  if (livePlaybooks?.geo && livePlaybooks?.rate && livePlaybooks?.supply && livePlaybooks?.crash) {
+    return livePlaybooks;
+  }
+
+  const fg = data?.fearGreed?.value ?? null;
+  const gold = data?.metals?.gold?.price ?? null;
+  const goldChg = data?.metals?.gold?.change ?? null;
+  const spChg = data?.indices?.sp500?.change ?? null;
+  const spread = data?.macro?.yieldSpread?.value ?? null;
+  const cpi = data?.macro?.cpi?.yoyPct ?? null;
+  const t10 = data?.macro?.treasury10y?.value ?? null;
+  const t2 = data?.macro?.treasury2y?.value ?? null;
+  const btcChg = data?.crypto?.bitcoin?.change ?? null;
+
+  const risk = data?.geopolitical?.riskByCountry || {};
+  const top = Object.entries(risk).sort((a, b) => b[1] - a[1])[0] || ['IRN', 0];
+  const topIso = top[0];
+  const topScore = top[1];
+  const names = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China', USA: 'United States', PAK: 'Pakistan' };
+  const topName = names[topIso] || topIso;
+
+  const geo = {
+    hl: `${topName} tensions and macro uncertainty: geopolitical risk at the center`,
+    body: `Conflict risk is concentrated in ${topName} (${topScore}/100), while Fear & Greed remains ${fg != null ? fg : 'elevated'} and defensive positioning persists. Gold is ${gold != null ? `trading near $${Math.round(gold).toLocaleString()}` : 'acting as a safe-haven proxy'}. The setup remains sensitive to any confirmation of de-escalation talks versus escalation headlines.`,
+    why: [
+      `${topName} remains the dominant geopolitical node in your live risk map (${topScore}/100).`,
+      `Safe-haven demand tends to favor gold and USD when geopolitical uncertainty remains unresolved.`,
+      `Energy and shipping channels remain the fastest transmission path into broader risk assets.`,
+      `Headline volatility can reverse quickly; treat single-source wires as tactical, not structural, signals.`,
+    ],
+    impact: [
+      { name: 'Gold', dir: 'up', val: fmtSignedRange(4, 12), why: 'Safe-haven bid' },
+      { name: 'Oil', dir: 'up', val: fmtSignedRange(6, 20), why: 'Supply risk premium' },
+      { name: 'S&P 500', dir: 'down', val: '−3%–−10%', why: 'Risk repricing' },
+      { name: 'USD', dir: 'up', val: fmtSignedRange(2, 6), why: 'Reserve demand' },
+      { name: 'Shipping', dir: 'up', val: fmtSignedRange(8, 25), why: 'Route disruption' },
+      { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
+    ],
+    watch: `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`,
+  };
+
+  const rate = {
+    hl: `Rates regime check: real-rate pressure remains ${spread != null && spread > 0 ? 'positive' : 'fragile'}`,
+    body: `10Y Treasury is ${t10 != null ? t10.toFixed(2) + '%' : 'n/a'}, 2Y is ${t2 != null ? t2.toFixed(2) + '%' : 'n/a'}, and curve spread is ${spread != null ? (spread >= 0 ? '+' : '') + spread.toFixed(2) : 'n/a'}. With CPI at ${cpi != null ? cpi.toFixed(2) + '%' : 'n/a'}, the current backdrop suggests rates remain a primary valuation driver for equities, gold, and crypto.`,
+    why: [
+      `Higher real rates generally compress long-duration equity multiples.`,
+      `Positive but narrowing spread can still coexist with growth scares and volatility spikes.`,
+      `Gold response depends on real-rate direction more than nominal yield alone.`,
+      `USD relative strength tends to persist when US rates stay restrictive.`,
+    ],
+    impact: [
+      { name: 'Gold', dir: spread != null && spread > 0.3 ? 'down' : 'up', val: spread != null && spread > 0.3 ? '−2%–−8%' : '+1%–+6%', why: 'Real-rate sensitivity' },
+      { name: 'USD', dir: 'up', val: '+2%–+7%', why: 'Yield differential' },
+      { name: 'S&P 500', dir: 'down', val: '−4%–−12%', why: 'Discount-rate drag' },
+      { name: 'Bonds', dir: 'down', val: '−2%–−8%', why: 'Price inverse to yield' },
+      { name: 'Silver', dir: 'down', val: '−2%–−7%', why: 'Cyclical + real-rate pressure' },
+      { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Liquidity sensitivity' },
+    ],
+    watch: `Watch 10Y at 4.50% as a risk threshold and track whether spread holds above +0.20; a break lower usually amplifies recession narrative and equity volatility.`,
+  };
+
+  const supply = {
+    hl: `Supply chain stress test: inflation and logistics remain headline-sensitive`,
+    body: `Supply conditions are not in full crisis mode, but geopolitical shipping risk and energy uncertainty still create tail-risk for costs. If disruptions persist, input inflation can re-accelerate even with moderating headline CPI, especially in transport, food, and industrial channels.`,
+    why: [
+      `Shipping and energy volatility transmit into producer margins with a lag.`,
+      `Food and commodity corridors remain vulnerable to geopolitical disruption.`,
+      `Margin pressure can appear before CPI prints show the full impact.`,
+      `Hard assets often outperform when supply stress meets policy uncertainty.`,
+    ],
+    impact: [
+      { name: 'Oil', dir: 'up', val: '+8%–+22%', why: 'Logistics + geopolitical premium' },
+      { name: 'Wheat', dir: 'up', val: '+6%–+18%', why: 'Corridor sensitivity' },
+      { name: 'Gold', dir: 'up', val: '+2%–+9%', why: 'Inflation hedge' },
+      { name: 'S&P 500', dir: 'down', val: '−2%–−7%', why: 'Margin compression' },
+      { name: 'Shipping', dir: 'up', val: '+12%–+35%', why: 'Capacity squeeze' },
+      { name: 'Bitcoin', dir: btcChg != null && btcChg > 0 ? 'watch' : 'down', val: btcChg != null && btcChg > 0 ? '→ mixed' : '−3%–−10%', why: 'Indirect macro channel' },
+    ],
+    watch: `Watch shipping-cost proxies and fresh Middle East headlines together; persistent disruption over multiple weeks is materially more inflationary than one-off shocks.`,
+  };
+
+  const crash = {
+    hl: `Risk-off monitor: sentiment and positioning still dominate tape action`,
+    body: `Fear & Greed sits at ${fg != null ? fg : 'n/a'}, while S&P daily change is ${spChg != null ? (spChg >= 0 ? '+' : '') + spChg.toFixed(2) + '%' : 'n/a'}. This is a fragile environment where short-covering rallies can coexist with defensive rotation. Gold and USD leadership with weak breadth would confirm ongoing risk-off structure.`,
+    why: [
+      `Low sentiment historically aligns with high realized volatility and fast reversals.`,
+      `If breadth lags index rebounds, risk remains concentrated rather than resolved.`,
+      `Gold strength during equity bounces is a classic caution signal.`,
+      `Crypto often magnifies equity direction in late-cycle risk moves.`,
+    ],
+    impact: [
+      { name: 'Gold', dir: 'up', val: '+4%–+12%', why: 'Defensive allocation' },
+      { name: 'S&P 500', dir: 'down', val: '−8%–−20%', why: 'Multiple compression' },
+      { name: 'Bitcoin', dir: 'down', val: '−12%–−30%', why: 'Liquidity + beta' },
+      { name: 'Bonds', dir: 'up', val: '+3%–+9%', why: 'Flight to quality' },
+      { name: 'VIX', dir: 'up', val: '+60%–+150%', why: 'Volatility repricing' },
+      { name: 'USD', dir: 'up', val: '+2%–+7%', why: 'Safe-haven demand' },
+    ],
+    watch: `Watch Fear & Greed recovery above 30 and whether S&P can hold gains on rising volume; failed follow-through usually signals continuation risk.`,
+  };
+
+  return { geo, rate, supply, crash };
+}
+
+function renderStoryCard(cardId, payload) {
+  const el = document.getElementById(cardId);
+  if (!el || !payload) return;
+  const dirColor = (d) => d === 'up' ? '#0F6E56' : d === 'down' ? '#A32D2D' : '#8A96A4';
+  const dirArrow = (d) => d === 'up' ? '↑' : d === 'down' ? '↓' : '→';
+
+  el.innerHTML = `
+    <div class="sc-hl">${payload.hl}</div>
+    <div class="sc-body">${payload.body}</div>
+    <div class="sc-split">
+      <div class="sc-left">
+        <div class="plbl" style="margin-bottom:10px">Why this matters</div>
+        <div class="sc-factors">
+          ${(payload.why || []).map((t, i) => `
+            <div class="sc-factor">
+              <div class="sf-dot" style="background:${i % 3 === 0 ? '#A32D2D' : (i % 3 === 1 ? '#B8952A' : '#0F6E56')}"></div>
+              <div class="sf-text">${t}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="sc-right">
+        <div class="plbl" style="margin-bottom:10px">Projected impact</div>
+        <div class="impgrid">
+          ${(payload.impact || []).map((a) => `
+            <div class="impcell">
+              <div class="impname">${a.name}</div>
+              <div class="impdir" style="color:${dirColor(a.dir)}">${dirArrow(a.dir)} ${a.val}</div>
+              <div class="impwhy">${a.why}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="sc-watch">
+      <div class="kw-lbl">Key watch</div>
+      <div class="kw-txt">${payload.watch}</div>
+    </div>
+  `;
+}
+
+function populateLiveStoryCards(data) {
+  const payloads = buildLiveStoryPayloads(data);
+  renderStoryCard('geoStoryCard', payloads.geo);
+  renderStoryCard('rateStoryCard', payloads.rate);
+  renderStoryCard('supplyStoryCard', payloads.supply);
+  renderStoryCard('crashStoryCard', payloads.crash);
 }
 
 loadLiveBriefing();
