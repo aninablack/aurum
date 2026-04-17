@@ -1393,7 +1393,7 @@ function generateBody(data) {
     const second = topRisks[1]
       ? ` ${countryNames[topRisks[1][0]] || topRisks[1][0]} is also elevated at ${topRisks[1][1]}/100.`
       : '';
-    parts.push(`${name} is the highest current geopolitical risk score at ${score}/100.${second} ${assetImplications}`);
+    parts.push(`${name} is currently the highest geopolitical risk node.${second} ${assetImplications}`);
   } else if (sentiment?.newsItems?.[0]?.text) {
     parts.push(`From the wires: ${sentiment.newsItems[0].text}.`);
   }
@@ -1441,9 +1441,9 @@ function generatePlaybooks(data) {
 
   const geo = {
     hl: `${topName} tensions and macro uncertainty: geopolitical risk at the center`,
-    body: `Conflict risk is concentrated in ${topName} (${topScore}/100), while Fear & Greed remains ${fg != null ? fg : 'elevated'} and defensive positioning persists. Gold is ${gold != null ? `trading near $${Math.round(gold).toLocaleString()}` : 'acting as a safe-haven proxy'}. The setup remains sensitive to any confirmation of de-escalation talks versus escalation headlines.`,
+    body: `Conflict risk is concentrated in ${topName}, while Fear & Greed remains ${fg != null ? fg : 'elevated'} and defensive positioning persists. Gold is ${gold != null ? `trading near $${Math.round(gold).toLocaleString()}` : 'acting as a safe-haven proxy'}. The setup remains sensitive to any confirmation of de-escalation talks versus escalation headlines.`,
     why: [
-      `${topName} remains the dominant geopolitical node in your live risk map (${topScore}/100).`,
+      `${topName} remains the dominant geopolitical node in your live risk map.`,
       'Safe-haven demand tends to favor gold and USD when geopolitical uncertainty remains unresolved.',
       'Energy and shipping channels remain the fastest transmission path into broader risk assets.',
       'Headline volatility can reverse quickly; treat single-source wires as tactical, not structural, signals.',
@@ -1457,7 +1457,7 @@ function generatePlaybooks(data) {
       { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
     ],
     watch: topScore >= 95
-      ? `${topName} remains the highest-risk live node (${topScore}/100). Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
+      ? `${topName} remains the highest-risk live node. Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
       : topScore >= 80
         ? `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`
         : `Watch for any acceleration in ${topName} risk toward 80+, and monitor oil and gold reaction to fresh wires.`,
