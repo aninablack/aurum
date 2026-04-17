@@ -66,6 +66,7 @@ const SANITY = {
   platinum: { min: 400,  max: 3000 },
 };
 const NEWS_MAX_AGE_HOURS = 24;
+const NEWS_PREFERRED_MAX_AGE_HOURS = 6;
 
 // ── UTILITIES ────────────────────────────────────────────────────────────────
 
@@ -611,6 +612,7 @@ async function fetchNewsWithFallback(existing, now = new Date()) {
   const chain = rotateChain(baseChain, runSlot);
   console.log(`~ News provider rotation slot=${runSlot}, start=${chain[0]?.[0] ?? 'n/a'}`);
 
+  let staleFallback = null;
   for (const [label, quotaKey, apiKey, fn] of chain) {
     if (!apiKey) continue;
     const policyCfg = NEWS_PROVIDER_POLICIES[quotaKey] ?? { minHours: 6 };
@@ -621,9 +623,20 @@ async function fetchNewsWithFallback(existing, now = new Date()) {
     }
     const items = await safe(label, fn);
     const filteredItems = selectRelevantNews(items);
-    if (filteredItems?.length) return { signal: buildNewsSignal(filteredItems), items: filteredItems, provider: quotaKey };
+    if (!filteredItems?.length) continue;
+
+    if (hasFreshNews(filteredItems, NEWS_PREFERRED_MAX_AGE_HOURS)) {
+      return { signal: buildNewsSignal(filteredItems), items: filteredItems, provider: quotaKey };
+    }
+
+    // Keep a stale-but-usable fallback in case every provider is stale.
+    // This avoids empty wires while still preferring fresher sources.
+    if (!staleFallback && hasFreshNews(filteredItems, NEWS_MAX_AGE_HOURS)) {
+      staleFallback = { signal: buildNewsSignal(filteredItems), items: filteredItems, provider: quotaKey };
+      console.log(`~ ${label} returned only older items (${NEWS_PREFERRED_MAX_AGE_HOURS}h+); trying next provider for fresher wires`);
+    }
   }
-  return null;
+  return staleFallback;
 }
 
 // ── COINGECKO — BTC, ETH as macro risk signals (keyless demo) ────────────────
@@ -1428,7 +1441,11 @@ function generatePlaybooks(data) {
       { name: 'Shipping', dir: 'up', val: '+8%–+25%', why: 'Route disruption' },
       { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
     ],
-    watch: `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`,
+    watch: topScore >= 100
+      ? `Risk confirmed at 100/100 in ${topName}. Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
+      : topScore >= 80
+        ? `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`
+        : `Watch for any acceleration in ${topName} risk toward 80+, and monitor oil and gold reaction to fresh wires.`,
   };
 
   const rate = {

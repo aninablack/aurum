@@ -1925,6 +1925,27 @@ function populatePulseContext(data) {
     set('fedCtx', rrLabel ? `${moveLabel} · ${rrLabel}` : moveLabel);
   }
 
+  // ── Geo impact "Current read" text (data-driven, no static country mismatch) ─
+  const geoImpactReadEl = document.querySelector('#geoImpactRead .ir-text');
+  if (geoImpactReadEl) {
+    const geo = data?.geopolitical?.riskByCountry ?? {};
+    const countryLabels = {
+      IRN: 'Iran', ISR: 'Israel', LBN: 'Lebanon', SYR: 'Syria', YEM: 'Yemen',
+      IRQ: 'Iraq', UKR: 'Ukraine', RUS: 'Russia', PAK: 'Pakistan', USA: 'United States',
+    };
+    const activePressurePoints = Object.entries(geo)
+      .filter(([, score]) => Number(score) > 10)
+      .sort((a, b) => Number(b[1]) - Number(a[1]))
+      .slice(0, 2)
+      .map(([iso]) => countryLabels[iso] || iso);
+    const pressureText = activePressurePoints.length >= 2
+      ? `${activePressurePoints[0]} and ${activePressurePoints[1]} are the primary pressure points.`
+      : activePressurePoints.length === 1
+        ? `${activePressurePoints[0]} is the primary pressure point.`
+        : `No single country is currently above the active pressure threshold.`;
+    geoImpactReadEl.textContent = `${pressureText} Safe-haven demand for gold and USD is strong. Equities and Bitcoin face continued risk-off pressure until a clear geopolitical resolution catalyst emerges.`;
+  }
+
   // ── Geo context paragraph in briefing ───────────────────────────────────────
   // Picks the highest-probability scenario and writes a single article-style
   // paragraph that appears between the main briefing body and the Key Watch strip.
@@ -1982,7 +2003,11 @@ function populatePulseContext(data) {
 
     } else if (mideast >= 45) {
       const hotCountry = iranRisk >= isrRisk ? `Iran (${iranRisk}/100)` : `Israel-Lebanon (${Math.max(isrRisk, lbnRisk)}/100)`;
-      geoPara = `<span class="b-geo-hl">Geopolitical watch.</span> Middle East risk remains elevated at ${hotCountry}. No confirmed escalation trigger yet, but oil and gold are on alert for any Hormuz-related developments. ${geoLink}`;
+      if (mideast >= 100) {
+        geoPara = `<span class="b-geo-hl">Geopolitical watch.</span> ${hotCountry} is at maximum conflict risk. Monitor for de-escalation signals and immediate oil-price reaction, with gold likely to stay bid while risk remains elevated. ${geoLink}`;
+      } else {
+        geoPara = `<span class="b-geo-hl">Geopolitical watch.</span> Middle East risk remains elevated at ${hotCountry}. Escalation risk is active, and oil and gold remain on alert for any Hormuz-related developments. ${geoLink}`;
+      }
     }
 
     if (geoPara) {
@@ -2167,7 +2192,11 @@ function buildLiveStoryPayloads(data) {
       { name: 'Shipping', dir: 'up', val: fmtSignedRange(8, 25), why: 'Route disruption' },
       { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
     ],
-    watch: `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`,
+    watch: topScore >= 100
+      ? `Risk confirmed at 100/100 in ${topName}. Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
+      : topScore >= 80
+        ? `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`
+        : `Watch for any acceleration in ${topName} risk toward 80+, and monitor oil and gold reaction to fresh wires.`,
   };
 
   const rate = {
