@@ -338,14 +338,24 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .nav { padding: 0 16px; }
   .page-outer { padding: 12px 14px 0; }
   .tabs-wrap {
-    padding: 0 14px;
-    position: sticky;
-    top: 0;
-    z-index: 120;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(40px + env(safe-area-inset-bottom,0px));
+    z-index: 190;
+    padding: 0 12px;
     background: var(--parchment);
-    border-bottom: 1px solid rgba(221,211,188,0.7);
+    border-top: 1px solid rgba(221,211,188,0.75);
+    box-shadow: 0 -1px 8px rgba(13,27,42,0.06);
   }
-  .page { padding: 16px 14px calc(56px + env(safe-area-inset-bottom,0px)); }
+  .story-tabs {
+    padding: 8px 2px 9px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .story-tabs::-webkit-scrollbar { display: none; }
+  .page { padding: 16px 14px calc(112px + env(safe-area-inset-bottom,0px)); }
   .gnsplit { grid-template-columns: 1fr; }
   .impgrid { grid-template-columns: repeat(2, 1fr); }
   /* Hide map on mobile — hotspot list is the useful content at this size */
@@ -372,7 +382,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .stab { padding: 7px 11px; font-size: 13px; }
   .cprice { font-size: 30px; }
   .b-headline, .b-hl { font-size: 20px !important; }
-  .page { padding: 14px 12px 54px; }
+  .page { padding: 14px 12px calc(112px + env(safe-area-inset-bottom,0px)); }
   .ccrd-body { padding: 12px; }
   .macro-stat-row { margin-left: -2px; margin-right: -2px; }
   .mstat { min-width: 62px; padding: 9px 10px; }
