@@ -352,6 +352,22 @@ async function fetchIndexHistoryBackfill(symbol, days = 30) {
     .slice(-days);
 }
 
+/**
+ * Backfill N days of commodity futures closes for metals history arrays.
+ * Used to avoid "1-2 point" charts after a fresh Gist reset.
+ */
+async function fetchMetalHistoryBackfill(symbol, days = 30, decimals = 2) {
+  const period1 = new Date(Date.now() - (days + 7) * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+  const period2 = new Date().toISOString().slice(0, 10);
+  const result = await yahooFinance.chart(symbol, { period1, period2, interval: '1d' });
+  const quotes = result?.quotes ?? [];
+  return quotes
+    .filter(r => r.close != null && !isNaN(r.close))
+    .map(r => round(r.close, decimals))
+    .slice(-days);
+}
+
 // ── METALS.DEV — gold, silver, platinum live spot (100 req/month) ─────────────
 async function fetchMetals() {
   const url = `https://api.metals.dev/v1/latest?api_key=${CONFIG.metalsdev}&currency=USD&unit=troy_ounce`;
@@ -885,6 +901,18 @@ async function main() {
     const h = await safe('Yahoo Nikkei backfill', () => fetchIndexHistoryBackfill('^N225', 30));
     if (h?.length) { history.nikkei = h; console.log(`  nikkei: seeded ${h.length} days`); }
   }
+  if (history.gold.length < 5) {
+    const h = await safe('Yahoo Gold backfill', () => fetchMetalHistoryBackfill('GC=F', 30, 2));
+    if (h?.length) { history.gold = h; console.log(`  gold: seeded ${h.length} days`); }
+  }
+  if (history.silver.length < 5) {
+    const h = await safe('Yahoo Silver backfill', () => fetchMetalHistoryBackfill('SI=F', 30, 2));
+    if (h?.length) { history.silver = h; console.log(`  silver: seeded ${h.length} days`); }
+  }
+  if ((history.platinum?.length ?? 0) < 5) {
+    const h = await safe('Yahoo Platinum backfill', () => fetchMetalHistoryBackfill('PL=F', 30, 2));
+    if (h?.length) { history.platinum = h; console.log(`  platinum: seeded ${h.length} days`); }
+  }
 
   // 2. Fetch all sources in parallel where possible
   console.log('\n── Fetching data sources...');
@@ -900,7 +928,8 @@ async function main() {
   const metalsPolicy = withQuotaPolicy(existing, 'metalsdev', { minHours: metalsMinHours, maxPerMonth: 100 }, now);
   const gdeltPolicy  = withQuotaPolicy(existing, 'gdelt', { minHours: 2 }, now);
 
-  const canFetchMetals = metalsPolicy.allowed;
+  const hasMetalsKey   = Boolean(CONFIG.metalsdev);
+  const canFetchMetals = hasMetalsKey && metalsPolicy.allowed;
   const canFetchGeo    = gdeltPolicy.allowed;
 
   // Yahoo Finance indices: no quota, fetched on every run
@@ -921,7 +950,11 @@ async function main() {
         : Promise.resolve(null),
     ]);
 
-  if (!canFetchMetals) console.log(`~ Metals.dev skipped (quota/cadence; month count=${metalsPolicy.state.month}/100)`);
+  if (!hasMetalsKey) {
+    console.log('~ Metals.dev skipped (METALS_DEV_KEY not set)');
+  } else if (!canFetchMetals) {
+    console.log(`~ Metals.dev skipped (quota/cadence; month count=${metalsPolicy.state.month}/100)`);
+  }
   if (!canFetchGeo)    console.log('~ GDELT skipped (2h cadence, reusing cached geopolitical data)');
 
   // 3. Metals source priority with sanity guards
