@@ -1019,6 +1019,7 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
   const lastFgDate = existing?.meta?.lastFgDate;
   const lastMacroDate = existing?.meta?.lastMacroDate;
+  const lastIndicesDate = existing?.meta?.lastIndicesDate;
   // Fear & Greed: use API history to backfill when array is short
   const fgApiHistory = Array.isArray(fearGreed?.history) && fearGreed.history.length >= 5
     ? fearGreed.history
@@ -1032,10 +1033,10 @@ async function main() {
   history.fearGreed = appendDailyValue(fgBase, fearGreed?.value, lastFgDate === today);
   history.silver = [...history.silver, silverPrice].filter(v => v != null && !Number.isNaN(v)).slice(-30);
   pushHistory(history.platinum,    platinumPrice);
-  pushHistory(history.sp500,       yahooIndices?.sp500?.price);
-  pushHistory(history.dax,         yahooIndices?.dax?.price);
-  pushHistory(history.ftse,        yahooIndices?.ftse?.price);
-  pushHistory(history.nikkei,      yahooIndices?.nikkei?.price);
+  history.sp500  = appendDailyValue(history.sp500,  yahooIndices?.sp500?.price,  lastIndicesDate === today);
+  history.dax    = appendDailyValue(history.dax,    yahooIndices?.dax?.price,    lastIndicesDate === today);
+  history.ftse   = appendDailyValue(history.ftse,   yahooIndices?.ftse?.price,   lastIndicesDate === today);
+  history.nikkei = appendDailyValue(history.nikkei, yahooIndices?.nikkei?.price, lastIndicesDate === today);
   pushHistory(history.eurusd,      fx?.EURUSD?.rate);
   pushHistory(history.gbpusd,      fx?.GBPUSD?.rate);
   pushHistory(history.usdjpy,      fx?.USDJPY?.rate);
@@ -1133,6 +1134,9 @@ async function main() {
       version:  '1.0',
       lastFgDate: fearGreed?.value != null ? today : (existing?.meta?.lastFgDate ?? null),
       lastMacroDate: (macro?.fedFunds?.value != null || macro?.cpi?.yoyPct != null) ? today : (existing?.meta?.lastMacroDate ?? null),
+      lastIndicesDate: (yahooIndices?.sp500?.price != null || yahooIndices?.dax?.price != null || yahooIndices?.ftse?.price != null || yahooIndices?.nikkei?.price != null)
+        ? today
+        : (existing?.meta?.lastIndicesDate ?? null),
       geoCached,
       quota: {
         metalsdev: {
@@ -1391,7 +1395,11 @@ function generateBody(data) {
   const watches = [];
   if (fg != null && fg <= 30) watches.push(`a Fear and Greed recovery above 30 as the first signal that selling pressure may be exhausting`);
   if (spread != null && spread < 0.3 && spread >= 0) watches.push(`any further flattening of the yield curve toward inversion`);
-  if (topRisk && topRisk[1] >= 90) watches.push(`oil prices and gold for breakout moves on any confirmed geopolitical escalation`);
+  if (topRisk && topRisk[1] >= 100) {
+    watches.push(`a drop in ${countryNames[topRisk[0]] || topRisk[0]} risk below 80 as the first de-escalation signal, plus oil for any relief rally`);
+  } else if (topRisk && topRisk[1] >= 90) {
+    watches.push(`oil prices and gold for breakout moves on any confirmed geopolitical escalation`);
+  }
   if (cpi != null && cpi > 3) watches.push(`the next CPI print for signs that inflation is moving back toward the Fed's 2% target`);
   if (watches.length) {
     parts.push(`Watch for ${watches.slice(0, 2).join(', and for ')}.`);
