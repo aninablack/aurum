@@ -1651,35 +1651,27 @@ async function drawWorldMap(){
   });
 
   const hotspotRows = Array.from(document.querySelectorAll('.hotspot'));
-  const topRiskIso = Object.entries(riskData)
-    .sort(([, a], [, b]) => Number(b || 0) - Number(a || 0))[0]?.[0] || null;
-  let visibleHotspots = 0;
-
   hotspotRows.forEach((row) => {
     const scoreEl = row.querySelector('.hs-score[data-iso]');
     if (!scoreEl) return;
     const iso = scoreEl.getAttribute('data-iso');
     const score = Number(riskData[iso] || 0);
 
-    // Hide inactive hotspots to avoid a noisy list full of zero scores.
-    // Keep the top risk row visible as a fallback so the list is never empty.
-    if (score <= 0 && iso !== topRiskIso) {
-      row.style.display = 'none';
-      return;
-    }
-
     row.style.display = 'flex';
-    visibleHotspots += 1;
-    scoreEl.textContent = String(score);
     const badge = hotspotBadgeStyle(score);
-    scoreEl.style.color = badge.color;
-    scoreEl.style.background = badge.bg;
+    if (score <= 0) {
+      // Keep the row for context, but hide zero-value score badges.
+      scoreEl.textContent = '';
+      scoreEl.style.background = 'transparent';
+      scoreEl.style.color = 'transparent';
+      scoreEl.style.border = '1px solid transparent';
+    } else {
+      scoreEl.textContent = String(score);
+      scoreEl.style.background = badge.bg;
+      scoreEl.style.color = badge.color;
+      scoreEl.style.border = '';
+    }
   });
-
-  // Final safeguard: if everything was hidden for any reason, unhide the first row.
-  if (visibleHotspots === 0 && hotspotRows[0]) {
-    hotspotRows[0].style.display = 'flex';
-  }
 
   mapRendered = true;
 }
