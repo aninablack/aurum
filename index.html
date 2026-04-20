@@ -1666,10 +1666,14 @@ async function drawWorldMap(){
       scoreEl.style.color = 'transparent';
       scoreEl.style.border = '1px solid transparent';
     } else {
-      scoreEl.textContent = String(score);
+      const label = score >= 60 ? 'HIGH' : score >= 20 ? 'ELEVATED' : 'WATCH';
+      scoreEl.textContent = label;
       scoreEl.style.background = badge.bg;
       scoreEl.style.color = badge.color;
       scoreEl.style.border = '';
+      scoreEl.style.fontSize = '9px';
+      scoreEl.style.fontWeight = '700';
+      scoreEl.style.letterSpacing = '0.5px';
     }
   });
 
@@ -2015,13 +2019,6 @@ function populatePulseContext(data) {
       const tags = inlineAssets(topScenario.assets || []);
       geoPara = `${lead} <span class="b-geo-assets">${tags}</span> ${geoLink}`;
 
-    } else if (mideast >= 45) {
-      const hotCountry = iranRisk >= isrRisk ? `Iran (${iranRisk}/100)` : `Israel-Lebanon (${Math.max(isrRisk, lbnRisk)}/100)`;
-      if (mideast >= 100) {
-        geoPara = `<span class="b-geo-hl">Geopolitical watch.</span> ${hotCountry} is at maximum conflict risk. Monitor for de-escalation signals and immediate oil-price reaction, with gold likely to stay bid while risk remains elevated. ${geoLink}`;
-      } else {
-        geoPara = `<span class="b-geo-hl">Geopolitical watch.</span> Middle East risk remains elevated at ${hotCountry}. Escalation risk is active, and oil and gold remain on alert for any Hormuz-related developments. ${geoLink}`;
-      }
     }
 
     if (geoPara) {
