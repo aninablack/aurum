@@ -298,7 +298,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
 }
 .mapleg{display:flex;align-items:center;gap:4px;margin-bottom:14px;}
 .hotspot{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #DDD3BC;}
-.hs-score{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;margin-top:1px;}
+.hs-score{width:52px;display:flex;align-items:flex-start;justify-content:flex-start;font-size:9px;font-weight:700;letter-spacing:0.6px;flex-shrink:0;margin-top:3px;background:transparent!important;border:none!important;}
 .hs-title{font-size:14px;font-weight:500;color:#0D1B2A;margin-bottom:2px;}
 .hs-detail{font-size:14px;color:#4A5568;line-height:1.5;}
 .hs-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
@@ -389,7 +389,7 @@ h1.b-headline{font-family:'DM Serif Display',serif !important;font-weight:400 !i
   .mstat-label { font-size: 8px; letter-spacing: 0.06em; }
   .mstat-val { font-size: 16px; }
   /* Hotspot score badge smaller */
-  .hs-score { width: 24px; height: 24px; font-size: 12px; }
+  .hs-score { width: 52px; font-size: 9px; }
   .hs-title { font-size: 14px; }
   .hs-detail { font-size: 13px; }
   /* Impact grid 1-col on tiny screens */
@@ -1668,12 +1668,9 @@ async function drawWorldMap(){
     } else {
       const label = score >= 60 ? 'HIGH' : score >= 20 ? 'ELEVATED' : 'WATCH';
       scoreEl.textContent = label;
-      scoreEl.style.background = badge.bg;
+      scoreEl.style.background = 'transparent';
       scoreEl.style.color = badge.color;
-      scoreEl.style.border = '';
-      scoreEl.style.fontSize = '9px';
-      scoreEl.style.fontWeight = '700';
-      scoreEl.style.letterSpacing = '0.5px';
+      scoreEl.style.border = 'none';
     }
   });
 
