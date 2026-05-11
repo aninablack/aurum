@@ -1494,28 +1494,144 @@ function generatePlaybooks(data) {
   const names = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China', USA: 'United States', PAK: 'Pakistan' };
   const topName = names[topIso] || topIso;
 
+  // Country-specific asset impact profiles
+  const geoProfiles = {
+    IRN: {
+      body: `Iran is the highest-risk node in the live conflict map. Strait of Hormuz posturing puts roughly 20% of global oil supply at risk. Any naval incident would transmit directly into energy prices and safe-haven flows.`,
+      why: [
+        'Strait of Hormuz handles ~20% of global oil — closure risk is priced immediately into energy markets.',
+        'Historical Middle East escalations send gold up 8–15% within days as safe-haven demand accelerates.',
+        'USD strengthens as reserve demand surges; European equities face the heaviest energy import cost exposure.',
+        'Headline volatility can reverse quickly; treat single-source wires as tactical, not structural, signals.',
+      ],
+      impact: [
+        { name: 'Gold',    dir: 'up',   val: '+8%–+15%', why: 'Safe-haven surge' },
+        { name: 'Oil',     dir: 'up',   val: '+10%–+30%', why: 'Supply disruption risk' },
+        { name: 'S&P 500', dir: 'down', val: '−5%–−12%', why: 'Risk repricing' },
+        { name: 'USD',     dir: 'up',   val: '+3%–+6%',  why: 'Reserve flight' },
+        { name: 'Shipping',dir: 'up',   val: '+8%–+25%', why: 'Route disruption' },
+        { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch WTI crude above $90 as the breakout level. A drop in Iran GDELT score below 80 is the first credible de-escalation signal. Gold above ${gold ? '$' + Math.round(gold).toLocaleString() : 'current levels'} confirms safe-haven positioning is holding.`,
+    },
+    ISR: {
+      body: `Israel is the current highest-risk node. Middle East conflict risk has a direct transmission path into oil, regional shipping, and broader safe-haven demand — with European equities most exposed via energy import costs.`,
+      why: [
+        'Middle East escalation historically compresses regional equity risk appetite and lifts energy premiums.',
+        'Gold and USD absorb safe-haven flows rapidly when conflict intensity rises.',
+        'Shipping route risk through Suez and Red Sea corridors amplifies cost pressures globally.',
+        'US diplomatic involvement can shift market tone quickly — watch official statements as leading signals.',
+      ],
+      impact: [
+        { name: 'Gold',    dir: 'up',   val: '+6%–+12%', why: 'Safe-haven demand' },
+        { name: 'Oil',     dir: 'up',   val: '+5%–+20%', why: 'Regional supply risk' },
+        { name: 'S&P 500', dir: 'down', val: '−3%–−10%', why: 'Risk-off repricing' },
+        { name: 'EUR',     dir: 'down', val: '−1%–−3%',  why: 'Regional exposure' },
+        { name: 'Shipping',dir: 'up',   val: '+5%–+20%', why: 'Suez/Red Sea risk' },
+        { name: 'Bitcoin', dir: 'down', val: '−5%–−12%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch oil prices for any supply disruption confirmation. Gold holding above ${gold ? '$' + Math.round(gold).toLocaleString() : 'current levels'} signals sustained safe-haven demand. US diplomatic messaging is a key leading indicator for de-escalation.`,
+    },
+    RUS: {
+      body: `Russia is the highest-risk node in the live conflict map. Russian conflict risk transmits primarily through European gas prices, wheat and grain corridors, and EUR weakness — a different channel from Middle East risk but equally capable of driving safe-haven flows into gold and the USD.`,
+      why: [
+        'Russia supplies ~40% of Europe\'s gas historically — any supply disruption hits European industrial margins directly.',
+        'Russia and Ukraine together export ~30% of global wheat — conflict escalation pressures food inflation worldwide.',
+        'EUR weakens as European energy and economic risk rises; USD and CHF absorb safe-haven flows.',
+        'European equities, especially energy-intensive sectors, carry the most direct exposure.',
+      ],
+      impact: [
+        { name: 'Gold',      dir: 'up',   val: '+5%–+12%', why: 'Safe-haven demand' },
+        { name: 'Nat. Gas',  dir: 'up',   val: '+10%–+40%', why: 'Supply disruption' },
+        { name: 'Wheat',     dir: 'up',   val: '+8%–+25%', why: 'Grain corridor risk' },
+        { name: 'EUR/USD',   dir: 'down', val: '−2%–−6%',  why: 'European risk premium' },
+        { name: 'EU Equities', dir: 'down', val: '−5%–−15%', why: 'Energy cost exposure' },
+        { name: 'Bitcoin',   dir: 'down', val: '−5%–−12%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch European natural gas prices and wheat futures for escalation confirmation. EUR/USD below 1.05 signals markets are pricing serious European economic disruption. Gold holding above ${gold ? '$' + Math.round(gold).toLocaleString() : 'current levels'} confirms safe-haven bid is active.`,
+    },
+    UKR: {
+      body: `Ukraine conflict risk remains elevated in the live map. The primary transmission channels are European energy security, global grain supply, and EUR weakness — with spillover into gold and USD as safe havens.`,
+      why: [
+        'Ukraine is one of the world\'s largest wheat and sunflower oil exporters — conflict disrupts global food supply chains.',
+        'European energy security concerns keep a premium on gas prices and weigh on industrial margins.',
+        'EUR tends to weaken against USD and CHF when conflict intensity in Eastern Europe rises.',
+        'Ceasefire or peace signals can trigger sharp reversals — watch diplomatic channels closely.',
+      ],
+      impact: [
+        { name: 'Gold',     dir: 'up',   val: '+4%–+10%', why: 'Safe-haven demand' },
+        { name: 'Wheat',    dir: 'up',   val: '+8%–+20%', why: 'Grain supply disruption' },
+        { name: 'Nat. Gas', dir: 'up',   val: '+8%–+30%', why: 'European supply risk' },
+        { name: 'EUR/USD',  dir: 'down', val: '−2%–−5%',  why: 'European risk premium' },
+        { name: 'S&P 500',  dir: 'down', val: '−2%–−8%',  why: 'Global risk repricing' },
+        { name: 'Bitcoin',  dir: 'down', val: '−4%–−10%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch European gas prices and wheat futures for escalation confirmation. Any ceasefire signal would sharply reverse EUR weakness and energy premiums. Gold above ${gold ? '$' + Math.round(gold).toLocaleString() : 'current levels'} confirms safe-haven demand remains active.`,
+    },
+    CHN: {
+      body: `China is the highest-risk node in the live conflict map. Chinese geopolitical risk primarily transmits through technology supply chains, Asian equity markets, USD/CNY pressure, and semiconductor availability — structurally different from Middle East risk but with broad global reach.`,
+      why: [
+        'Taiwan Strait tension directly threatens global semiconductor supply — ~90% of advanced chips are made in Taiwan.',
+        'Chinese equity and property market stress can trigger capital outflows that ripple into emerging markets broadly.',
+        'USD/CNY moves signal capital flow pressure; a sharply weaker CNY can amplify risk-off across Asian markets.',
+        'Tech sector equities globally are most exposed given supply chain dependencies.',
+      ],
+      impact: [
+        { name: 'Gold',       dir: 'up',   val: '+4%–+10%', why: 'Safe-haven demand' },
+        { name: 'Tech Stocks',dir: 'down', val: '−8%–−20%', why: 'Supply chain disruption' },
+        { name: 'S&P 500',    dir: 'down', val: '−4%–−12%', why: 'Risk repricing' },
+        { name: 'USD/CNY',    dir: 'up',   val: '+2%–+5%',  why: 'Capital flight from CNY' },
+        { name: 'Semiconductors', dir: 'up', val: '+10%–+30%', why: 'Taiwan supply shock' },
+        { name: 'Bitcoin',    dir: 'down', val: '−6%–−15%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch Taiwan Strait news flow closely — any naval incident would be the highest-impact market catalyst. Semiconductor stocks and USD/CNY are the fastest-moving leading indicators. Gold above ${gold ? '$' + Math.round(gold).toLocaleString() : 'current levels'} confirms safe-haven demand is active.`,
+    },
+    PRK: {
+      body: `North Korea is the current highest-risk geopolitical node. NK escalation risk primarily affects Asian equity markets, the Japanese yen as a safe haven, and USD demand — with potential for rapid de-escalation given the diplomatic patterns involved.`,
+      why: [
+        'North Korean provocations historically trigger sharp but short-lived safe-haven flows into JPY and gold.',
+        'South Korean and Japanese equity markets carry the most direct exposure to escalation risk.',
+        'US military positioning in the region can shift market tone quickly on either side.',
+        'Historical pattern: markets price in risk fast but recover quickly if no further escalation follows.',
+      ],
+      impact: [
+        { name: 'Gold',    dir: 'up',   val: '+3%–+8%',  why: 'Safe-haven demand' },
+        { name: 'JPY',     dir: 'up',   val: '+2%–+5%',  why: 'Regional safe haven' },
+        { name: 'S&P 500', dir: 'down', val: '−2%–−6%',  why: 'Risk-off repricing' },
+        { name: 'Asia Equities', dir: 'down', val: '−4%–−10%', why: 'Regional exposure' },
+        { name: 'USD',     dir: 'up',   val: '+1%–+3%',  why: 'Safe-haven demand' },
+        { name: 'Bitcoin', dir: 'down', val: '−4%–−10%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch for US State Department and Pentagon statements as leading signals. A 48-hour news silence after an initial provocation typically signals contained escalation. JPY and gold are the fastest-moving safe-haven indicators.`,
+    },
+    DEFAULT: {
+      body: `${topName} is the highest-risk node in the live conflict map, with a score of ${topScore}/100. Elevated geopolitical risk at this level tends to drive defensive positioning into gold, USD, and government bonds regardless of the specific geography.`,
+      why: [
+        `${topName} is currently generating the highest conflict intensity signal in the GDELT live data.`,
+        'Safe-haven demand tends to favor gold and USD when geopolitical uncertainty remains unresolved.',
+        'Sustained elevated risk scores above 80 historically correlate with increased market volatility.',
+        'Headline volatility can reverse quickly; treat single-source wires as tactical, not structural, signals.',
+      ],
+      impact: [
+        { name: 'Gold',    dir: 'up',   val: '+4%–+10%', why: 'Safe-haven bid' },
+        { name: 'USD',     dir: 'up',   val: '+2%–+5%',  why: 'Reserve demand' },
+        { name: 'S&P 500', dir: 'down', val: '−3%–−8%',  why: 'Risk repricing' },
+        { name: 'Bonds',   dir: 'up',   val: '+1%–+4%',  why: 'Flight to safety' },
+        { name: 'Oil',     dir: 'watch',val: '±variable', why: 'Depends on geography' },
+        { name: 'Bitcoin', dir: 'down', val: '−4%–−12%', why: 'Risk-off correlation' },
+      ],
+      watch: `Watch ${topName} risk score persistence above 80 as the key threshold. Gold above ${gold ? '$' + Math.round(gold).toLocaleString() : 'current levels'} and USD strength confirm safe-haven demand is active. Any diplomatic signal would be the primary catalyst for reversal.`,
+    },
+  };
+
+  const profile = geoProfiles[topIso] || geoProfiles.DEFAULT;
+
   const geo = {
-    hl: `${topName} tensions and macro uncertainty: geopolitical risk at the center`,
-    body: `Conflict risk is concentrated in ${topName}, while Fear & Greed remains ${fg != null ? fg : 'elevated'} and defensive positioning persists. Gold is ${gold != null ? `trading near $${Math.round(gold).toLocaleString()}` : 'acting as a safe-haven proxy'}. The setup remains sensitive to any confirmation of de-escalation talks versus escalation headlines.`,
-    why: [
-      `${topName} remains the dominant geopolitical node in your live risk map.`,
-      'Safe-haven demand tends to favor gold and USD when geopolitical uncertainty remains unresolved.',
-      'Energy and shipping channels remain the fastest transmission path into broader risk assets.',
-      'Headline volatility can reverse quickly; treat single-source wires as tactical, not structural, signals.',
-    ],
-    impact: [
-      { name: 'Gold', dir: 'up', val: '+4%–+12%', why: 'Safe-haven bid' },
-      { name: 'Oil', dir: 'up', val: '+6%–+20%', why: 'Supply risk premium' },
-      { name: 'S&P 500', dir: 'down', val: '−3%–−10%', why: 'Risk repricing' },
-      { name: 'USD', dir: 'up', val: '+2%–+6%', why: 'Reserve demand' },
-      { name: 'Shipping', dir: 'up', val: '+8%–+25%', why: 'Route disruption' },
-      { name: 'Bitcoin', dir: 'down', val: '−5%–−15%', why: 'Risk-off correlation' },
-    ],
-    watch: topScore >= 95
-      ? `${topName} remains the highest-risk live node. Watch for a drop below 80 as the first de-escalation signal, and monitor oil for any relief rally while gold holds near ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'}.`
-      : topScore >= 80
-        ? `Watch ${topName} risk score persistence above 80, oil reaction to fresh wires, and whether gold can hold above ${gold != null ? '$' + Math.round(gold).toLocaleString() : 'current levels'} on any de-escalation headline.`
-        : `Watch for any acceleration in ${topName} risk toward 80+, and monitor oil and gold reaction to fresh wires.`,
+    hl: `${topName} tensions and macro uncertainty: geopolitical risk at the centre`,
+    body: profile.body + ` Fear & Greed stands at ${fg != null ? fg : 'elevated levels'} and gold is ${gold != null ? `near $${Math.round(gold).toLocaleString()}` : 'acting as a safe-haven proxy'}.`,
+    why: profile.why,
+    impact: profile.impact,
+    watch: profile.watch,
   };
 
   const rate = {
