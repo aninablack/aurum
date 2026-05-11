@@ -1286,48 +1286,103 @@ async function main() {
 
 function generateHeadline(data) {
   const { fearGreed, macro, metals, indices, geopolitical } = data || {};
-  const fg    = fearGreed?.value;
-  const gold  = metals?.gold?.price;
-  const goldChg = metals?.gold?.change;
-  const spChg = indices?.sp500?.change;
-  const cpi   = macro?.cpi?.yoyPct;
-  const fed   = macro?.fedFunds?.value;
+  const fg       = fearGreed?.value;
+  const gold     = metals?.gold?.price;
+  const goldChg  = metals?.gold?.change ?? 0;
+  const spChg    = indices?.sp500?.change ?? 0;
+  const cpi      = macro?.cpi?.yoyPct;
+  const fed      = macro?.fedFunds?.value;
+  const spread   = macro?.yieldSpread?.value;
+  const t10      = macro?.treasury10y?.value;
+
   const topRisk = Object.entries(geopolitical?.riskByCountry || {})
     .filter(([, v]) => v >= 80).sort(([, a], [, b]) => b - a)[0];
-  const names = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China' };
+  const names = { IRN: 'Iran', RUS: 'Russia', UKR: 'Ukraine', ISR: 'Israel', CHN: 'China', SDN: 'Sudan', PSE: 'Gaza' };
+  const country   = topRisk ? (names[topRisk[0]] || topRisk[0]) : null;
+  const riskScore = topRisk?.[1];
+  const goldStr   = gold ? `$${Math.round(gold).toLocaleString()}` : null;
+  const fgLabel   = fg != null ? (fg <= 10 ? 'extreme fear' : fg <= 25 ? 'deep fear' : fg <= 40 ? 'fear' : fg >= 70 ? 'greed' : 'cautious') : 'cautious';
 
-  // Geo crisis + fear combo
-  if (topRisk && topRisk[1] >= 90 && fg != null && fg <= 30)
-    return `${names[topRisk[0]] || topRisk[0]} tensions and market fear combine to lift gold`;
+  // 1. Geo crisis + extreme fear + gold rising hard
+  if (country && riskScore >= 90 && fg != null && fg <= 20 && goldChg > 1.5)
+    return goldStr
+      ? `${country} tensions drive gold to ${goldStr} as markets capitulate`
+      : `${country} conflict and capitulation fear push gold sharply higher`;
 
-  // Extreme fear with direction
-  if (fg != null && fg <= 20) {
-    if (goldChg > 2)  return `Capitulation fear sends investors to gold as equities sell off`;
-    if (spChg < -1.5) return `Extreme fear grips equities — safe havens and cash are in demand`;
-    if (gold)         return `Extreme fear in markets; gold holding at $${Math.round(gold).toLocaleString()} as volatility builds`;
+  // 2. Geo crisis + extreme fear + equity sell-off
+  if (country && riskScore >= 90 && fg != null && fg <= 20 && spChg < -1.5)
+    return `${country} escalation and extreme fear trigger broad equity sell-off`;
+
+  // 3. Geo crisis + fear (20–40) + gold rising
+  if (country && riskScore >= 90 && fg != null && fg <= 40 && goldChg > 0.3)
+    return goldStr
+      ? `${country} risk and ${fgLabel} lift gold to ${goldStr}`
+      : `${country} tensions keep safe-haven demand elevated`;
+
+  // 4. Geo crisis + fear + equity pressure
+  if (country && riskScore >= 90 && fg != null && fg <= 40 && spChg < -1)
+    return `${country} escalation weighs on equities — investors rotate to gold and USD`;
+
+  // 5. Geo crisis + fear — generic but data-specific
+  if (country && riskScore >= 90 && fg != null && fg <= 40)
+    return goldStr
+      ? `${country} risk holds at ${riskScore}/100 — gold near ${goldStr} in defensive posture`
+      : `${country} remains the dominant risk signal as ${fgLabel} persists across markets`;
+
+  // 6. Extreme fear standalone (fg <= 15), no geo
+  if (fg != null && fg <= 15) {
+    if (goldChg > 2)  return `Capitulation: extreme fear drives gold surge as equities unwind`;
+    if (spChg < -2)   return `Extreme fear grips markets — equities fall sharply as safe havens bid`;
+    return goldStr
+      ? `Extreme fear: markets at ${fg} — gold anchoring at ${goldStr} as volatility builds`
+      : `Markets deep in extreme fear — defensive rotation accelerates`;
   }
 
-  // Geo crisis (standalone)
-  if (topRisk && topRisk[1] >= 90)
-    return `${names[topRisk[0]] || topRisk[0]} risk at maximum — energy and gold markets on alert`;
+  // 7. Fear territory + gold rising
+  if (fg != null && fg <= 35 && goldChg > 0.5)
+    return goldStr
+      ? `Fear-driven flows lift gold to ${goldStr} — risk aversion and rate sensitivity in focus`
+      : `Gold advances as ${fgLabel} builds across macro and geopolitical fronts`;
 
-  // Sticky inflation with rates held
+  // 8. Fear territory + equity drop
+  if (fg != null && fg <= 35 && spChg < -1.5)
+    return `${fgLabel} and equity weakness — gold and Treasuries absorbing defensive flows`;
+
+  // 9. Geo crisis standalone (no fear signal)
+  if (country && riskScore >= 90)
+    return goldStr
+      ? `${country} at maximum risk — gold near ${goldStr} as energy markets stay on alert`
+      : `${country} at maximum risk alert — energy and safe-haven markets on watch`;
+
+  // 10. Yield curve inversion
+  if (spread != null && spread < 0 && t10 != null)
+    return `Yield curve inverted at ${spread.toFixed(2)} — recession watch intensifies as Fed holds rates`;
+
+  // 11. Sticky CPI
   if (cpi != null && cpi > 3.5 && fed != null)
-    return `Inflation stays sticky at ${cpi.toFixed(1)}% — Fed holds rates, gold benefits from real-rate pressure`;
+    return `Inflation holds at ${cpi.toFixed(1)}% — Fed stays restrictive, real assets in focus`;
 
-  // Risk-on greed
-  if (fg != null && fg >= 70 && spChg > 0)
-    return `Risk appetite builds as equities gain and sentiment reaches greed territory`;
+  // 12. Risk-on with greed
+  if (fg != null && fg >= 70 && spChg > 0.5)
+    return `Greed returns: equities gain as risk appetite builds across markets`;
 
-  // Gold-led move
-  if (Math.abs(goldChg || 0) > Math.abs(spChg || 0)) {
-    const dir = (goldChg || 0) > 0 ? 'advances' : 'pulls back';
-    return `Gold ${dir} to $${Math.round(gold || 0).toLocaleString()} as macro signals dominate`;
-  }
+  // 13. Gold big move up
+  if (goldChg > 1.5 && goldStr)
+    return `Gold surges to ${goldStr} — macro uncertainty keeps the safe-haven bid alive`;
 
-  // Default equity-led
-  const dir = (spChg || 0) >= 0 ? 'steadies' : 'falls';
-  return `S&P 500 ${dir} as markets weigh inflation, rates, and geopolitical risk`;
+  // 14. Gold pulling back
+  if (goldChg < -1.5 && goldStr)
+    return `Gold retreats to ${goldStr} as risk appetite stabilises across asset classes`;
+
+  // 15. SPX big swing
+  if (spChg > 1.5) return `Equities rebound strongly — watch whether the rally holds on volume and breadth`;
+  if (spChg < -1.5) return `Broad equity sell-off — macro and geopolitical crosscurrents dominate positioning`;
+
+  // 16. Default — always includes a live number
+  const equityDir = spChg >= 0 ? 'steadies' : 'softens';
+  return goldStr
+    ? `S&P 500 ${equityDir} while gold holds near ${goldStr} — rates and geopolitics in focus`
+    : `Markets navigate inflation, rates, and geopolitical signals — no clear directional break`;
 }
 
 function generateBody(data) {
