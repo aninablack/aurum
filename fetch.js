@@ -1437,18 +1437,24 @@ function generateBody(data) {
     parts.push(`The 10-year yield is at ${t10.toFixed(2)}%. ${curveRead}`);
   }
 
-  // ── 3. Geopolitical context tied to specific asset implications ──────────
+  // ── 3. Geopolitical context — country-specific asset implications ─────────
   if (topRisk) {
     const [iso, score] = topRisk;
     const name = countryNames[iso] || iso;
-    const isOilRisk = ['IRN', 'RUS', 'IRQ', 'SAU'].includes(iso);
-    const assetImplications = isOilRisk
-      ? `Any escalation would directly threaten oil supply, historically pushing energy prices up 15 to 30% and triggering a parallel rally in gold as a geopolitical hedge.`
-      : `Sustained tension at this level typically drives capital into safe-haven assets including gold, government bonds, and the Swiss franc.`;
     const second = topRisks[1]
       ? ` ${countryNames[topRisks[1][0]] || topRisks[1][0]} is also elevated at ${topRisks[1][1]}/100.`
       : '';
-    parts.push(`${name} is currently the highest geopolitical risk node.${second} ${assetImplications}`);
+    const geoImplications = {
+      IRN: `Any escalation would directly threaten oil supply through the Strait of Hormuz — roughly 20% of global supply — historically pushing energy prices up 15–30% and triggering a parallel rally in gold as a geopolitical hedge.`,
+      ISR: `Middle East escalation puts regional oil supply routes and Red Sea shipping under pressure, historically driving safe-haven demand into gold and USD while weighing on European equities.`,
+      RUS: `Russian escalation transmits primarily through European gas supply and global wheat corridors, weakening the EUR and lifting energy and food inflation — with gold and CHF absorbing safe-haven flows.`,
+      UKR: `Ukraine conflict risk pressures global wheat and grain supply chains and European energy security, keeping EUR under stress and lifting commodity prices in food and energy channels.`,
+      CHN: `China tension risk transmits through technology supply chains and semiconductor availability — a Taiwan scenario would be a structural shock to global tech production, with USD/CNY and Asian equity markets as the fastest-moving indicators.`,
+      PRK: `North Korea provocations historically trigger sharp but short-lived safe-haven flows into JPY and gold, with South Korean and Japanese equities most exposed. Markets tend to recover quickly if escalation does not follow through.`,
+    };
+    const implication = geoImplications[iso]
+      || `Sustained tension at this level typically drives capital into safe-haven assets including gold, government bonds, and the USD.`;
+    parts.push(`${name} is currently the highest geopolitical risk node at ${score}/100.${second} ${implication}`);
   } else if (sentiment?.newsItems?.[0]?.text) {
     parts.push(`From the wires: ${sentiment.newsItems[0].text}.`);
   }
